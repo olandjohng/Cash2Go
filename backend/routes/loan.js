@@ -37,18 +37,20 @@ async function createPnNumber(header){
 
 loanRouter.get('/', getLoanList)
 
-loanRouter.post('/recalculate/:id',async (req, res) =>{
+loanRouter.get('/recalculate/:id', async (req, res) =>{
   console.log(req.params)
   // get the header
   const loanTYPE = LoanStatus.RECALCULATED
-  const header = await builder.select(
-    // {
-    //   id : 'pn_number',
-      
-    // },
-    '*'
+  const header = await builder.select({
+      pn_number : 'pn_number',
+      principal : 'principal_amount',
+    },
+    // '*'
   ).from('loan_headertbl').where('loan_header_id', req.params.id)
-
+  const paymentDetails = await builder.sum( {payment : 'principal_payment'}).from('view_detail_payment').where('loan_header_id', req.params.id )
+  
+  
+  console.log(paymentDetails)
   res.json(header)
 })
 

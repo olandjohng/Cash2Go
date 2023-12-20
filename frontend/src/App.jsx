@@ -3,6 +3,7 @@ import Topbar from "./scenes/global/topbar";
 import { ColorModeContext, useMode } from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { Dashboard } from "@mui/icons-material";
+import Borrowers from "./scenes/borrowers/index"
 import LeftSidebar from "./scenes/global/LeftSidebar";
 
 
@@ -20,7 +21,9 @@ function App() {
             <Topbar />
             <Routes>
               <Route path="/" element={<Dashboard />} />
-
+              <Route 
+              path="/borrowers" 
+              element={<Borrowers />}/>
             </Routes>
           </main>
         </div>

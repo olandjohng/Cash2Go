@@ -154,8 +154,8 @@ const LeftSidebar = () => {
               Pages
             </Typography>
             <Item
-              title="Profile Form"
-              to="/form"
+              title="Borrowers"
+              to="/borrowers"
               icon={<PersonOutlined />}
               selected={selected}
               setSelected={setSelected}
