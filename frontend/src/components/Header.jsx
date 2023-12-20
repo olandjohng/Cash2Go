@@ -1,12 +1,14 @@
-import { Typography, Box, useTheme } from "@mui/material"
+import { Typography, Box, useTheme, Button } from "@mui/material"
 import { tokens } from "../theme"
+import { AddOutlined } from "@mui/icons-material";
 
-const Header = ({title, subtitle}) => {
+const Header = ({title, subtitle, showButton = true}) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
   return (
-    <Box>
+    <Box width="100%" display="flex" justifyContent="space-between" p={2} sx={{ '& button': { m: 1 } }}>
+        <div>
         <Typography 
             variant="h2" 
             color={colors.grey[100]} 
@@ -23,6 +25,27 @@ const Header = ({title, subtitle}) => {
         > 
             {subtitle} 
         </Typography>
+        </div>
+        <div>
+        {showButton && (
+                <div>
+                    <Button
+                        variant="outlined"
+                        size="medium"
+                        sx={{
+                            backgroundColor: colors.blueAccent[700],
+                            color: colors.grey[100],
+                            fontSize: "14px",
+                            fontWeight: "bold",
+                            padding: "10px 20px",
+                        }}
+                    >
+                        <AddOutlined sx={{ mr: "2px" }} />
+                        Add
+                    </Button>
+                </div>
+            )}
+        </div>
     </Box>
   )
 }
