@@ -1,7 +1,10 @@
+import Header from "../../components/Header"
 
 const Dashboard = () => {
   return (
-    <div>Dashboard</div>
+    <div>
+      <Header title="DASHBOARD" subtitle="Welcome to your Dashboard" />
+    </div>
   )
 }
 

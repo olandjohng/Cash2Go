@@ -3,7 +3,7 @@ import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar"
 import { Box, IconButton, Typography, useTheme } from "@mui/material"
 import { Link } from "react-router-dom"
 import { tokens } from "../../theme"
-import { HomeOutlined, PeopleOutlined, ContactsOutlined, PersonOutlined, MenuOutlined, ReceiptOutlined, CalendarTodayOutlined, HelpOutlineOutlined, PointOfSaleOutlined, AttachMoneyOutlined } from "@mui/icons-material"
+import { HomeOutlined, PeopleOutlined, MenuOutlined, ReceiptOutlined, PointOfSaleOutlined, AttachMoneyOutlined, Diversity3Outlined, CategoryOutlined } from "@mui/icons-material"
 import 'react-pro-sidebar/dist/css/styles.css';
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
@@ -114,13 +114,21 @@ const LeftSidebar = () => {
               selected={selected}
               setSelected={setSelected}
             />
-            {!isCollapsed && (
+            {!isCollapsed ? (
                 <Typography
                 variant="h6"
                 color={colors.grey[300]}
                 sx={{ m: "15px 0 5px 20px" }}
               >
                 Transactions
+              </Typography>
+            ) : (
+              <Typography
+                variant="h6"
+                color={colors.grey[300]}
+                sx={{ m: "15px 0 5px 20px", border: "1px"}}
+              >
+                
               </Typography>
             )}
             
@@ -151,26 +159,33 @@ const LeftSidebar = () => {
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              Pages
+              Maintenance
             </Typography>
             <Item
-              title="Profile Form"
-              to="/form"
-              icon={<PersonOutlined />}
+              title="Users"
+              to="/users"
+              icon={<PeopleOutlined />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Calendar"
-              to="/calendar"
-              icon={<CalendarTodayOutlined />}
+              title="Customers"
+              to="/customers"
+              icon={<Diversity3Outlined />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="FAQ Page"
-              to="/faq"
-              icon={<HelpOutlineOutlined />}
+              title="Loan Category"
+              to="/category"
+              icon={<CategoryOutlined />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Loan Category"
+              to="/category"
+              icon={<CategoryOutlined />}
               selected={selected}
               setSelected={setSelected}
             />
