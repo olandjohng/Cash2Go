@@ -134,14 +134,14 @@ const LeftSidebar = () => {
             
             <Item
               title="Loan"
-              to="/loan"
+              to="/loans"
               icon={<AttachMoneyOutlined />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
               title="Payments"
-              to="/payment"
+              to="/payments"
               icon={<PointOfSaleOutlined />}
               selected={selected}
               setSelected={setSelected}

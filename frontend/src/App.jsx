@@ -4,6 +4,7 @@ import { ColorModeContext, useMode } from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import  Dashboard  from "./scenes/dashboard";
 import LeftSidebar from "./scenes/global/LeftSidebar";
+import Loan from "./scenes/loan";
 
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
             <Topbar />
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/loans" element={<Loan />} />
 
             </Routes>
           </main>

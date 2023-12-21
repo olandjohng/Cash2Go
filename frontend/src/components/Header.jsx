@@ -38,6 +38,10 @@ const Header = ({title, subtitle, showButton = true}) => {
                             fontSize: "14px",
                             fontWeight: "bold",
                             padding: "10px 20px",
+                            borderColor: colors.grey    [400],
+                            "&:hover": {borderColor: colors.grey[400],
+                                        backgroundColor: colors.grey[700]        
+                                }
                         }}
                     >
                         <AddOutlined sx={{ mr: "2px" }} />
