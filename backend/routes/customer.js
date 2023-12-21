@@ -27,4 +27,61 @@ customerRouter.get('/info/:id', async (req, res)=>{
   res.status(200).send(customers[0])
 })
 
+customerRouter.post('/', async (req, res)=>{
+  const {borrower, spouse} = req.body
+  const id = await builder('customertbl').insert({
+    // Borrower Info
+    cfname : borrower.fName,
+    cmname : borrower.mName,
+    clname : borrower.lName,
+    address : borrower.address,
+    contactno : borrower.phoneNum,
+    birthdate : borrower.birthdate,
+    gender : borrower.gender,
+    maritalstatus : borrower.civilStatus,
+    // Borrower Spouse Info
+    spousefname: spouse.fName,
+    spousemname : spouse.mName,
+    spouselname : spouse.lName,
+    spouseaddress : spouse.address,
+    spousebirthdate : spouse.birthdate,
+    spousegender : spouse.gender,
+    spousemaritalstatus: borrower.civilStatus,
+    spousecontactno : spouse.phoneNum
+  }, ['customerid'])
+  console.log(id)
+  res.status(200).json({id : id[0]})
+
+})
+customerRouter.put('/', async (req, res)=>{
+  const {borrower, spouse, id} = req.body
+  console.log(id)
+  const update = await builder('customertbl')
+  .where('customerid', id)
+  .update({
+    // Borrower Info
+    cfname : borrower.fName,
+    cmname : borrower.mName,
+    clname : borrower.lName,
+    address : borrower.address,
+    contactno : borrower.phoneNum,
+    birthdate : borrower.birthdate,
+    gender : borrower.gender,
+    maritalstatus : borrower.civilStatus,
+    // Borrower Spouse Info
+    spousefname: spouse.fName,
+    spousemname : spouse.mName,
+    spouselname : spouse.lName,
+    spouseaddress : spouse.address,
+    spousebirthdate : spouse.birthdate,
+    spousegender : spouse.gender,
+    spousemaritalstatus: borrower.civilStatus,
+    spousecontactno : spouse.phoneNum
+  })
+  
+  res.status(200).send()
+  
+})
+
+
 module.exports = customerRouter
