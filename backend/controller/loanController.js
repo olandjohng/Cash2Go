@@ -11,6 +11,7 @@ async function getLoanList (req, res) {
   //   code : 'h.status_code',  
   // }
   const loans = await builder.select(
+    'loan_header_id',
     'pn_number',
     'customername',
     'bank_name_pdc',

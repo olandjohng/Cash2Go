@@ -8,6 +8,9 @@ customerRouter.get('/', async (req, res) =>{
     f_name : 'cfname',
     m_name : 'cmname',
     l_name : 'clname',
+    contactNo : 'contactno',
+    address : 'address',
+    gender : 'gender',
   }).from({ c : 'customertbl'})
 
   res.status(200).send(customers)

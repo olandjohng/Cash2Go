@@ -162,8 +162,8 @@ const LeftSidebar = () => {
               Maintenance
             </Typography>
             <Item
-              title="Users"
-              to="/users"
+              title="Borrowers"
+              to="/borrowers"
               icon={<PeopleOutlined />}
               selected={selected}
               setSelected={setSelected}
