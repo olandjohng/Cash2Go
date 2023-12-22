@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import Topbar from "./scenes/global/topbar";
 import { ColorModeContext, useMode } from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
-import { Dashboard } from "@mui/icons-material";
+import Dashboard from "./scenes/dashboard";
 import Borrowers from "./scenes/borrowers/index"
 import LeftSidebar from "./scenes/global/LeftSidebar";
 import Loan from "./scenes/loan";
@@ -16,9 +16,9 @@ function App() {
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <div className='flex relative w-full h-full'>
+        <div className='app'>
           <LeftSidebar />
-          <main className="w-full h-full">
+          <main className="content">
             <Topbar />
             <Routes>
               <Route path="/" element={<Dashboard />} />

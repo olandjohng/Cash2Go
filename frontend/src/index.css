@@ -5,15 +5,30 @@
 
 html,
 body,
-#root,
-.content {
+#root{
     height: 100%;
     width: 100%;
+    
+    font-family: 'Poppins', sans-serif;
 }
 
-body{
-    font-family: Poppins, serif;
-}
+.app {
+    display: flex;
+    height: 100vh;
+    
+  }
+
+  .content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .main {
+    flex: 1;
+    overflow-y: auto;
+  }
 
 ::-webkit-scrollbar {
     width: 2px;
