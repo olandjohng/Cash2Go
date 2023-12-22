@@ -7,7 +7,7 @@ import BorrowersModal from "./Components/BorrowersModal";
 import faker from "../../data/faker";
 
 
-const useFakeData = true;
+const useFakeData = true; // set to false to disable fakedata
 
 function reducer(state, action){
   switch(action.type){
@@ -27,7 +27,6 @@ function reducer(state, action){
     default : throw Error('Unknown action.');
   }
 }
-
 
 const Borrowers = () => {
 
@@ -52,6 +51,7 @@ const Borrowers = () => {
       gender : ''
     }
   }
+
   const fakerData = {
     borrower : {
       fName : faker.person.firstName(),
@@ -76,9 +76,7 @@ const Borrowers = () => {
 
   const data = useFakeData ? fakerData : borrowersData
 
-  // const [customers, setCustomers] = useState([])
   const [open, setOpen] = useState(false)
-  const [isUpdate, setIsUpdate] = useState(false)
   const [borrower, setBorrower] = useState({...data})
   const [customers, dispatch] = useReducer(reducer, null)
   
@@ -117,10 +115,7 @@ const Borrowers = () => {
   }
 
   async function add (){
-    // setIsUpdate(false)
-    // console.log('add', {...borrowersData})
     setBorrower({...data})
-    // console.log('', borrower)
     setOpen(true)
   }
 
@@ -129,14 +124,13 @@ const Borrowers = () => {
     const getCustomer = async() =>{
       const req = await fetch('http://localhost:8000/customers')
       const resJson = await req.json()
-      // setCustomers(resJson)
       dispatch({type : 'INIT', customers : resJson})
     }
+
     getCustomer()
 
   }, [])
-  // console.log('127', state.customers)
-  console.log(customers)
+
   return (
     <>
       <Container sx={{display : 'flex', flexDirection : 'column', gap : '5px'}}>

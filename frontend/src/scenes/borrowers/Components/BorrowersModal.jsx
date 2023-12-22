@@ -4,7 +4,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from "dayjs";
-// import { DPicker } from "../index"
+
 const style = { 
   width: '500px',
   height : '505px',
@@ -17,8 +17,7 @@ const style = {
   p: 2,
 }
 
-
-export default function BorrowersModal({onOpen, borrowerInfo, dispatcher}){
+export default function BorrowersModal ({onOpen, borrowerInfo, dispatcher}) {
   const [borrower, setBorrower] = useState(borrowerInfo.borrower)
   const [spouse, setSpouse] = useState(borrowerInfo.spouse)
   const [borrowersBirthday, setBorrowersBirthday] = useState(dayjs((borrowerInfo.borrower.birthdate)))
@@ -50,11 +49,9 @@ export default function BorrowersModal({onOpen, borrowerInfo, dispatcher}){
       }
     }
 
-    // console.log('submit B', data)
     if(borrowerInfo.id) {
       //post
       data.id = borrowerInfo.id
-      console.log('PUT', `[${borrowerInfo.id}]`, data)
       const req = await fetch('http://localhost:8000/customers/', {
         method : 'PUT',
         headers: {
@@ -99,6 +96,7 @@ export default function BorrowersModal({onOpen, borrowerInfo, dispatcher}){
       // if status ok clear input
     }
   }
+
   return (
     <>
       <Box sx={style} autoComplete="off">
@@ -182,7 +180,6 @@ export default function BorrowersModal({onOpen, borrowerInfo, dispatcher}){
             <Button onClick={() => onOpen(false)} variant="contained">Cancel</Button>
             <Button variant="contained" onClick={submit}>Save</Button>
           </Box>
-          {/* </form>  */}
       </Box>
     </>
   )
