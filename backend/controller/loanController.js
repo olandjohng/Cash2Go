@@ -73,10 +73,17 @@ async function getLoan(req, res) {
     'loan_detail_id',
     'check_date',
     'monthly_principal',
+    'monthly_interest',
     'monthly_amortization',
     'description'
   ).from('view_detail_payment ').where('loan_header_id', '=', id)
-  res.status(200).send(loan)
+  
+  const updatedLoan = loan.map((item) => ({
+    ...item,
+    description: item.description || 'UNSETTLED',
+  }));
+
+  res.status(200).send(updatedLoan)
 }
 
 async function saveLoan(req, res){
