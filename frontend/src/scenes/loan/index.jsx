@@ -24,7 +24,7 @@ const Loan = () => {
     const columns = [
         {field: "loan_header_id", headerName: "ID" },
         {field: "pn_number", headerName: "PN Number", width: 150 },
-        {field: "customername", headerName: "Customer", width: 150 , cellClassName:"name-column--cell"},
+        {field: "customername", headerName: "Customer", flex : 1, minWidth: 150, cellClassName:"name-column--cell"},
         {field: "bank_name_pdc", headerName: "PDC Bank", width: 150 },
         {field: "loancategory", headerName: "Category", width: 150},
         {field: "loanfacility", headerName: "Facility", width: 150},
@@ -42,13 +42,10 @@ const Loan = () => {
         }
         getLoan()
     }, [])
-
-    console.log(loans)
-
   return (
     <div className='main p-5'>
         <Header title="LOANS" subtitle="List of loans with details" showButton={true} />
-            <Box
+        <Box
             m="20px 0 5px"
             
             // overflow="auto"

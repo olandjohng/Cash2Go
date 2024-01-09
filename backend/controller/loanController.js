@@ -29,7 +29,7 @@ async function getLoan(req, res) {
     'description'
   ).from('view_detail_payment ').where('loan_header_id', '=', id)
   
-  const updatedLoan = loan.map((item) => ({
+  const updatedLoan = loans.map((item) => ({
     ...item,
     description: item.description || 'UNSETTLED',
   }));
