@@ -7,6 +7,7 @@ import Header from '../../components/Header'
 import { useEffect, useState } from 'react'
 import Popups from '../../components/Popups'
 import DetailsModal from './components/DetailsModal'
+import NewLoanModal from './components/NewLoanModal'
 
 const Loan = () => {
     const theme = useTheme();
@@ -14,6 +15,7 @@ const Loan = () => {
 
     const [loans, setLoans] = useState([]);
     const [openPopup, setOpenPopup] = useState(false);
+    const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
     const [selectedLoanId, setSelectedLoanId] = useState(null);
 
     const handleRowDoubleClick = (params) => {
@@ -44,7 +46,7 @@ const Loan = () => {
     }, [])
   return (
     <div className='main p-5'>
-        <Header title="LOANS" subtitle="List of loans with details" showButton={true} />
+        <Header title="LOANS" subtitle="List of loans with details" showButton={true} onAddButtonClick={() => setOpenNewLoanPopup(true)} />
         <Box
             m="20px 0 5px"
             
@@ -66,6 +68,14 @@ const Loan = () => {
             setOpenPopup={setOpenPopup}
         >
             <DetailsModal selectedLoanId={selectedLoanId} />
+        </Popups>
+
+        <Popups
+            title="New Loan"
+            openPopup={openNewLoanPopup}
+            setOpenPopup={setOpenNewLoanPopup}
+        >
+            <NewLoanModal />
         </Popups>
     </div>
   )
