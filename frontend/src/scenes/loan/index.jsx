@@ -5,12 +5,21 @@ import { useTheme } from '@emotion/react'
 import { Box } from '@mui/material'
 import Header from '../../components/Header'
 import { useEffect, useState } from 'react'
+import Popups from '../../components/Popups'
+import DetailsModal from './components/DetailsModal'
 
 const Loan = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
     const [loans, setLoans] = useState([]);
+    const [openPopup, setOpenPopup] = useState(false);
+    const [selectedLoanId, setSelectedLoanId] = useState(null);
+
+    const handleRowDoubleClick = (params) => {
+        setSelectedLoanId(params.row.loan_header_id);
+        setOpenPopup(true);
+      };
 
     const columns = [
         {field: "loan_header_id", headerName: "ID" },
@@ -39,7 +48,7 @@ const Loan = () => {
   return (
     <div className='main p-5'>
         <Header title="LOANS" subtitle="List of loans with details" showButton={true} />
-        {/* <Box
+            <Box
             m="20px 0 5px"
             
             // overflow="auto"
@@ -50,22 +59,17 @@ const Loan = () => {
                 columns={columns}
                 getRowId={(row) => row.loan_header_id}
                 autoHeight
-                // autoPageSize
-            />
-        </Box> */}
-        <Box
-            m="20px 0 0 0"
-            height="50vh"
-            // overflowx="auto"
-        >
-            <DataGrid 
-                rows={loans}
-                columns={columns}
-                getRowId={(row) => row.loan_header_id}
-                autoHeight
+                onRowDoubleClick={handleRowDoubleClick}
                 // autoPageSize
             />
         </Box>
+        <Popups
+            title="Loan Details"
+            openPopup={openPopup}
+            setOpenPopup={setOpenPopup}
+        >
+            <DetailsModal selectedLoanId={selectedLoanId} />
+        </Popups>
     </div>
   )
 }
