@@ -26,14 +26,14 @@ const Loan = () => {
     const columns = [
         {field: "loan_header_id", headerName: "ID" },
         {field: "pn_number", headerName: "PN Number", width: 150 },
-        {field: "customername", headerName: "Customer", flex:1, cellClassName:"name-column--cell"},
-        {field: "bank_name_pdc", headerName: "PDC Bank", width: 150 },
+        {field: "customername", headerName: "Customer", width: 250},
+        {field: "bank_name_pdc", headerName: "PDC Bank", width: 250 },
         {field: "loancategory", headerName: "Category", width: 150},
         {field: "loanfacility", headerName: "Facility", width: 150},
         {field: "principal_amount", headerName: "Principal", width: 150},
         {field: "total_interest", headerName: "Interest", width: 150},
         {field: "date_granted", headerName: "Date Granted", width: 150},
-        {field: "status_code", headerName: "Status", width: 150},
+        {field: " status_code", headerName: "Status", width: 150},
     ]
 
     useEffect(() => {
@@ -44,27 +44,19 @@ const Loan = () => {
         }
         getLoan()
     }, [])
-
-    console.log(loans)
-
   return (
-    <div className='main p-5'>
+    <div style={ {height : '75%', padding : 20}}>
         <Header title="LOANS" subtitle="List of loans with details" showButton={true} onAddButtonClick={() => setOpenNewLoanPopup(true)} />
-        <Box
-            m="20px 0 5px"
-            
-            // overflow="auto"
-            // overflowx="auto"
-        >
+        
             <DataGrid 
                 rows={loans}
                 columns={columns}
                 getRowId={(row) => row.loan_header_id}
-                autoHeight
+                // autoHeight
                 onRowDoubleClick={handleRowDoubleClick}
                 // autoPageSize
             />
-        </Box>
+       
         <Popups
             title="Loan Details"
             openPopup={openPopup}
