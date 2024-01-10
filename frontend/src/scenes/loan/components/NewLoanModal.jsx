@@ -48,7 +48,7 @@ export default function NewLoanModal() {
             variant="outlined"
             label="Voucher Number"
             fullWidth
-            value={loanHeaderValues.voucher_number}
+            // value={loanHeaderValues.voucher_number}
             sx={{width: "95%", margin: 1}}
           />
           <Autocomplete 
@@ -69,7 +69,7 @@ export default function NewLoanModal() {
             variant="outlined"
             label="Check Issued Name"
             fullWidth
-            value={loanHeaderValues.voucher_number}
+            // value={loanHeaderValues.voucher_number}
             sx={{width: "95%", margin: 1}}
           />
         </Grid>
