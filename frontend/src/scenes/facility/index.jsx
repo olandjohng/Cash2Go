@@ -15,7 +15,7 @@ export default function Facility() {
     reqFacility()
   }, [])
   return (
-    <div style={{height : '75%', padding : 20}}>
+    <div style={ {height : '75%', padding : 20}}>
       <Header title={'Facilities'} />
       <DataGrid 
         columns={[
@@ -23,6 +23,7 @@ export default function Facility() {
           { field: 'code', flex : 1, headerName : 'Code'},
         ]}
         rows={facility}
+        
       />
     </div>
   )

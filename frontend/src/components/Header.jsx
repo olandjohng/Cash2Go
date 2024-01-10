@@ -7,7 +7,7 @@ const Header = ({title, subtitle, showButton = true, onAddButtonClick}) => {
     const colors = tokens(theme.palette.mode);
 
   return (
-    <Box width="100%" display="flex" justifyContent="space-between" p={2} sx={{ '& button': { m: 1 } }}>
+    <Box width="100%" height="20%" display="flex" justifyContent="space-between" p={2} sx={{ '& button': { m: 1 } }}>
         <div>
         <Typography 
             variant="h2" 
