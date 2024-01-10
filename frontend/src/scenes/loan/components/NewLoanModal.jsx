@@ -74,35 +74,7 @@ export default function NewLoanModal() {
   return (
     <form>
       <Grid container spacing={1}>
-        <Grid item xs={4}>
-          <TextField
-            variant="outlined"
-            label="Voucher Number"
-            fullWidth
-            // value={loanHeaderValues.voucher_number}
-            sx={{width: "95%", margin: 1}}
-          />
-          <Autocomplete 
-            disablePortal
-            id="customerName"
-            options={sampleCustomer.map((option) => option.customer)}
-            sx={{width: "95%", margin: 1}}
-            renderInput={(params) => <TextField {...params} label="Customer" />}
-          />
-          <Autocomplete 
-            disablePortal
-            id="bank"
-            options={sampleBank.map((option) => option.bank)}
-            sx={{width: "95%", margin: 1}}
-            renderInput={(params) => <TextField {...params} label="Bank" />}
-          />
-          <TextField
-            variant="outlined"
-            label="Check Issued Name"
-            fullWidth
-            // value={loanHeaderValues.voucher_number}
-            sx={{width: "95%", margin: 1}}
-          />
+        
         {/* START FIRST COLUMN */}
         <Grid item xs={6} borderRight={1} borderColor={colors.grey[500]}>
           <Grid container xs={12}>
