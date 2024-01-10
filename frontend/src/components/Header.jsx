@@ -2,7 +2,7 @@ import { Typography, Box, useTheme, Button } from "@mui/material"
 import { tokens } from "../theme"
 import { AddOutlined } from "@mui/icons-material";
 
-const Header = ({title, subtitle, showButton = true}) => {
+const Header = ({title, subtitle, showButton = true, onAddButtonClick}) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
@@ -43,6 +43,7 @@ const Header = ({title, subtitle, showButton = true}) => {
                                         backgroundColor: colors.grey[700]        
                                 }
                         }}
+                        onClick={onAddButtonClick}
                     >
                         <AddOutlined sx={{ mr: "2px" }} />
                         Add
