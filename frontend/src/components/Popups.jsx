@@ -18,7 +18,7 @@ export default function Popups(props) {
     
   return (
     <Box>
-      <Dialog open={openPopup} maxWidth="lg" PaperProps={{style: dialogStyle}}>
+      <Dialog open={openPopup} maxWidth="xl" PaperProps={{style: dialogStyle}}>
         <DialogTitle>
           <div style={{display: 'flex', justifyContent: 'space-between', padding: 2}}>
             <Typography variant="h3" component="div">

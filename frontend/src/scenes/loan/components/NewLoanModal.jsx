@@ -1,8 +1,10 @@
-import { CheckBox, Margin } from "@mui/icons-material"
-import { Autocomplete, Checkbox, FormControlLabel, Grid, InputAdornment, TextField } from "@mui/material"
+import { AddOutlined, CheckBox, Margin, RemoveCircleOutlineOutlined } from "@mui/icons-material"
+import { Autocomplete, Button, Checkbox, FormControlLabel, Grid, IconButton, InputAdornment, MenuItem, TextField } from "@mui/material"
 import { useState, useEffect } from "react"
 import { useTheme } from "@emotion/react"
 import { tokens } from "../../../theme"
+import { DataGrid } from '@mui/x-data-grid';
+
 
 const initialLoanHeaderValues = {
     id: 0,
@@ -27,6 +29,15 @@ const initialLoanHeaderValues = {
     renewal_amount: 0,
 }
 
+const columns = [
+  { field: 'dueDate', headerName: 'Due Date', width: 150, editable: true, type: 'date' },
+  { field: 'principal', headerName: 'Principal', width: 150, editable: true },
+  { field: 'interest', headerName: 'Interest', width: 150, editable: true },
+  { field: 'amortization', headerName: 'Amortization', width: 150, editable: true },
+  { field: 'bank', headerName: 'Bank', width: 150, editable: true, renderCell: (params) => renderBankDropdown(params) },
+  { field: 'checkNumber', headerName: 'Check Number', width: 150, editable: true },
+];
+
 const sampleCustomer = [
   {customer: 'RD Vincent Gaspar', position:'Admin'},
   {customer: 'Roland John Gaspar', position:'CEO'},
@@ -39,6 +50,23 @@ const sampleBank = [
   {bank: 'Metro Bank', code:'MB'},
 ];
 
+const renderBankDropdown = (params) => {
+  const banks = ['Bank A', 'Bank B', 'Bank C']; // Replace with your list of banks
+  return (
+    <TextField
+      select
+      value={params.value}
+      onChange={(e) => params.api.setValue(params.id, 'bank', e.target.value)}
+      style={{ width: '100%' }}
+    >
+      {banks.map((bank) => (
+        <MenuItem key={bank} value={bank}>
+          {bank}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+};
 
 
 export default function NewLoanModal() {
@@ -55,28 +83,60 @@ export default function NewLoanModal() {
       setShowMoratorium(event.target.checked);
     };
 
+    const [rowCount, setRowCount] = useState(1);
+    const [rows, setRows] = useState([{ id: 1 }]);
+
+    const handleRowCountChange = (e) => {
+    const count = parseInt(e.target.value, 10);
+      setRowCount(count);
+      const newRows = Array.from({ length: count }, (_, index) => ({ id: index + 1 }));
+      setRows(newRows);
+    };
+
     const handlePrincipalAmountChange = (event) => {
-      const sanitizedInput = event.target.value.replace(/[^0-9.]/g, ''); // Remove non-numeric characters
+      let sanitizedInput = event.target.value.replace(/[^\d.]/g, ''); // Remove non-numeric characters
     
       // Validate if the input is a valid numeric value
       if (/^\d*\.?\d*$/.test(sanitizedInput)) {
-        // Format the number with commas
         const parts = sanitizedInput.split('.');
         const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        const decimalPart = parts[1] ? `.${parts[1]}` : '';
+        const decimalPart = parts[1] ? `.${parts[1].slice(0, 2)}` : '';
     
-        const formattedNumber = `${integerPart}${decimalPart}`;
-        setPrincipalAmount(formattedNumber);
+        sanitizedInput = `${integerPart}${decimalPart}`;
       }
+    
+      setPrincipalAmount(sanitizedInput);
     };
+        
+    // Start for the deduction
+      const [deductionList, setDeductionList] = useState([]);
+      const [selectedDeduction, setSelectedDeduction] = useState(null);
+  
+      const handleDeductionChange = (event, value) => {
+        setSelectedDeduction(value);
+      };
+  
+      const handleAddDeduction = () => {
+        if (selectedDeduction && !deductionList.includes(selectedDeduction)) {
+          setDeductionList([...deductionList, selectedDeduction]);
+          setSelectedDeduction(null);
+        }
+      };
+
+      const handleDeleteDeduction = (index) => {
+        const updatedDeductions = deductionList.filter((_, i) => i !== index);
+        setDeductionList(updatedDeductions);
+      };
+    // End for the deduction
     
 
   return (
-    <form>
-      <Grid container spacing={1}>
+    <div>
+      <form>
+      <Grid container spacing={1} marginBottom={4}>
         
         {/* START FIRST COLUMN */}
-        <Grid item xs={6} borderRight={1} borderColor={colors.grey[500]}>
+        <Grid item xs={8} border={1} borderColor={colors.grey[500]}>
           <Grid container xs={12}>
             <Grid item xs={4}>
               <TextField
@@ -147,18 +207,21 @@ export default function NewLoanModal() {
         </Grid>
         {/* END FIRST COLUMN */}
         {/* START SECOND COLUMN */}       
-        <Grid item xs={3} borderRight={1} borderColor={colors.grey[500]} padding={1}>
+        <Grid item xs={4} >
             <Grid container>
               <Grid item xs={8}>
+               
                 <TextField
                   variant="outlined"
                   label="Principal Amount"
-                  type="text"  // Use type="text" to allow alphanumeric characters
+                  type="number"  // Use type="text" to allow alphanumeric characters
                   fullWidth
-                  value={principalAmount}
-                  onChange={handlePrincipalAmountChange}
+                  // value={principalAmount}
+                  // onChange={handlePrincipalAmountChange}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">₱</InputAdornment>,
+                    step: "0.1",
+                    lang: "en-US"
                   }}
                   sx={{ width: '90%', margin: 1 }}
                 />
@@ -183,7 +246,8 @@ export default function NewLoanModal() {
                   fullWidth
                   sx={{width: "97%", margin: 1}}
                   inputProps={{ min: 0 }}
-                  
+                  value={rowCount}
+                  onChange={handleRowCountChange}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -232,22 +296,83 @@ export default function NewLoanModal() {
         </Grid>
         {/* END SECOND COLUMN */}
         {/* START THIRD COLUMN */}
-        <Grid item xs={3}>
-            <TextField
-                variant="outlined"
-                label="Voucher Number"
-                fullWidth
-                value={loanHeaderValues.voucher_number}
-                />
-            <TextField
-                variant="outlined"
-                label="Voucher Number"
-                fullWidth
-                value={loanHeaderValues.voucher_number}
-                />
-        </Grid>
+        {/* <Grid item xs={3}>
+          
+        </Grid> */}
         {/* END THIRD COLUMN */}
       </Grid>
+      {/* ----------------------------- */}
+      <Grid container>
+        <Grid item xs={4}>
+        <Grid container>
+            <Grid item xs={12}>
+              <Autocomplete
+              id="deduction"
+              options={["Appraisal Fee", "Notarial Fee", "Documentary Stamp", "Service Charge"]}
+              value={selectedDeduction}
+              onChange={handleDeductionChange}
+              renderInput={(params) => <TextField {...params} label="Deduction" fullWidth />}
+              sx={{width: "95%", margin: 1}}
+              />
+              <Button 
+                variant="outlined" 
+                size="large"
+                onClick={handleAddDeduction} 
+                sx={{ 
+                  backgroundColor: colors.blueAccent[700],
+                  color: colors.grey[100],
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  padding: "10px 20px",
+                  width: "95%", marginTop: 2, margin: 1,
+                  borderColor: colors.grey    [400],
+                  "&:hover": {borderColor: colors.grey[400],
+                              backgroundColor: colors.grey[700]        
+                      }
+                 }}
+              >
+                <AddOutlined sx={{ mr: "2px" }} />
+              </Button>
+            </Grid>
+            <Grid container spacing={1}>
+              <Grid item xs={4}>
+                {deductionList.map((deduction, index) => (
+                   <TextField
+                     key={index}
+                     variant="outlined"
+                     label={deduction}
+                     fullWidth
+                     sx={{ width: "95%", margin: 1, textAlign: "end" }}
+                     InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <IconButton
+                            edge="end"
+                            onClick={() => handleDeleteDeduction(index)}
+                          >
+                            <RemoveCircleOutlineOutlined />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                   />
+                ))}
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
+        <Grid item xs={8}>
+          <DataGrid
+            margin={1}
+            rows={rows}
+            columns={columns}
+            pageSize={5}
+            checkboxSelection
+            isCellEditable={(params) => params.row.id !== undefined}
+          />
+        </Grid>  
+      </Grid>
     </form>
+    </div>
   )
 }
