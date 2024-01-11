@@ -1,5 +1,5 @@
 import { CheckBox, Margin } from "@mui/icons-material"
-import { Autocomplete, Grid, InputAdornment, TextField } from "@mui/material"
+import { Autocomplete, Checkbox, FormControlLabel, Grid, InputAdornment, TextField } from "@mui/material"
 import { useState, useEffect } from "react"
 import { useTheme } from "@emotion/react"
 import { tokens } from "../../../theme"
@@ -74,6 +74,7 @@ export default function NewLoanModal() {
   return (
     <form>
       <Grid container spacing={1}>
+        
         {/* START FIRST COLUMN */}
         <Grid item xs={6} borderRight={1} borderColor={colors.grey[500]}>
           <Grid container xs={12}>
@@ -187,28 +188,43 @@ export default function NewLoanModal() {
               </Grid>
               <Grid item xs={12}>
                   {/* Checkbox for showing additional fields */}
+                  <FormControlLabel 
+                    control={<Checkbox />} 
+                    label="Moratorium" 
+                    checked={showMoratorium}
+                    onChange={handleMoratoriumChange}
+                    sx={{
+                      color: colors.greenAccent[500],
+                      '&.Mui-checked': {
+                        color: colors.greenAccent[500],
+                      },
+                      margin: 1
+                    }}
+                  />
                   
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={showMoratorium}
-                      onChange={handleMoratoriumChange}
-                      
-                    />
-                    Moratorium
-                  </label>
               </Grid>
             </Grid>
             {showMoratorium && (
             <Grid container>
-              <Grid item xs={8}>
-                <TextField
-                  // ... (other props)
-                />
-              </Grid>
               <Grid item xs={4}>
                 <TextField
-                  // ... (other props)
+                  variant="outlined"
+                  label="Rate"
+                  type="number"
+                  fullWidth
+                  // value={loanHeaderValues.voucher_number}
+                  sx={{width: "90%", margin: 1}}
+                />
+              </Grid>
+              <Grid item xs={8}>
+                <TextField
+                  variant="outlined"
+                  label="Monthly Term"
+                  type="number"
+                  fullWidth
+                  sx={{width: "95%", margin: 1}}
+                  inputProps={{ min: 0 }}
+                  
                 />
               </Grid>
             </Grid>
