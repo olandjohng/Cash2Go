@@ -33,7 +33,7 @@ const Loan = () => {
         {field: "principal_amount", headerName: "Principal", width: 150},
         {field: "total_interest", headerName: "Interest", width: 150},
         {field: "date_granted", headerName: "Date Granted", width: 150},
-        {field: " status_code", headerName: "Status", width: 150},
+        {field: "status_code", headerName: "Status", width: 150},
     ]
 
     useEffect(() => {
