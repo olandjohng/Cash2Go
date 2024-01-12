@@ -27,7 +27,7 @@ const Loan = () => {
         {field: "loan_header_id", headerName: "ID" },
         {field: "pn_number", headerName: "PN Number", width: 150 },
         {field: "customername", headerName: "Customer", width: 250},
-        {field: "bank_name_pdc", headerName: "PDC Bank", width: 250 },
+        {field: "bank_name", headerName: "Bank", width: 250 },
         {field: "loancategory", headerName: "Category", width: 150},
         {field: "loanfacility", headerName: "Facility", width: 150},
         {field: "principal_amount", headerName: "Principal", width: 150},

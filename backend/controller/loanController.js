@@ -5,7 +5,7 @@ async function getLoanList (req, res) {
     'loan_header_id',
     'pn_number',
     'customername',
-    'bank_name_pdc',
+    'bank_name',
     'loancategory',
     'loanfacility',
     'principal_amount',
@@ -13,7 +13,7 @@ async function getLoanList (req, res) {
     'date_granted',
     'status_code',
   )
-  .from('view_loanheader')
+  .from('view_loan_header')
   
   res.status(200).json(loans)
 }

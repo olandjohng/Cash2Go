@@ -3,7 +3,7 @@ const knex = require('knex')
 const HOST = 'localhost'
 const USER = 'root'
 const PASSWORD = 'root'
-const DATABASE = 'loandb'
+const DATABASE = 'web_loan_db'
 
 
 const builder = knex({
