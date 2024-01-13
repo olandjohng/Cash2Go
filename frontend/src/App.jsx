@@ -9,6 +9,7 @@ import Loan from "./scenes/loan";
 import Banks from "./scenes/banks";
 import Category from "./scenes/category";
 import Facility from "./scenes/facility";
+import DeductionType from "./scenes/deduction";
 
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
               <Route path="/banks" element={<Banks />} />
               <Route path="/category" element={<Category />} />
               <Route path="/facility" element={<Facility />} />
+              <Route path="/deduction" element={<DeductionType />} />
             </Routes>
           </main>
         </div>

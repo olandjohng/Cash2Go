@@ -3,7 +3,7 @@ import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar"
 import { Box, IconButton, Typography, useTheme } from "@mui/material"
 import { Link } from "react-router-dom"
 import { tokens } from "../../theme"
-import { HomeOutlined, PeopleOutlined, MenuOutlined, ReceiptOutlined, PointOfSaleOutlined, AttachMoneyOutlined, Diversity3Outlined, CategoryOutlined } from "@mui/icons-material"
+import { HomeOutlined, PeopleOutlined, MenuOutlined, ReceiptOutlined, PointOfSaleOutlined, AttachMoneyOutlined, Diversity3Outlined, CategoryOutlined, TrendingDownOutlined, EmojiTransportationOutlined, AccountBalanceOutlined } from "@mui/icons-material"
 import 'react-pro-sidebar/dist/css/styles.css';
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
@@ -170,16 +170,9 @@ const LeftSidebar = () => {
               setSelected={setSelected}
             />
             <Item
-              title="Customers"
-              to="/customers"
-              icon={<Diversity3Outlined />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
               title="Banks"
               to="/banks"
-              icon={<CategoryOutlined />}
+              icon={<AccountBalanceOutlined />}
               selected={selected}
               setSelected={setSelected}
             />
@@ -193,7 +186,14 @@ const LeftSidebar = () => {
             <Item
               title="Facility"
               to="/facility"
-              icon={<CategoryOutlined />}
+              icon={<EmojiTransportationOutlined />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Deduction Type"
+              to="/deduction"
+              icon={<TrendingDownOutlined />}
               selected={selected}
               setSelected={setSelected}
             />

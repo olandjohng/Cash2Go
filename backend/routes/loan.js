@@ -114,6 +114,21 @@ loanRouter.get('/penalty', async (req, res) =>{
   const penalty = await builder.select({id : 'penalty_id', penaltyType : 'penalty_type'}).from('penaltytbl')
   res.status(200).json(penalty)
 })
+loanRouter.get('/deduction', async (req, res) =>{
+  const deduction = await builder.select({id : 'loan_deduction_id', deductionType : 'deduction_type'}).from('loan_deductiontbl')
+  res.status(200).json(deduction)
+})
+
+loanRouter.post('/deduction', async (req, res)=>{
+  const {deduction} = req.body
+  const id = await builder('loan_deductiontbl').insert({
+    deduction_type : deduction.deductionType
+  }, ['loan_deduction_id'])
+  console.log(id)
+  res.status(200).json({id : id[0]})
+
+})
+
 loanRouter.get('/:id', getLoan)
 
 module.exports = loanRouter
