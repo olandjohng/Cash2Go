@@ -1,8 +1,8 @@
 import { useTheme } from "@emotion/react";
-import { Button, Grid, TextField } from "@mui/material";
+import { Button, Grid, TextField, Tooltip } from "@mui/material";
 import { tokens } from "../../../theme";
 import { useState } from "react";
-
+import { Bounce, toast } from 'react-toastify';
 
 export default function newDeduction({ onDeductionAdded, onClosePopup }) {
     const theme = useTheme();
@@ -27,15 +27,48 @@ export default function newDeduction({ onDeductionAdded, onClosePopup }) {
       if (response.ok) {
         const data = await response.json();
         console.log('New deduction ID:', data.id);
-        // Handle success, e.g., show a success message or redirect the user
+        //show a success message or redirect the user
+        toast.success('🦄 Successfully Added!', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+          transition: Bounce,
+          });
         onDeductionAdded();
         onClosePopup();
       } else {
-        // Handle errors, e.g., show an error message
+        //show an error message
         console.error('Failed to submit deduction');
+        toast.error('🦄 Failed to submit deduction!', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+          transition: Bounce,
+          });
       }
     } catch (error) {
       console.error('Error during deduction submission:', error);
+      toast.error(`🦄 Error during deduction submission: ${error}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+        transition: Bounce,
+        });
     }
   };
   return (
@@ -52,18 +85,21 @@ export default function newDeduction({ onDeductionAdded, onClosePopup }) {
         />
         <Grid container justifyContent="flex-end" spacing={1} mt={2}>
           <Grid item>
-            <Button variant="outlined" 
-                sx={{
-                    backgroundColor: colors.blueAccent[700],
-                    color: colors.grey[100],
-                    borderColor: colors.grey[400],
-                    "&:hover": {borderColor: colors.grey[400],
-                                backgroundColor: colors.grey[700]        
-                    }
-                }}
-            >
-              Cancel
-            </Button>
+            <Tooltip title="Add" placement="top">
+                <Button variant="outlined" 
+                  sx={{
+                      backgroundColor: colors.blueAccent[700],
+                      color: colors.grey[100],
+                      borderColor: colors.grey[400],
+                      "&:hover": {borderColor: colors.grey[400],
+                                  backgroundColor: colors.grey[700]        
+                      }
+                  }}
+                >
+                  Cancel
+                </Button>
+            </Tooltip>
+            
           </Grid>
           <Grid item>
             <Button 

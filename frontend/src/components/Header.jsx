@@ -38,7 +38,7 @@ const Header = ({title, subtitle, showButton = true, onAddButtonClick}) => {
                             fontSize: "14px",
                             fontWeight: "bold",
                             padding: "10px 20px",
-                            borderColor: colors.grey    [400],
+                            borderColor: colors.grey[400],
                             "&:hover": {borderColor: colors.grey[400],
                                         backgroundColor: colors.grey[700]        
                                 }

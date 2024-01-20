@@ -10,7 +10,8 @@ import Banks from "./scenes/banks";
 import Category from "./scenes/category";
 import Facility from "./scenes/facility";
 import DeductionType from "./scenes/deduction";
-
+import { ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
 
@@ -33,6 +34,7 @@ function App() {
               <Route path="/facility" element={<Facility />} />
               <Route path="/deduction" element={<DeductionType />} />
             </Routes>
+            <ToastContainer />
           </main>
         </div>
       </ThemeProvider>
