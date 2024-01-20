@@ -56,10 +56,10 @@ loanRouter.get('/recalculate/:id', async (req, res) =>{
 
 loanRouter.post('/', async (req, res)=>{
   
-  const {header, loan, deduction, loanDeatails} = req.body
+  //const {header, loan, deduction, loanDeatails} = req.body
 
   const pnNumber = await createPnNumber(header)
-  console.log(loanDeatails)
+  console.log(req.body)
   // console.log(header.bank_id)
   // await builder.transaction(async t =>{
   //   const id = await builder('loan_headertbl').insert({

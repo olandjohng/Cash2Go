@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { useTheme } from "@emotion/react"
 import { tokens } from "../../../theme"
 import { DataGrid } from '@mui/x-data-grid';
-import LoanTable from "./LoanTable"
 
 
 const initialLoanHeaderValues = {
@@ -31,12 +30,12 @@ const initialLoanHeaderValues = {
 }
 
 const columns = [
-  { field: 'dueDate', headerName: 'Due Date', width: 150, editable: true, type : 'date' },
-  { field: 'principal', headerName: 'Principal', width: 150, editable: true, },
-  { field: 'interest', headerName: 'Interest', width: 150, editable: true,  },
-  { field: 'amortization', headerName: 'Amortization', width: 150, editable: true,  },
+  { field: 'dueDate', headerName: 'Due Date', width: 150, editable: true, type: 'date' },
+  { field: 'principal', headerName: 'Principal', width: 150, editable: true },
+  { field: 'interest', headerName: 'Interest', width: 150, editable: true },
+  { field: 'amortization', headerName: 'Amortization', width: 150, editable: true },
   { field: 'bank', headerName: 'Bank', width: 150, editable: true, renderCell: (params) => renderBankDropdown(params) },
-  { field: 'checkNumber', headerName: 'Check Number', width: 150, editable: true,   },
+  { field: 'checkNumber', headerName: 'Check Number', width: 150, editable: true },
 ];
 
 const sampleCustomer = [
@@ -374,21 +373,16 @@ export default function NewLoanModal() {
         </Grid>
         <Grid item xs={8}>
           <DataGrid
+            margin={1}
             rows={rows}
             columns={columns}
             pageSize={5}
-            getRowSpacing={params=> ({
-              top : params.isFirstVisible ? 0 : 5,
-              bottom : params.isLastVisible ? 0 : 5
-            })}
             // getRowId={row => row.id}
             // processRowUpdate={(updated) => console.log(updated)}
             // onProcessRowUpdateError={(err) => console.log(err)}
-            // checkboxSelection
+            checkboxSelection
             isCellEditable={(params) => params.row.id !== undefined}
           />
-          {/* <LoanTable rows={rows} setRows={setRows} /> */}
-
         </Grid>  
         <Button onClick={() => console.log(rows)}>Submit</Button>
       </Grid>

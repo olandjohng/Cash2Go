@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import Header from '../../components/Header'
 import { DataGrid } from '@mui/x-data-grid'
 import Popups from '../../components/Popups'
-import NewDeduction from './components/NewDeduction'
+// import NewDeduction from './components/NewDeduction'
 
 function DeductionType() {
     const [openPopup, setOpenPopup] = useState(false);
@@ -35,7 +35,7 @@ function DeductionType() {
             openPopup={openPopup}
             setOpenPopup={setOpenPopup}
         >
-            <NewDeduction />
+            {/* <NewDeduction /> */}
         </Popups>
     </div>
   )
