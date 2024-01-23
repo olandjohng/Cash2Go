@@ -1,6 +1,7 @@
 import { Box, Button, Dialog, DialogContent, DialogTitle, Typography } from "@mui/material";
 import { useTheme } from '@emotion/react'
 import { tokens } from "../theme"
+import { Link } from "react-router-dom";
 
 
 
@@ -8,7 +9,7 @@ export default function Popups(props) {
 
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
-    const {title, children, openPopup, setOpenPopup} = props
+    const {title, children, openPopup, setOpenPopup, toURL} = props
     const dialogStyle = {
       padding: 2,
       position: 'absolute',
@@ -25,15 +26,17 @@ export default function Popups(props) {
               {title}
             </Typography>
             <Button
+                        component={Link}
+                        to={toURL}
                         variant="text"
                         size="medium"
                         sx={{
-                            backgroundColor: colors.blueAccent[700],
+                            backgroundColor: colors.grey[700],
                             color: colors.grey[100],
                             fontWeight: "bold",
                             borderColor: colors.grey    [400],
-                            "&:hover": {borderColor: colors.grey[400],
-                                        backgroundColor: colors.grey[700]        
+                            "&:hover": {borderColor: colors.grey[200],
+                                        backgroundColor: colors.grey[600]        
                                 }
                                 
                         }}

@@ -8,18 +8,20 @@ import { Button, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import { tokens } from '../../theme'
 import { toast } from 'react-toastify';
+import { Link, useLocation } from 'react-router-dom'
 
 function DeductionType() {
 
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const loc = useLocation();
 
     const [openPopup, setOpenPopup] = useState(false);
     const [deduction, setDeduction] = useState([])
   
     const loadDeductionData = async () => {
       try {
-        const req = await fetch('http://localhost:8000/loans/deduction');
+        const req = await fetch('http://localhost:8000/deductions');
         const reqJSON = await req.json();
         setDeduction(reqJSON);
       } catch (error) {
@@ -38,8 +40,10 @@ function DeductionType() {
           <div className='flex items-center justify-between'>
             <Tooltip title="Edit" placement="top" arrow>
                 <Button
+                  component={Link}
+                  to={`/deduction/${params.row.id}`}
                   sx={{color: colors.greenAccent[400], cursor: 'auto'}}
-                  // onClick={() => handleEdit(params.row.id)} 
+                  onClick={() => setOpenPopup(true)} 
                 >
                   <EditCalendarOutlined sx={{cursor: 'pointer'}} />
                 </Button>
@@ -73,7 +77,13 @@ function DeductionType() {
 
   return (
     <div style={ {height : '75%', padding : 20}}>
-      <Header title={'Deduction Types'} subtitle={'List of deduction types use in processing new loans'} showButton={true} onAddButtonClick={()=> setOpenPopup(true)} />
+      <Header 
+        title={'Deduction Types'} 
+        subtitle={'List of deduction types use in processing new loans'} 
+        showButton={true} 
+        onAddButtonClick={()=> setOpenPopup(true)} 
+        toURL={loc.pathname + '/new'}
+        />
       <DataGrid 
         columns={columns}
         rows={deduction}
@@ -84,6 +94,7 @@ function DeductionType() {
             title="Deduction"
             openPopup={openPopup}
             setOpenPopup={setOpenPopup}
+            toURL={'/deduction'}
         >
             <NewDeduction 
               onDeductionAdded={handleDeductionAdded} 
