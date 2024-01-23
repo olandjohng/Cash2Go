@@ -12,17 +12,7 @@ import NewLoanModal from './components/NewLoanModal'
 const Loan = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
-
-    const [loans, setLoans] = useState([]);
-    const [openPopup, setOpenPopup] = useState(false);
-    const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
-    const [selectedLoanId, setSelectedLoanId] = useState(null);
-
-    const handleRowDoubleClick = (params) => {
-        setSelectedLoanId(params.row.loan_header_id);
-        setOpenPopup(true);
-      };
-
+    
     const columns = [
         {field: "loan_header_id", headerName: "ID" },
         {field: "pn_number", headerName: "PN Number", width: 150 },
@@ -36,13 +26,54 @@ const Loan = () => {
         {field: "status_code", headerName: "Status", width: 150},
     ]
 
+    const [customers, setCustomers] = useState([])
+    const [facilities, setFacilities] = useState([])
+    const [collaterals, setCollaterals] = useState([])
+    const [banks, setBanks] = useState([])
+    const [categories, setCategories] = useState([])
+    
+    const [loans, setLoans] = useState([]);
+    const [openPopup, setOpenPopup] = useState(false);
+    const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
+    const [selectedLoanId, setSelectedLoanId] = useState(null);
+
+
+    const handleRowDoubleClick = (params) => {
+        setSelectedLoanId(params.row.loan_header_id);
+        setOpenPopup(true);
+      };
+
+    // TODO: loan category
     useEffect(() => {
-        const getLoan = async() => {
-            const req = await fetch('http://localhost:8000/loans')
-            const resJson = await req.json()
-            setLoans(resJson)
+        const getData = async () => {
+            const urls = [
+                fetch('http://localhost:8000/loans'),
+                fetch('http://localhost:8000/customers'),
+                fetch('http://localhost:8000/loans/collateral'),
+                fetch('http://localhost:8000/loans/facility'),
+                fetch('http://localhost:8000/banks'),
+                fetch('http://localhost:8000/loans/category'),
+            ]
+            const req = await Promise.all(urls)
+
+            const loanData = await req[0].json()
+            const customerData = await req[1].json()
+            const collateralData = await req[2].json()
+            const facilityData = await req[3].json()
+            const banksData = await req[4].json()
+            const categoryData = await req[5].json()
+
+            setLoans(loanData)
+            setCustomers(customerData)
+            setCollaterals(collateralData)
+
+            setFacilities(facilityData)
+            setBanks(banksData)
+            setCategories(categoryData)
         }
-        getLoan()
+
+        getData()
+    
     }, [])
   return (
     <div style={ {height : '75%', padding : 20}}>
@@ -70,7 +101,12 @@ const Loan = () => {
             openPopup={openNewLoanPopup}
             setOpenPopup={setOpenNewLoanPopup}
         >
-            <NewLoanModal />
+            <NewLoanModal 
+                collaterals={collaterals}
+                customers={customers}
+                facilities={facilities} 
+                categories={categories} 
+                banks={banks}/>
         </Popups>
     </div>
   )

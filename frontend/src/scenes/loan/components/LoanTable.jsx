@@ -5,7 +5,7 @@ export default function LoanTable({rows, setRows}) {
   
   return (
     <TableContainer component={Paper}>
-    <Table stickyHeader  sx={{ minWidth: 650 }} aria-label="simple table">
+    <Table stickyHeader  aria-label="simple table">
       <TableHead>
         <TableRow>
           <TableCell>Due Date</TableCell>

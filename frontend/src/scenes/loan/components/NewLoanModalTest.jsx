@@ -38,17 +38,7 @@ const columns = [
   { field: 'checkNumber', headerName: 'Check Number', width: 150, editable: true },
 ];
 
-const sampleCustomer = [
-  {customer: 'RD Vincent Gaspar', position:'Admin'},
-  {customer: 'Roland John Gaspar', position:'CEO'},
-  {customer: 'Ronie Jay Gaspar', position:'Teacher'},
-];
 
-const sampleBank = [
-  {bank: 'BDO', code:'BDO'},
-  {bank: 'BPI', code:'BPI'},
-  {bank: 'Metro Bank', code:'MB'},
-];
 
 const renderBankDropdown = (params) => {
   const banks = ['Bank A', 'Bank B', 'Bank C']; // Replace with your list of banks

@@ -106,7 +106,8 @@ loanRouter.get('/facility', async (req, res)=>{
 })
 
 loanRouter.get('/collateral', async (req, res)=>{
-  const col = await builder.select({id : 'collateral_id', name : 'description'}).from('collateraltbl')
+
+    const col = await builder.select({id : 'collateral_id', name : 'description'}).from('collateraltbl')
   res.status(200).json(col)
 })
 
@@ -119,7 +120,7 @@ loanRouter.get('/deduction', async (req, res) =>{
   res.status(200).json(deduction)
 })
 
-loanRouter.post('/deduction', async (req, res)=>{
+loanRouter.post('/deduction/new', async (req, res)=>{
   const {deduction} = req.body
   const id = await builder('loan_deductiontbl').insert({
     deduction_type : deduction.deductionType

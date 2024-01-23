@@ -30,12 +30,19 @@ const initialLoanHeaderValues = {
     renewal_amount: 0,
 }
 
+
+const sampleBank = [
+  {bank: 'BDO', code:'BDO'},
+  {bank: 'BPI', code:'BPI'},
+  {bank: 'Metro Bank', code:'MB'},
+];
+
 const columns = [
   { field: 'dueDate', headerName: 'Due Date', width: 150, editable: true, type : 'date' },
   { field: 'principal', headerName: 'Principal', width: 150, editable: true, },
   { field: 'interest', headerName: 'Interest', width: 150, editable: true,  },
   { field: 'amortization', headerName: 'Amortization', width: 150, editable: true,  },
-  { field: 'bank', headerName: 'Bank', width: 150, editable: true, renderCell: (params) => renderBankDropdown(params) },
+  { field: 'bank', headerName: 'Bank', width: 150, editable: true, type : 'singleSelect', valueOptions : sampleBank.map(b => b.bank)},
   { field: 'checkNumber', headerName: 'Check Number', width: 150, editable: true,   },
 ];
 
@@ -45,52 +52,58 @@ const sampleCustomer = [
   {customer: 'Ronie Jay Gaspar', position:'Teacher'},
 ];
 
-const sampleBank = [
-  {bank: 'BDO', code:'BDO'},
-  {bank: 'BPI', code:'BPI'},
-  {bank: 'Metro Bank', code:'MB'},
-];
-
-const renderBankDropdown = (params) => {
-  const banks = ['Bank A', 'Bank B', 'Bank C']; // Replace with your list of banks
-  return (
-    <TextField
-      select
-      value={params.value}
-      onChange={(e) => params.api.setValue(params.id, 'bank', e.target.value)}
-      style={{ width: '100%' }}
-    >
-      {banks.map((bank) => (
-        <MenuItem key={bank} value={bank}>
-          {bank}
-        </MenuItem>
-      ))}
-    </TextField>
-  );
-};
 
 
-export default function NewLoanModal() {
+// const renderBankDropdown = (params) => {
+//   const banks = ['Bank A', 'Bank B', 'Bank C']; // Replace with your list of banks
+//   return (
+//     <TextField
+//       {...params}
+//       select
+//       // value={params.value}
+//       // onChange={(e) => params.api.setValue(params.id, 'bank', e.target.value)}
+//       style={{ width: '100%' }}
+//     >
+//       {banks.map((bank) => (
+//         <MenuItem key={bank} value={bank}>
+//           {bank}
+//         </MenuItem>
+//       ))}
+//     </TextField>
+//   );
+// };
 
+
+export default function NewLoanModal({customers, collaterals, facilities, banks, categories }) {
+
+
+  const loantemp = { id: 1,  dueDate: new Date(),  principal : 0, interest : 0, amortization : 0, bank : null, checkNumber: 0}
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-    const [loanHeaderValues, setLoanHeaderValues] = useState(initialLoanHeaderValues)
+  
+  const [loanHeaderValues, setLoanHeaderValues] = useState(initialLoanHeaderValues)
+  const [principalAmount, setPrincipalAmount] = useState('');
 
-    const [principalAmount, setPrincipalAmount] = useState('');
+  const [showMoratorium, setShowMoratorium] = useState(false);
+  const [deductionList, setDeductionList] = useState([]);
+  const [selectedDeduction, setSelectedDeduction] = useState(null);
 
-    const [showMoratorium, setShowMoratorium] = useState(false);
 
-    const handleMoratoriumChange = (event) => {
-      setShowMoratorium(event.target.checked);
-    };
+  useEffect(()=>{
+   console.log(customers)
+  }, [])
+
+  const handleMoratoriumChange = (event) => {
+    setShowMoratorium(event.target.checked);
+  }; 
 
     const [rowCount, setRowCount] = useState(1);
-    const [rows, setRows] = useState([{ id: 1 }]);
+    const [rows, setRows] = useState([loantemp]);
 
     const handleRowCountChange = (e) => {
     const count = parseInt(e.target.value, 10);
       setRowCount(count);
-      const newRows = Array.from({ length: count }, (_, index) => ({ id: index + 1 }));
+      const newRows = Array.from({ length: count }, (_, index) => ({ ...loantemp,  id: index + 1 }));
       setRows(newRows);
     };
 
@@ -110,9 +123,7 @@ export default function NewLoanModal() {
     };
         
     // Start for the deduction
-      const [deductionList, setDeductionList] = useState([]);
-      const [selectedDeduction, setSelectedDeduction] = useState(null);
-  
+
       const handleDeductionChange = (event, value) => {
         setSelectedDeduction(value);
       };
@@ -129,15 +140,14 @@ export default function NewLoanModal() {
         setDeductionList(updatedDeductions);
       };
     // End for the deduction
-    const handleRowInputChange = (params, event) => {
-      const newRow = rows.map((row)=> {
-        if(row.id === params.id){
-          return params.row
+    const handleRowInputChange = (row) => {
+      const newRow = rows.map((r)=> {
+        if(r.id === row.id){
+          return row
         }
-        return row
+        return r
       })
       setRows(newRow)
-
     }
 
   return (
@@ -156,6 +166,7 @@ export default function NewLoanModal() {
                 name="voucher_number"
                 fullWidth
                 // value={loanHeaderValues.voucher_number}
+                onChange={e => setLoanHeaderValues({...loanHeaderValues, voucher_number : Number(e.target.value)})}
                 sx={{width: "95%", margin: 1}}
               />          
             </Grid>
@@ -163,7 +174,7 @@ export default function NewLoanModal() {
               <Autocomplete 
                 disablePortal
                 id="customerName"
-                options={sampleCustomer.map((option) => option.customer)}
+                options={ customers.map((c) => `${c.f_name} ${c.m_name} ${c.l_name}`)}
                 sx={{width: "95%", margin: 1}}
                 renderInput={(params) => <TextField {...params} label="Customer" name="customer"/>}
               />
@@ -174,7 +185,7 @@ export default function NewLoanModal() {
               <Autocomplete 
                 disablePortal
                 id="bank"
-                options={sampleBank.map((option) => option.bank)}
+                options={banks.map((option) => option.name)}
                 sx={{width: "95%", margin: 1}}
                 renderInput={(params) => <TextField {...params} label="Bank" />}
               />
@@ -195,21 +206,21 @@ export default function NewLoanModal() {
               <Autocomplete 
                 disablePortal
                 id="collateral"
-                options={sampleBank.map((option) => option.bank)}
+                options={collaterals.map((option) => option.name)}
                 sx={{width: "97%", margin: 1}}
                 renderInput={(params) => <TextField {...params} label="Loan Collateral" />}
               />
               <Autocomplete 
                 disablePortal
                 id="facility"
-                options={sampleBank.map((option) => option.bank)}
+                options={categories.map((option) => option.name)}
                 sx={{width: "97%", margin: 1}}
                 renderInput={(params) => <TextField {...params} label="Loan Category" />}
               />
               <Autocomplete 
                 disablePortal
                 id="facility"
-                options={sampleBank.map((option) => option.bank)}
+                options={facilities.map((option) => option.name)}
                 sx={{width: "97%", margin: 1}}
                 renderInput={(params) => <TextField {...params} label="Loan Facility" />}
               />
@@ -376,21 +387,27 @@ export default function NewLoanModal() {
           <DataGrid
             rows={rows}
             columns={columns}
-            pageSize={5}
+            editMode="row"
+            // pageSize={5}
             getRowSpacing={params=> ({
               top : params.isFirstVisible ? 0 : 5,
               bottom : params.isLastVisible ? 0 : 5
             })}
             // getRowId={row => row.id}
-            // processRowUpdate={(updated) => console.log(updated)}
+            // onRowModesModelChange={(params, details) => console.log(params, details)}
+            processRowUpdate={handleRowInputChange}
             // onProcessRowUpdateError={(err) => console.log(err)}
             // checkboxSelection
-            isCellEditable={(params) => params.row.id !== undefined}
+            // isCellEditable={(params) => params.row.id !== undefined}
           />
           {/* <LoanTable rows={rows} setRows={setRows} /> */}
 
         </Grid>  
-        <Button onClick={() => console.log(rows)}>Submit</Button>
+        <Button onClick={() => {
+          console.log()
+
+
+        }}>Submit</Button>
       </Grid>
     </form>
     </div>
