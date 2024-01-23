@@ -8,10 +8,10 @@ import LoanTable from "./LoanTable"
 
 
 const initialLoanHeaderValues = {
-    id: 0,
-    pn_number: '',
+    // id: 0,
+    // pn_number: '',
     customer_id: '',
-    transaction_date: new Date(),
+    transaction_date: new Date().toISOString().split('T')[0],
     bank_account_id: '',
     bank_account_pdc_id: '',
     collateral_id: '',
@@ -22,37 +22,13 @@ const initialLoanHeaderValues = {
     total_interest: 0,
     term_month: 0,
     term_day: 0,
-    date_granted: new Date(),
-    status_code: '',
+    date_granted: new Date().toISOString().split('T')[0],
+    // status_code: '',
     check_issued_name: '',
     voucher_number: '',
-    renewal_id: '',
+    renewal_id: 0,
     renewal_amount: 0,
 }
-
-
-const sampleBank = [
-  {bank: 'BDO', code:'BDO'},
-  {bank: 'BPI', code:'BPI'},
-  {bank: 'Metro Bank', code:'MB'},
-];
-
-const columns = [
-  { field: 'dueDate', headerName: 'Due Date', width: 150, editable: true, type : 'date' },
-  { field: 'principal', headerName: 'Principal', width: 150, editable: true, },
-  { field: 'interest', headerName: 'Interest', width: 150, editable: true,  },
-  { field: 'amortization', headerName: 'Amortization', width: 150, editable: true,  },
-  { field: 'bank', headerName: 'Bank', width: 150, editable: true, type : 'singleSelect', valueOptions : sampleBank.map(b => b.bank)},
-  { field: 'checkNumber', headerName: 'Check Number', width: 150, editable: true,   },
-];
-
-const sampleCustomer = [
-  {customer: 'RD Vincent Gaspar', position:'Admin'},
-  {customer: 'Roland John Gaspar', position:'CEO'},
-  {customer: 'Ronie Jay Gaspar', position:'Teacher'},
-];
-
-
 
 // const renderBankDropdown = (params) => {
 //   const banks = ['Bank A', 'Bank B', 'Bank C']; // Replace with your list of banks
@@ -76,6 +52,15 @@ const sampleCustomer = [
 
 export default function NewLoanModal({customers, collaterals, facilities, banks, categories }) {
 
+  const columns = [
+    { field: 'dueDate', headerName: 'Due Date', width: 150, editable: true, type : 'date' },
+    { field: 'principal', headerName: 'Principal', width: 150, editable: true, },
+    { field: 'interest', headerName: 'Interest', width: 150, editable: true,  },
+    { field: 'amortization', headerName: 'Amortization', width: 150, editable: true,  },
+    { field: 'bank', headerName: 'Bank', width: 150, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name)},
+    { field: 'checkNumber', headerName: 'Check Number', width: 150, editable: true,   },
+  ];
+
 
   const loantemp = { id: 1,  dueDate: new Date(),  principal : 0, interest : 0, amortization : 0, bank : null, checkNumber: 0}
   const theme = useTheme();
@@ -89,21 +74,19 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
   const [selectedDeduction, setSelectedDeduction] = useState(null);
 
 
-  useEffect(()=>{
-   console.log(customers)
-  }, [])
-
-  const handleMoratoriumChange = (event) => {
-    setShowMoratorium(event.target.checked);
-  }; 
+    const handleMoratoriumChange = (event) => {
+      setShowMoratorium(event.target.checked);
+    }; 
 
     const [rowCount, setRowCount] = useState(1);
     const [rows, setRows] = useState([loantemp]);
 
     const handleRowCountChange = (e) => {
-    const count = parseInt(e.target.value, 10);
+      // const count = parseInt(e.target.value, 10);
+      const count = Number(e.target.value);
       setRowCount(count);
       const newRows = Array.from({ length: count }, (_, index) => ({ ...loantemp,  id: index + 1 }));
+      setLoanHeaderValues({...loanHeaderValues, term_month : count})
       setRows(newRows);
     };
 
@@ -173,10 +156,19 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
             <Grid item xs={8}>
               <Autocomplete 
                 disablePortal
+                renderInput={(params) => <TextField {...params} label="Customer" name="customer"/>}
                 id="customerName"
                 options={ customers.map((c) => `${c.f_name} ${c.m_name} ${c.l_name}`)}
+                onInputChange= {
+                  (event, value) =>{
+                    for (const c of customers) {
+                      if(`${c.f_name} ${c.m_name} ${c.l_name}`=== value){
+                        setLoanHeaderValues({...loanHeaderValues, customer_id : c.id})
+                      }
+                    }
+                  } 
+                }
                 sx={{width: "95%", margin: 1}}
-                renderInput={(params) => <TextField {...params} label="Customer" name="customer"/>}
               />
             </Grid>
           </Grid>
@@ -186,6 +178,14 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
                 disablePortal
                 id="bank"
                 options={banks.map((option) => option.name)}
+                onInputChange={(event, value) => {
+                  for (const b of banks) {
+                      if(b.name === value) {
+                        setLoanHeaderValues({...loanHeaderValues, bank_account_id : b.id})
+                      }
+                    }
+                  }
+                }
                 sx={{width: "95%", margin: 1}}
                 renderInput={(params) => <TextField {...params} label="Bank" />}
               />
@@ -196,7 +196,8 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
                 variant="outlined"
                 label="Check Issued Name"
                 fullWidth
-                value={loanHeaderValues.voucher_number}
+                // value={loanHeaderValues.voucher_number}
+                onChange={(e) => setLoanHeaderValues({...loanHeaderValues , check_issued_name : e.target.value})}
                 sx={{width: "95%", margin: 1}}
               />
             </Grid>
@@ -207,22 +208,41 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
                 disablePortal
                 id="collateral"
                 options={collaterals.map((option) => option.name)}
+                onInputChange={(event, value) =>{console.log(value)} }
                 sx={{width: "97%", margin: 1}}
                 renderInput={(params) => <TextField {...params} label="Loan Collateral" />}
               />
               <Autocomplete 
                 disablePortal
                 id="facility"
-                options={categories.map((option) => option.name)}
-                sx={{width: "97%", margin: 1}}
                 renderInput={(params) => <TextField {...params} label="Loan Category" />}
+                options={categories.map((option) => option.name)}
+                onInputChange= {
+                  (event, value) =>{
+                    for (const c of categories) {
+                      if(c.name === value){
+                        setLoanHeaderValues({...loanHeaderValues, loan_category_id : c.id})
+                      }
+                    }
+                  } 
+                }
+                sx={{width: "97%", margin: 1}}
               />
               <Autocomplete 
                 disablePortal
                 id="facility"
-                options={facilities.map((option) => option.name)}
-                sx={{width: "97%", margin: 1}}
                 renderInput={(params) => <TextField {...params} label="Loan Facility" />}
+                options={facilities.map((option) => option.name)}
+                onInputChange= {
+                  (event, value) =>{
+                    for (const f of facilities) {
+                      if(f.name === value){
+                        setLoanHeaderValues({...loanHeaderValues, loan_facility_id : f.id})
+                      }
+                    }
+                  } 
+                }
+                sx={{width: "97%", margin: 1}}
               />
             </Grid>
           </Grid>
@@ -232,7 +252,6 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
         <Grid item xs={4} >
             <Grid container>
               <Grid item xs={8}>
-               
                 <TextField
                   variant="outlined"
                   label="Principal Amount"
@@ -240,6 +259,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
                   fullWidth
                   // value={principalAmount}
                   // onChange={handlePrincipalAmountChange}
+                  onChange={(e) => setLoanHeaderValues({...loanHeaderValues, principal_amount : Number(e.target.value)})}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">₱</InputAdornment>,
                     step: "0.1",
@@ -254,6 +274,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
                   label="Rate"
                   type="number"
                   fullWidth
+                  onChange={(e) => setLoanHeaderValues({...loanHeaderValues, interest_rate : Number(e.target.value)})}
                   // value={loanHeaderValues.voucher_number}
                   sx={{width: "90%", margin: 1}}
                 />
@@ -404,7 +425,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
 
         </Grid>  
         <Button onClick={() => {
-          console.log()
+          console.log(loanHeaderValues)
 
 
         }}>Submit</Button>
