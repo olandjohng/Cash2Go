@@ -20,6 +20,7 @@ async function getLoanList (req, res) {
 
 async function getLoan(req, res) {
   const {id} = req.params
+  
   const loans = await builder.select(
     'loan_detail_id',
     'check_date',
