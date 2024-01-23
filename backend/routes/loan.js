@@ -56,10 +56,10 @@ loanRouter.get('/recalculate/:id', async (req, res) =>{
 
 loanRouter.post('/', async (req, res)=>{
   
-  //const {header, loan, deduction, loanDeatails} = req.body
+  const {header, loan, deduction, loanDeatails} = req.body
 
   const pnNumber = await createPnNumber(header)
-  console.log(req.body)
+  console.log(loanDeatails)
   // console.log(header.bank_id)
   // await builder.transaction(async t =>{
   //   const id = await builder('loan_headertbl').insert({
@@ -106,8 +106,7 @@ loanRouter.get('/facility', async (req, res)=>{
 })
 
 loanRouter.get('/collateral', async (req, res)=>{
-
-    const col = await builder.select({id : 'collateral_id', name : 'description'}).from('collateraltbl')
+  const col = await builder.select({id : 'collateral_id', name : 'description'}).from('collateraltbl')
   res.status(200).json(col)
 })
 
@@ -127,7 +126,20 @@ loanRouter.post('/deduction/new', async (req, res)=>{
   }, ['loan_deduction_id'])
   console.log(id)
   res.status(200).json({id : id[0]})
+})
 
+loanRouter.put('/deduction/edit', async (req, res)=>{
+  const {deduction, id} = req.body
+  //TODO handle error
+  const update = await builder('loan_deductiontbl')
+  .where('loan_deduction_id', id)
+  .update({
+    // Borrower Info
+    deduction_type : deduction.deductionType,
+  })
+  
+  res.status(200).send()
+  
 })
 
 loanRouter.get('/:id', getLoan)
