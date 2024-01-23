@@ -127,7 +127,20 @@ loanRouter.post('/deduction/new', async (req, res)=>{
   }, ['loan_deduction_id'])
   console.log(id)
   res.status(200).json({id : id[0]})
+})
 
+loanRouter.put('/deduction/edit', async (req, res)=>{
+  const {deduction, id} = req.body
+  //TODO handle error
+  const update = await builder('loan_deductiontbl')
+  .where('loan_deduction_id', id)
+  .update({
+    // Borrower Info
+    deduction_type : deduction.deductionType,
+  })
+  
+  res.status(200).send()
+  
 })
 
 loanRouter.get('/:id', getLoan)

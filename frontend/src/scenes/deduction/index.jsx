@@ -4,9 +4,10 @@ import { DataGrid } from '@mui/x-data-grid'
 import Popups from '../../components/Popups'
 import NewDeduction from './components/NewDeduction'
 import { DeleteOutlined, EditCalendarOutlined } from '@mui/icons-material'
-import { Button } from '@mui/material'
+import { Button, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import { tokens } from '../../theme'
+import { toast } from 'react-toastify';
 
 function DeductionType() {
 
@@ -35,18 +36,23 @@ function DeductionType() {
         width: 150,
         renderCell: (params) => (
           <div className='flex items-center justify-between'>
-            <Button
-              sx={{color: colors.greenAccent[400], cursor: 'auto'}}
-              // onClick={() => handleEdit(params.row.id)} // Replace 'id' with your unique identifier field
-            >
-              <EditCalendarOutlined sx={{cursor: 'pointer'}} />
-            </Button>
-            <Button
-              sx={{color: colors.redAccent[500], cursor: 'auto'}}
-              // onClick={() => handleDelete(params.row.id)} // Replace 'id' with your unique identifier field
-            >
-              <DeleteOutlined sx={{cursor: 'pointer'}} />
-            </Button>
+            <Tooltip title="Edit" placement="top" arrow>
+                <Button
+                  sx={{color: colors.greenAccent[400], cursor: 'auto'}}
+                  // onClick={() => handleEdit(params.row.id)} 
+                >
+                  <EditCalendarOutlined sx={{cursor: 'pointer'}} />
+                </Button>
+            </Tooltip>
+            <Tooltip title="Delete" placement="top" arrow>
+                <Button
+                  sx={{color: colors.redAccent[500], cursor: 'auto'}}
+                  // onClick={() => handleDelete(params.row.id)} 
+                >
+                  <DeleteOutlined sx={{cursor: 'pointer'}} />
+                </Button>
+            </Tooltip>
+            
           </div>
         ),
       },
