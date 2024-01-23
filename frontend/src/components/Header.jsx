@@ -1,8 +1,9 @@
 import { Typography, Box, useTheme, Button } from "@mui/material"
 import { tokens } from "../theme"
 import { AddOutlined } from "@mui/icons-material";
+import { Link } from "react-router-dom";
 
-const Header = ({title, subtitle, showButton = true, onAddButtonClick}) => {
+const Header = ({title, subtitle, showButton = true, onAddButtonClick, toURL}) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
@@ -32,6 +33,8 @@ const Header = ({title, subtitle, showButton = true, onAddButtonClick}) => {
                     <Button
                         variant="outlined"
                         size="medium"
+                        component={Link}
+                        to={toURL}
                         sx={{
                             backgroundColor: colors.blueAccent[700],
                             color: colors.grey[100],

@@ -1,76 +1,60 @@
 import { useTheme } from "@emotion/react";
 import { Button, Grid, TextField, Tooltip } from "@mui/material";
 import { tokens } from "../../../theme";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bounce, toast } from 'react-toastify';
+import { useNavigate, useParams } from "react-router-dom";
+import axios from 'axios';
 
 export default function newDeduction({ onDeductionAdded, onClosePopup }) {
+    const { id } = useParams();
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
-
+    const navigate = useNavigate();
     const [deductionType, setDeductionType] = useState('');
 
-  const handleSubmit = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/loans/deduction/new', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          deduction: {
-            deductionType: deductionType,
-          },
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('New deduction ID:', data.id);
-        //show a success message or redirect the user
-        toast.success('🦄 Successfully Added!', {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-          transition: Bounce,
-          });
-        onDeductionAdded();
-        onClosePopup();
-      } else {
-        //show an error message
-        console.error('Failed to submit deduction');
-        toast.error('🦄 Failed to submit deduction!', {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-          transition: Bounce,
-          });
+    useEffect(() => {
+      if (id) {
+        axios.get(`http://localhost:8000/deductions/read/${id}`)
+          .then((res) => {
+            console.log('API Response:', res.data);
+    
+            if (Array.isArray(res.data) && res.data.length > 0) {
+              const { deductionType } = res.data[0];
+              console.log('Deduction Type:', deductionType);
+              setDeductionType(deductionType);
+            } else {
+              console.error('Invalid data structure returned by the API');
+            }
+          })
+          .catch((err) => console.log(err));
       }
-    } catch (error) {
-      console.error('Error during deduction submission:', error);
-      toast.error(`🦄 Error during deduction submission: ${error}`, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
-        transition: Bounce,
-        });
-    }
+    }, [id]);
+    
+    
+    
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setDeductionType(value);
+    };
+    
+    
+    
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const apiURL = id ? `http://localhost:8000/deductions/edit/${id}` : 'http://localhost:8000/deductions/new'
+    console.log({deductionType});
+    const axiosMethod = id ? axios.put : axios.post;
+
+axiosMethod(apiURL, { deductionType })
+  .then((res) => {
+    console.log(res);
+    navigate('/deduction');
+  })
+  .catch((err) => console.log(err));
   };
+
   return (
     <Grid container>
       <Grid width={350} item xs={12}>
@@ -78,8 +62,9 @@ export default function newDeduction({ onDeductionAdded, onClosePopup }) {
           variant="outlined"
           label="Deduction Type"
           type="text"
+          name="deductionType"
           value={deductionType}
-          onChange={(e) => setDeductionType(e.target.value)}
+          onChange={handleChange}
           fullWidth
           sx={{ width: "95%", margin: 1 }}
         />
@@ -114,7 +99,7 @@ export default function newDeduction({ onDeductionAdded, onClosePopup }) {
                     }
                 }}
             >
-              Submit
+              {id ? 'Update' : 'Submit'}
             </Button>
           </Grid>
         </Grid>
