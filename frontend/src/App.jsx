@@ -32,6 +32,8 @@ function App() {
               <Route path="/banks" element={<Banks />} />
               <Route path="/category" element={<Category />} />
               <Route path="/facility" element={<Facility />} />
+              <Route path="/facility/new" element={<Facility />} />
+              <Route path="/facility/:id" element={<Facility />} />
               <Route path="/deduction" element={<DeductionType />} />
               <Route path="/deduction/new" element={<DeductionType />} />
               <Route path="/deduction/:id" element={<DeductionType />} />
