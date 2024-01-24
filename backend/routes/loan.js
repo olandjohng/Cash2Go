@@ -11,9 +11,9 @@ const LoanStatus = {
 }
 
 async function createPnNumber(header){
-  const qCategoryCode = await builder.select({ code : 'code'}).from('loan_categorytbl').where('loan_category_id', header.loanCat)
-  const qFacilityCode = await builder.select({ code : 'code'}).from('loan_facilitytbl').where('loan_facility_id', header.facility)
-  const qCustomerPnNumber = await builder.select({id : 'pn_number'}).from('loan_headertbl').where('customer_id', header.customer)
+  const qCategoryCode = await builder.select({ code : 'code'}).from('loan_categorytbl').where('loan_category_id', header.loan_category_id)
+  const qFacilityCode = await builder.select({ code : 'code'}).from('loan_facilitytbl').where('loan_facility_id', header.loan_facility_id)
+  const qCustomerPnNumber = await builder.select({id : 'pn_number'}).from('loan_headertbl').where('customer_id', header.customer_id)
 
   const categoryCode = qCategoryCode[0].code + qFacilityCode[0].code
   let min = 0
@@ -31,7 +31,7 @@ async function createPnNumber(header){
   const id = '0000'.slice(count.length) + count
   const year = new Date().getFullYear();
 
-  return `${categoryCode}-${id}-${header.customer}-${year}`
+  return `${categoryCode}-${id}-${header.customer_id}-${year}`
 
 }
 
@@ -56,42 +56,63 @@ loanRouter.get('/recalculate/:id', async (req, res) =>{
 
 loanRouter.post('/', async (req, res)=>{
   
-  const {header, loan, deduction, loanDeatails} = req.body
+  const {header, deduction, details} = req.body
 
-  const pnNumber = await createPnNumber(header)
-  console.log(loanDeatails)
+  const pnNumber = await createPnNumber(req.body.header)
+  // console.log(req.body)
+
   // console.log(header.bank_id)
-  // await builder.transaction(async t =>{
-  //   const id = await builder('loan_headertbl').insert({
-  //     pn_number : pnNumber,
-  //     customer_id : header.customer,
-  //     transaction_date : header.dateGranted,
-  //     bank_account_id : header.bank_id,
-  //     bank_account_pdc_id : header.borrower,
-  //     collateral_id : header.collateral,
-  //     loan_category_id : header.loanCat,
-  //     loan_facility_id : header.facility,
-  //     principal_amount : loan.principalAmount,
-  //     interest_rate : loan.interestRate,
-  //     total_interest : loan.totalInterest,
-  //     term_month : loan.monthTerm, 
-  //     term_day : 0,
-  //     date_granted : header.dateGranted,
-  //     status_code : LoanStatus.ONGOING,
-  //     service_charge : deduction.serviceCharge,
-  //     documentary_stamp : deduction.documentStamp,
-  //     appraisal_fee : deduction.appraisalFee,
-  //     notarial_fee : deduction.notarialFee,
-  //     check_issued_name : header.checkName,
-  //     voucher_number : header.voucherNum,
-  //     renewal_id : 0,
-  //     renewal_amount : 0
-  //   }, '*').transacting(t)
-
-  // })
-  res.status(200).json(pnNumber)
+  await builder.transaction(async t =>{
     
-  // console.log(pnNumber)
+    const id = await builder('loan_headertbl').insert({
+      pn_number : pnNumber,
+      customer_id : header.customer_id,
+      transaction_date : header.transaction_date,
+      bank_account_id : header.bank_account_id,
+      // bank_account_pdc_id : header.borrower,
+      collateral_id : 1,
+      loan_category_id : header.loan_category_id,
+      loan_facility_id : header.loan_facility_id,
+      principal_amount : header.principal_amount,
+      interest_rate : header.interest_rate,
+      // total_interest : loan.totalInterest,
+      term_month : header.term_month, 
+      // term_day : 0,
+      date_granted : header.date_granted,
+      status_code : LoanStatus.ONGOING,
+      check_issued_name : header.check_issued_name,
+      voucher_number : header.voucher_number,
+      renewal_id : 0,
+      renewal_amount : 0
+    }, '*').transacting(t)
+    
+    const loanDetailsMap = details.map(v => {
+      return{
+        loan_header_id : id[0],
+        check_date : v.dueDate.split('T')[0],
+        check_number : Number(v.checkNumber),
+        bank_account_id : Number(v.bank),
+        monthly_amortization : Number(v.amortization),
+        monthly_interest : Number(v.interest),
+        monthly_principal : Number(v.principal),
+        accumulated_penalty : 0
+      }
+    })
+    
+    const loanDetails = await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
+
+    res.status(200).json({
+      id : id[0], 
+      pnNumber : pnNumber,
+      status_code : LoanStatus.ONGOING
+    })
+
+  })
+  // calculate interest
+
+
+
+
 })
 
 loanRouter.get('/category', async (req, res)=>{
