@@ -4,10 +4,20 @@ import {mockDataTeam} from '../../data/mockData'
 import { useTheme } from '@emotion/react'
 import { Box } from '@mui/material'
 import Header from '../../components/Header'
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import Popups from '../../components/Popups'
 import DetailsModal from './components/DetailsModal'
 import NewLoanModal from './components/NewLoanModal'
+
+function reducer(state, action){
+    switch(action.type){
+        case 'INIT' : return action.loans
+        case 'ADD' : return [
+            ...state , action.loans
+        ]
+    }
+}
+
 
 const Loan = () => {
     const theme = useTheme();
@@ -32,11 +42,11 @@ const Loan = () => {
     const [banks, setBanks] = useState([])
     const [categories, setCategories] = useState([])
     
-    const [loans, setLoans] = useState([]);
+    // const [loans, setLoans] = useState([]);
     const [openPopup, setOpenPopup] = useState(false);
     const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
     const [selectedLoanId, setSelectedLoanId] = useState(null);
-
+    const [loans, dispatch] = useReducer(reducer, []);
 
     const handleRowDoubleClick = (params) => {
         setSelectedLoanId(params.row.loan_header_id);
@@ -63,7 +73,7 @@ const Loan = () => {
             const banksData = await req[4].json()
             const categoryData = await req[5].json()
 
-            setLoans(loanData)
+            dispatch({type : 'INIT', loans : loanData })
             setCustomers(customerData)
             setCollaterals(collateralData)
 
@@ -71,10 +81,10 @@ const Loan = () => {
             setBanks(banksData)
             setCategories(categoryData)
         }
-
         getData()
-    
+        
     }, [])
+    console.log(loans)
   return (
     <div style={ {height : '75%', padding : 20}}>
         <Header title="LOANS" subtitle="List of loans with details" showButton={true} onAddButtonClick={() => setOpenNewLoanPopup(true)} />
@@ -106,7 +116,10 @@ const Loan = () => {
                 customers={customers}
                 facilities={facilities} 
                 categories={categories} 
-                banks={banks}/>
+                banks={banks}
+                dispatcher={dispatch}
+                popups = {setOpenNewLoanPopup}
+                />
         </Popups>
     </div>
   )
