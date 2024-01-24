@@ -7,9 +7,9 @@ import { DataGrid } from '@mui/x-data-grid';
 
 
 const initialLoanHeaderValues = {
-    id: 0,
-    pn_number: '',
-    customer_id: '',
+    // id: 0,
+    // pn_number: '',
+    // customer_id: '',
     transaction_date: new Date(),
     bank_account_id: '',
     bank_account_pdc_id: '',
@@ -22,10 +22,10 @@ const initialLoanHeaderValues = {
     term_month: 0,
     term_day: 0,
     date_granted: new Date(),
-    status_code: '',
+    // status_code: '',
     check_issued_name: '',
     voucher_number: '',
-    renewal_id: '',
+    renewal_id: 0,
     renewal_amount: 0,
 }
 
@@ -138,15 +138,16 @@ export default function NewLoanModal() {
         <Grid item xs={8} border={1} borderColor={colors.grey[500]}>
           <Grid container xs={12}>
             <Grid item xs={4}>
-              <TextField
+              {/* <TextField
                 variant="outlined"
                 label="Voucher Number"
                 type="number"
                 name="voucher_number"
                 fullWidth
+                // onChange={(e) => console.log(e)}
                 // value={loanHeaderValues.voucher_number}
                 sx={{width: "95%", margin: 1}}
-              />          
+              />           */}
             </Grid>
             <Grid item xs={8}>
               <Autocomplete 
