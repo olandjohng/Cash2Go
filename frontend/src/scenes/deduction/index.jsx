@@ -7,8 +7,10 @@ import { DeleteOutlined, EditCalendarOutlined } from '@mui/icons-material'
 import { Button, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import { tokens } from '../../theme'
-import { toast } from 'react-toastify';
+import { Bounce, toast } from 'react-toastify';
 import { Link, useLocation } from 'react-router-dom'
+import axios from 'axios'
+import 'react-toastify/dist/ReactToastify.css';
 
 function DeductionType() {
 
@@ -21,9 +23,8 @@ function DeductionType() {
   
     const loadDeductionData = async () => {
       try {
-        const req = await fetch('http://localhost:8000/deductions');
-        const reqJSON = await req.json();
-        setDeduction(reqJSON);
+        const response = await axios.get('http://localhost:8000/deductions');
+        setDeduction(response.data);
       } catch (error) {
         console.error('Error loading deduction data:', error);
       }
@@ -51,7 +52,7 @@ function DeductionType() {
             <Tooltip title="Delete" placement="top" arrow>
                 <Button
                   sx={{color: colors.redAccent[500], cursor: 'auto'}}
-                  // onClick={() => handleDelete(params.row.id)} 
+                  onClick={() => handleDelete(params.row.id)} 
                 >
                   <DeleteOutlined sx={{cursor: 'pointer'}} />
                 </Button>
@@ -66,6 +67,45 @@ function DeductionType() {
       // Refresh deduction data after a new deduction is added
       loadDeductionData();
     };
+
+    const handleDelete = async (id) => {
+      // Show confirmation dialog
+      const isConfirmed = window.confirm("Are you sure you want to delete this deduction?");
+      if (!isConfirmed) {
+        return;
+      }
+  
+      try {
+        const response = await axios.delete(`http://localhost:8000/deductions/delete/${id}`);
+        console.log(response.data);
+        loadDeductionData();
+        toast.success('Deduction Successfully Deleted!', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+          transition: Bounce,
+        });
+      } catch (error) {
+        console.error('Error deleting deduction:', error);
+        toast.error('Error deleting deduction, Please try again!', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+          transition: Bounce,
+        });
+      }
+    };
+  
 
     const handleClosePopup = () => {
       setOpenPopup(false);
