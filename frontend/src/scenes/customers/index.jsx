@@ -3,7 +3,7 @@ import Header from '../../components/Header'
 import { DataGrid } from '@mui/x-data-grid'
 import axios from 'axios'
 import Popups from '../../components/Popups'
-import NewFacility from './components/NewFacility'
+import NewCustomer from './components/NewCustomer'
 import { DeleteOutlined, EditCalendarOutlined } from '@mui/icons-material'
 import { Button, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
@@ -12,25 +12,30 @@ import { Bounce, toast } from 'react-toastify';
 import { Link, useLocation } from 'react-router-dom'
 import 'react-toastify/dist/ReactToastify.css';
 
-export default function Facility() {
-  const [facility, setFacility] = useState([])
+function Customers() {
+  const [customer, setCustomer] = useState([])
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const loc = useLocation();
   const [openPopup, setOpenPopup] = useState(false);
 
-  const loadFacilityData = async () => {
+  // Start of loadCategoryData - use to load the x-datagrid to view the changes
+  const loadCustomerData = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/facility');
-      setFacility(response.data);
+      const response = await axios.get('http://localhost:8000/customerInfo');
+      setCustomer(response.data);
     } catch (error) {
-      console.error('Error loading facility data:', error);
+      console.error('Error loading category data:', error);
     }
   };
+  // End of loadCategoryData - use to load the x-datagrid to view the changes
 
+  // Start columns - this is for the x-datagrid
   const columns = [
-    { field: 'name', flex : 1, headerName : 'Name'},
-    { field: 'code', flex : 1, headerName : 'Code'},
+    { field: 'fullname', flex : 1, headerName : 'Fullname'},
+    { field: 'contactNo', flex : 1, headerName : 'Contact'},
+    { field: 'address', flex : 1, headerName : 'Address'},
+    { field: 'gender', flex : 1, headerName : 'Gender'},
     {
       field: 'actions',
       headerName: '',
@@ -41,7 +46,7 @@ export default function Facility() {
           <Tooltip title="Edit" placement="top" arrow>
               <Button
                 component={Link}
-                to={`/facility/${params.row.id}`}
+                to={`/customers/${params.row.id}`}
                 sx={{color: colors.greenAccent[400], cursor: 'auto'}}
                 onClick={() => setOpenPopup(true)} 
               >
@@ -61,24 +66,27 @@ export default function Facility() {
       ),
     },
   ];
+  // End columns - this is for the x-datagrid
 
-  const handleFacilityAdded = () => {
-    // Refresh deduction data after a new deduction is added
-    loadFacilityData();
+  // Start Refresh - refresh the category data after a new category added
+  const handleCategoryAdded = () => {
+    loadCustomerData();
   };
+  // End Refresh
 
+  // Start Delete function
   const handleDelete = async (id) => {
     // Show confirmation dialog
-    const isConfirmed = window.confirm("Are you sure you want to delete this facility?");
+    const isConfirmed = window.confirm("Are you sure you want to delete this customer?");
     if (!isConfirmed) {
       return;
     }
 
     try {
-      const response = await axios.delete(`http://localhost:8000/facility/delete/${id}`);
+      const response = await axios.delete(`http://localhost:8000/customerInfo/delete/${id}`);
       console.log(response.data);
-      loadFacilityData();
-      toast.success('Facility Successfully Deleted!', {
+      loadCustomerData();
+      toast.success('Customer Successfully Deleted!', {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -90,8 +98,8 @@ export default function Facility() {
         transition: Bounce,
       });
     } catch (error) {
-      console.error('Error deleting category:', error);
-      toast.error('Error deleting facility, Please try again!', {
+      console.error('Error deleting customer:', error);
+      toast.error('Error deleting customer, Please try again!', {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -104,41 +112,47 @@ export default function Facility() {
       });
     }
   };
+  // End Delete function
 
-
+  // Start closing the popup
   const handleClosePopup = () => {
     setOpenPopup(false);
   };
+  // End closing the popup
 
-  useEffect(() =>{ 
-    loadFacilityData();
+  // Start useEffect
+  useEffect(() =>{
+    loadCustomerData();
   }, [])
+  // End useEffect
+
   return (
     <div style={ {height : '75%', padding : 20}}>
       <Header 
-        title={'Facilities'} 
-        subtitle={'List of facilities together with their respective codes!'}
+        title={'Customer'} 
+        subtitle={'List of customers together with some informations!'}
         showButton={true}
         onAddButtonClick={()=> setOpenPopup(true)} 
         toURL={loc.pathname + '/new'}
       />
       <DataGrid 
         columns={columns}
-        rows={facility}
+        rows={customer}
       />
 
-      <Popups
-            title="Facility"
+<Popups
+            title="Customer"
             openPopup={openPopup}
             setOpenPopup={setOpenPopup}
-            toURL={'/facility'}
+            toURL={'/customers'}
         >
-            <NewFacility 
-              onFacilityAdded={handleFacilityAdded} 
+            <NewCustomer 
+              onCategoryAdded={handleCategoryAdded} 
               onClosePopup={handleClosePopup}
             />
         </Popups>
-
     </div>
   )
 }
+
+export default Customers

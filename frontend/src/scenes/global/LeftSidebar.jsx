@@ -170,6 +170,13 @@ const LeftSidebar = () => {
               setSelected={setSelected}
             />
             <Item
+              title="Customers"
+              to="/customers"
+              icon={<Diversity3Outlined />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
               title="Banks"
               to="/banks"
               icon={<AccountBalanceOutlined />}

@@ -7,6 +7,8 @@ const bankRouter = require('./routes/bank')
 const deductionRouter = require('./routes/deduction')
 const bodyParser = require('body-parser')
 const facilityRouter = require('./routes/facility')
+const categoryRouter = require('./routes/category')
+const customerInfoRouter = require('./routes/customerInfo')
 
 const PORT = 8000
 
@@ -22,6 +24,8 @@ app.use('/customers', customerRouter)
 app.use('/banks', bankRouter)
 app.use('/deductions', deductionRouter)
 app.use('/facility', facilityRouter)
+app.use('/category', categoryRouter)
+app.use('/customerInfo', customerInfoRouter)
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`)

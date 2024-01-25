@@ -7,18 +7,69 @@ bankRouter.get('/', async (req, res)=>{
   res.status(200).json(banks)
 })
 
-bankRouter.post('/', async (req, res) =>{
-  const { bankName, checkLocation } = req.body
-  //TODO: error handling if empty input
-  try {
-    const bank = await builder('bank_accounttbl').insert({ bank_name : bankName, check_location : checkLocation})
-    res.status(200).json({id : bank[0]})
-  } catch (error) {
-    res.status(500).send()
-    console.log(error)
-  }  
-
+bankRouter.get('/read/:id', async (req, res) =>{
+  const id = req.params.id;
+  const deduction = await builder.select({id : 'bank_account_id', name : 'bank_name', check_location: 'check_location'})
+                                 .from('bank_accounttbl')
+                                 .where('bank_account_id', id)
+  res.status(200).json(deduction)
 })
+
+bankRouter.post('/new', async (req, res) => {
+  try {
+    const id = await builder('bank_accounttbl').insert({
+      bank_name: req.body.bank.name,
+      check_location: req.body.bank.check_location
+    }, ['bank_account_id']);
+
+    res.status(200).json({ id: id[0], message: 'Bank added successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+bankRouter.put('/edit/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const update = await builder('bank_accounttbl')
+      .where('bank_account_id', id)
+      .update({
+          bank_name: req.body.bank.name,
+          check_location: req.body.bank.check_location,
+          type: req.body.bank.type
+      });
+
+    if (update > 0) {
+      res.status(200).json({ message: 'Bank updated successfully' });
+    } else {
+      res.status(404).json({ error: 'Bank not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+bankRouter.delete('/delete/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const deletedCount = await builder('bank_accounttbl')
+      .where('bank_account_id', id)
+      .del();
+
+    if (deletedCount > 0) {
+      res.status(200).json({ message: 'Bank deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'Bank not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 
 
