@@ -24,7 +24,7 @@ export default function Facility() {
       const response = await axios.get('http://localhost:8000/facility');
       setFacility(response.data);
     } catch (error) {
-      console.error('Error loading deduction data:', error);
+      console.error('Error loading facility data:', error);
     }
   };
 
