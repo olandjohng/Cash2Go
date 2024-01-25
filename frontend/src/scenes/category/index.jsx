@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Header from '../../components/Header'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@emotion/react'

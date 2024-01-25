@@ -90,7 +90,7 @@ export default function Facility() {
         transition: Bounce,
       });
     } catch (error) {
-      console.error('Error deleting deduction:', error);
+      console.error('Error deleting category:', error);
       toast.error('Error deleting facility, Please try again!', {
         position: "top-right",
         autoClose: 5000,

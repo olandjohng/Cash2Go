@@ -30,6 +30,8 @@ function App() {
               <Route path="/loans" element={<Loan />} />
               <Route path="/borrowers" element={<Borrowers />}/>
               <Route path="/banks" element={<Banks />} />
+              <Route path="/banks/new" element={<Banks />} />
+              <Route path="/banks/:id" element={<Banks />} />
               <Route path="/category" element={<Category />} />
               <Route path="/category/new" element={<Category />} />
               <Route path="/category/:id" element={<Category />} />
