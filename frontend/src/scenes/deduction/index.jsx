@@ -34,7 +34,7 @@ function DeductionType() {
       { field: 'deductionType', flex: 1, headerName: 'Deduction Type' },
       {
         field: 'actions',
-        headerName: 'Actions',
+        headerName: '',
         sortable: false,
         width: 150,
         renderCell: (params) => (

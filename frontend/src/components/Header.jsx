@@ -36,14 +36,15 @@ const Header = ({title, subtitle, showButton = true, onAddButtonClick, toURL}) =
                         component={Link}
                         to={toURL}
                         sx={{
-                            backgroundColor: colors.blueAccent[700],
+                            backgroundColor: colors.greenAccent[900],
                             color: colors.grey[100],
                             fontSize: "14px",
                             fontWeight: "bold",
                             padding: "10px 20px",
-                            borderColor: colors.grey[400],
+                            borderColor: colors.greenAccent[800],
                             "&:hover": {borderColor: colors.grey[400],
-                                        backgroundColor: colors.grey[700]        
+                                        backgroundColor: colors.greenAccent[100],
+                                        color: colors.grey[900],        
                                 }
                         }}
                         onClick={onAddButtonClick}
