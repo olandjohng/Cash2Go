@@ -5,6 +5,7 @@ import { useTheme } from "@emotion/react"
 import { tokens } from "../../../theme"
 import { DataGrid } from '@mui/x-data-grid';
 import LoanTable from "./LoanTable"
+import LoanDetailsTable from "./LoanDetailsTable"
 
 
 const initialLoanHeaderValues = {
@@ -75,7 +76,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
     ];
     
 
-    const loantemp = { id: 1,  dueDate: new Date(),  principal : 0, interest : 0, amortization : 0, bank : null, checkNumber: 0}
+    // const loantemp = { id: 1,  dueDate: new Date(),  principal : 0, interest : 0, amortization : 0, bank : null, checkNumber: 0}
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
@@ -88,7 +89,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
     const [selectedDeduction, setSelectedDeduction] = useState({name : '', amount : 0});
 
     const [rowCount, setRowCount] = useState(1);
-    const [rows, setRows] = useState([loantemp]);
+    const [rows, setRows] = useState([]);
 
     const handleMoratoriumChange = (event) => {
       setShowMoratorium(event.target.checked);
@@ -175,29 +176,30 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
 
     const handleSubmit = async () => {
 
-      const data = {
-        header : loanHeaderValues,
-        deduction : deductionList,
-        details : rows
-      }
+      // const data = {
+      //   header : loanHeaderValues,
+      //   deduction : deductionList,
+      //   details : rows
+      // }
 
-      const req = await fetch('http://localhost:8000/loans', {
-        method : 'POST',
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data)
-      })
+      // const req = await fetch('http://localhost:8000/loans', {
+      //   method : 'POST',
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(data)
+      // })
 
-      const res = await req.json()
+      // const res = await req.json()
      
-      dispatcher({type : 'ADD', loans : {
-        ...loanInfo,
-        loan_header_id : res.id,
-        pn_number : res.pnNumber, 
-        status_code : res.status_code
-      }})
-      popups(false)
+      // dispatcher({type : 'ADD', loans : {
+      //   ...loanInfo,
+      //   loan_header_id : res.id,
+      //   pn_number : res.pnNumber, 
+      //   status_code : res.status_code
+      // }})
+      // popups(false)
+      console.log(rows)
     }
     // console.log('loanInfo', loanInfo)
   return (
@@ -481,7 +483,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
           </Grid>
         </Grid>
         <Grid item xs={8}>
-          <DataGrid
+          {/* <DataGrid
             rows={rows}
             columns={columns}
             editMode="row"
@@ -496,7 +498,9 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
             // onProcessRowUpdateError={(err) => console.log(err)}
             // checkboxSelection
             // isCellEditable={(params) => params.row.id !== undefined}
-          />
+          /> */}
+          <LoanDetailsTable banks={banks} rows={rows} setRows={setRows}/>
+
           {/* <LoanTable rows={rows} setRows={setRows} /> */}
 
         </Grid>  
