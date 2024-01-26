@@ -81,7 +81,7 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
       } 
     },
     { field: 'bank', headerName: 'Bank', width: 150, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name)},
-    { field: 'checkNumber', headerName: 'Check Number', width: 150, editable: true,   },
+    { field: 'checkNumber', headerName: 'Check Number', width: 120, editable: true,   },
     { field: 'action', type : 'actions',
       getActions : ({id}) => {
         return [
