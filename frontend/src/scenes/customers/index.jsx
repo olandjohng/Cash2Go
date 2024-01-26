@@ -69,7 +69,7 @@ function Customers() {
   // End columns - this is for the x-datagrid
 
   // Start Refresh - refresh the category data after a new category added
-  const handleCategoryAdded = () => {
+  const handleCustomerAdded = () => {
     loadCustomerData();
   };
   // End Refresh
@@ -147,7 +147,7 @@ function Customers() {
             toURL={'/customers'}
         >
             <NewCustomer 
-              onCategoryAdded={handleCategoryAdded} 
+              onCustomerAdded={handleCustomerAdded} 
               onClosePopup={handleClosePopup}
             />
         </Popups>
