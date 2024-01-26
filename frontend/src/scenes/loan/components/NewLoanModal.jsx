@@ -421,7 +421,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
       </Grid>
       {/* ----------------------------- */}
       <Grid container>
-        <Grid item xs={4}>
+        <Grid item xs={2}>
         <Grid container>
             <Grid item xs={12}>
               <Autocomplete
@@ -430,7 +430,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
               value={ selectedDeduction && selectedDeduction.name}
               onChange={handleDeductionChange}
               renderInput={(params) => <TextField {...params} label="Deduction" fullWidth />}
-              sx={{width: "95%", margin: 1}}
+              sx={{width: "90%", margin: 1}}
               />
               <Button 
                 variant="outlined" 
@@ -442,7 +442,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
                   fontSize: "14px",
                   fontWeight: "bold",
                   padding: "10px 20px",
-                  width: "95%", marginTop: 2, margin: 1,
+                  width: "90%", marginTop: 2, margin: 1,
                   borderColor: colors.grey    [400],
                   "&:hover": {borderColor: colors.grey[400],
                               backgroundColor: colors.grey[700]        
@@ -453,7 +453,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
               </Button>
             </Grid>
             <Grid container spacing={1}>
-              <Grid item xs={4}>
+              <Grid item xs={12}>
                 {deductionList.map((deduction, index) => (
                    <TextField
                      key={index}
@@ -461,7 +461,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
                      label={deduction.name}
                      fullWidth
                      onChange={(e) => handleDeductionInputChange(e, deduction.name)}
-                     sx={{ width: "95%", margin: 1, textAlign: "end" }}
+                     sx={{ width: "90%", margin: 1, textAlign: "end" }}
                      InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -480,7 +480,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
             </Grid>
           </Grid>
         </Grid>
-        <Grid item xs={8}>
+        <Grid item xs={10}>
           <DataGrid
             rows={rows}
             columns={columns}
