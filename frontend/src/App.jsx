@@ -13,6 +13,7 @@ import DeductionType from "./scenes/deduction";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import Customers from "./scenes/customers";
+import Collateral from "./scenes/collateral";
 
 function App() {
 
@@ -50,6 +51,10 @@ function App() {
               <Route path="/deduction" element={<DeductionType />} />
               <Route path="/deduction/new" element={<DeductionType />} />
               <Route path="/deduction/:id" element={<DeductionType />} />
+
+              <Route path="/collateral" element={<Collateral />} />
+              <Route path="/collateral/new" element={<Collateral />} />
+              <Route path="/collateral/:id" element={<Collateral />} />
             </Routes>
             <ToastContainer />
           </main>
