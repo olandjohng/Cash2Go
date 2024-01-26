@@ -1,3 +1,3 @@
-import { faker } from 'https://cdn.skypack.dev/@faker-js/faker';
+import { faker } from '@faker-js/faker'
 
 export default faker
