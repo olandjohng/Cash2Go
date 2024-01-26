@@ -149,22 +149,6 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
       
       setDeductionList(newDection)
     }
-
-    // End for the deduction
-    const handleRowInputChange = (row) => {
-      const newRow = rows.map((r)=> {
-        if(r.id === row.id){
-          for (const b of banks) {
-            if(b.name === row.bank){
-              return {...row, bank : b.id}
-            }
-          }
-        }
-        return r
-      })
-      setRows(newRow)
-    }
-
     const handleSubmit = async () => {
 
       // const data = {
