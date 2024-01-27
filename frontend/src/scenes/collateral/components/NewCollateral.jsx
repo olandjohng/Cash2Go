@@ -85,6 +85,11 @@ export default function NewCollateral({ onCollateralAdded, onClosePopup }) {
         
     };
 
+    const handleCancel = () => {
+      onClosePopup();
+      navigate('/collateral');
+    };
+    
   return (
     <Grid container>
     <Grid width={350} item xs={12}>
@@ -102,6 +107,7 @@ export default function NewCollateral({ onCollateralAdded, onClosePopup }) {
         <Grid item>
           <Tooltip title="Add" placement="top">
               <Button variant="outlined" 
+                onClick={handleCancel}
                 sx={{
                     backgroundColor: colors.blueAccent[700],
                     color: colors.grey[100],

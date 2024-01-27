@@ -14,6 +14,8 @@ import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import Customers from "./scenes/customers";
 import Collateral from "./scenes/collateral";
+import AccountCategory from "./scenes/accountCategory";
+import AccountTitle from "./scenes/accountTitle";
 
 function App() {
 
@@ -55,6 +57,14 @@ function App() {
               <Route path="/collateral" element={<Collateral />} />
               <Route path="/collateral/new" element={<Collateral />} />
               <Route path="/collateral/:id" element={<Collateral />} />
+
+              <Route path="/account-category" element={<AccountCategory />} />
+              <Route path="/account-category/new" element={<AccountCategory />} />
+              <Route path="/account-category/:id" element={<AccountCategory />} />
+
+              <Route path="/account-title" element={<AccountTitle />} />
+              <Route path="/account-title/new" element={<AccountTitle />} />
+              <Route path="/account-title/:id" element={<AccountTitle />} />
             </Routes>
             <ToastContainer />
           </main>

@@ -85,6 +85,11 @@ export default function NewBank({onBankAdded, onClosePopup}) {
       };
     // End handleSubmit
 
+    const handleCancel = () => {
+      onClosePopup();
+      navigate('/banks');
+    };
+
   return (
     <Grid container>
       <Grid width={350} item xs={12}>
@@ -113,6 +118,7 @@ export default function NewBank({onBankAdded, onClosePopup}) {
           <Grid item>
             <Tooltip title="Add" placement="top">
                 <Button variant="outlined" 
+                  onClick={handleCancel}
                   sx={{
                       backgroundColor: colors.blueAccent[700],
                       color: colors.grey[100],
