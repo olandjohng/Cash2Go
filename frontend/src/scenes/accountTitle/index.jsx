@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import Header from '../../components/Header'
 import { DataGrid } from '@mui/x-data-grid'
 import Popups from '../../components/Popups'
-import NewDeduction from './components/NewDeduction'
+import NewAccountTitle from './components/NewAccountTitle'
 import { DeleteOutlined, EditCalendarOutlined } from '@mui/icons-material'
 import { Button, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
@@ -12,26 +12,28 @@ import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import 'react-toastify/dist/ReactToastify.css';
 
-function DeductionType() {
+function AccountTitle() {
 
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const loc = useLocation();
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
+    const loc = useLocation();
 
     const [openPopup, setOpenPopup] = useState(false);
-    const [deduction, setDeduction] = useState([])
-  
-    const loadDeductionData = async () => {
-      try {
-        const response = await axios.get('http://localhost:8000/deductions');
-        setDeduction(response.data);
-      } catch (error) {
-        console.error('Error loading deduction data:', error);
-      }
-    };
+    const [accountTitle, setAccountTitle] = useState([])
 
-    const columns = [
-      { field: 'deductionType', flex: 1, headerName: 'Deduction Type' },
+    const loadAccountTitleData = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/account-title');
+        setAccountTitle(response.data);
+      } catch (error) {
+        console.error('Error loading account title data:', error);
+      }
+  };
+
+  const columns = [
+      { field: 'account_name', flex: 1, headerName: 'Category Name' },
+      { field: 'account_title', flex: 1, headerName: 'Title Name' },
+      { field: 'account_code', flex: 1, headerName: 'Code' },
       {
         field: 'actions',
         headerName: '',
@@ -42,7 +44,7 @@ function DeductionType() {
             <Tooltip title="Edit" placement="top" arrow>
                 <Button
                   component={Link}
-                  to={`/deduction/${params.row.id}`}
+                  to={`/account-title/${params.row.id}`}
                   sx={{color: colors.greenAccent[400], cursor: 'auto'}}
                   onClick={() => setOpenPopup(true)} 
                 >
@@ -61,25 +63,25 @@ function DeductionType() {
           </div>
         ),
       },
-    ];
+  ];
 
-    const handleDeductionAdded = () => {
-      // Refresh deduction data after a new deduction is added
-      loadDeductionData();
-    };
+  const handleAccountTitleAdded = () => {
+      // Refresh deduction data after a new collateral is added
+      loadAccountTitleData();
+  };
 
-    const handleDelete = async (id) => {
+  const handleDelete = async (id) => {
       // Show confirmation dialog
-      const isConfirmed = window.confirm("Are you sure you want to delete this deduction?");
+      const isConfirmed = window.confirm("Are you sure you want to delete this account title?");
       if (!isConfirmed) {
         return;
       }
   
       try {
-        const response = await axios.delete(`http://localhost:8000/deductions/delete/${id}`);
+        const response = await axios.delete(`http://localhost:8000/account-title/delete/${id}`);
         console.log(response.data);
-        loadDeductionData();
-        toast.success('Deduction Successfully Deleted!', {
+        loadAccountTitleData();
+        toast.success('Account title Successfully Deleted!', {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -91,8 +93,8 @@ function DeductionType() {
           transition: Bounce,
         });
       } catch (error) {
-        console.error('Error deleting deduction:', error);
-        toast.error('Error deleting deduction, Please try again!', {
+        console.error('Error deleting account title:', error);
+        toast.error('Error deleting account title, Please try again!', {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -112,32 +114,32 @@ function DeductionType() {
     };
     
     useEffect(() => {
-      loadDeductionData();
+      loadAccountTitleData();
     }, []);
 
   return (
     <div style={ {height : '75%', padding : 20}}>
       <Header 
-        title={'Deduction Types'} 
-        subtitle={'List of deduction types use in processing new loans'} 
+        title={'Account Titles'} 
+        subtitle={'List of account titles'} 
         showButton={true} 
         onAddButtonClick={()=> setOpenPopup(true)} 
         toURL={loc.pathname + '/new'}
         />
       <DataGrid 
         columns={columns}
-        rows={deduction}
+        rows={accountTitle}
         
       />
 
         <Popups
-            title="Deduction"
+            title="Account Title"
             openPopup={openPopup}
             setOpenPopup={setOpenPopup}
-            toURL={'/deduction'}
+            toURL={'/account-title'}
         >
-            <NewDeduction 
-              onDeductionAdded={handleDeductionAdded} 
+            <NewAccountTitle 
+              onAccountTitleAdded={handleAccountTitleAdded} 
               onClosePopup={handleClosePopup}
             />
         </Popups>
@@ -145,4 +147,4 @@ function DeductionType() {
   )
 }
 
-export default DeductionType
+export default AccountTitle

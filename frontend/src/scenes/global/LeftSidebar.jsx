@@ -3,7 +3,7 @@ import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar"
 import { Box, IconButton, Typography, useTheme } from "@mui/material"
 import { Link } from "react-router-dom"
 import { tokens } from "../../theme"
-import { HomeOutlined, PeopleOutlined, MenuOutlined, ReceiptOutlined, PointOfSaleOutlined, AttachMoneyOutlined, Diversity3Outlined, CategoryOutlined, TrendingDownOutlined, EmojiTransportationOutlined, AccountBalanceOutlined } from "@mui/icons-material"
+import { HomeOutlined, PeopleOutlined, MenuOutlined, ReceiptOutlined, PointOfSaleOutlined, AttachMoneyOutlined, Diversity3Outlined, CategoryOutlined, TrendingDownOutlined, EmojiTransportationOutlined, AccountBalanceOutlined, CompareArrowsOutlined, ClassOutlined, TitleOutlined } from "@mui/icons-material"
 import 'react-pro-sidebar/dist/css/styles.css';
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
@@ -170,6 +170,13 @@ const LeftSidebar = () => {
               setSelected={setSelected}
             />
             <Item
+              title="Customers"
+              to="/customers"
+              icon={<Diversity3Outlined />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
               title="Banks"
               to="/banks"
               icon={<AccountBalanceOutlined />}
@@ -194,6 +201,27 @@ const LeftSidebar = () => {
               title="Deduction Type"
               to="/deduction"
               icon={<TrendingDownOutlined />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Collateral"
+              to="/collateral"
+              icon={<CompareArrowsOutlined />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Account Category"
+              to="/account-category"
+              icon={<ClassOutlined />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Account Title"
+              to="/account-title"
+              icon={<TitleOutlined />}
               selected={selected}
               setSelected={setSelected}
             />

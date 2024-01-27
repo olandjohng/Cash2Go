@@ -12,6 +12,10 @@ import Facility from "./scenes/facility";
 import DeductionType from "./scenes/deduction";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import Customers from "./scenes/customers";
+import Collateral from "./scenes/collateral";
+import AccountCategory from "./scenes/accountCategory";
+import AccountTitle from "./scenes/accountTitle";
 
 function App() {
 
@@ -29,14 +33,38 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/loans" element={<Loan />} />
               <Route path="/borrowers" element={<Borrowers />}/>
+
+              <Route path="/customers" element={<Customers />}/>
+              <Route path="/customers/new" element={<Customers />}/>
+              <Route path="/customers/:id" element={<Customers />}/>
+
               <Route path="/banks" element={<Banks />} />
+              <Route path="/banks/new" element={<Banks />} />
+              <Route path="/banks/:id" element={<Banks />} />
+
               <Route path="/category" element={<Category />} />
+              <Route path="/category/new" element={<Category />} />
+              <Route path="/category/:id" element={<Category />} />
+
               <Route path="/facility" element={<Facility />} />
               <Route path="/facility/new" element={<Facility />} />
               <Route path="/facility/:id" element={<Facility />} />
+
               <Route path="/deduction" element={<DeductionType />} />
               <Route path="/deduction/new" element={<DeductionType />} />
               <Route path="/deduction/:id" element={<DeductionType />} />
+
+              <Route path="/collateral" element={<Collateral />} />
+              <Route path="/collateral/new" element={<Collateral />} />
+              <Route path="/collateral/:id" element={<Collateral />} />
+
+              <Route path="/account-category" element={<AccountCategory />} />
+              <Route path="/account-category/new" element={<AccountCategory />} />
+              <Route path="/account-category/:id" element={<AccountCategory />} />
+
+              <Route path="/account-title" element={<AccountTitle />} />
+              <Route path="/account-title/new" element={<AccountTitle />} />
+              <Route path="/account-title/:id" element={<AccountTitle />} />
             </Routes>
             <ToastContainer />
           </main>

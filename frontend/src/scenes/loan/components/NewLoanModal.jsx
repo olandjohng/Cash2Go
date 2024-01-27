@@ -5,6 +5,7 @@ import { useTheme } from "@emotion/react"
 import { tokens } from "../../../theme"
 import { DataGrid } from '@mui/x-data-grid';
 import LoanTable from "./LoanTable"
+import LoanDetailsTable from "./LoanDetailsTable"
 
 
 const initialLoanHeaderValues = {
@@ -64,18 +65,9 @@ const loanInfoHeader = {
 
 
 export default function NewLoanModal({customers, collaterals, facilities, banks, categories, dispatcher, popups }) {
-
-    const columns = [
-      { field: 'dueDate', headerName: 'Due Date', width: 150, editable: true, type : 'date' },
-      { field: 'principal', headerName: 'Principal', width: 150, editable: true, },
-      { field: 'interest', headerName: 'Interest', width: 150, editable: true,  },
-      { field: 'amortization', headerName: 'Amortization', width: 150, editable: true,  },
-      { field: 'bank', headerName: 'Bank', width: 150, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name)},
-      { field: 'checkNumber', headerName: 'Check Number', width: 150, editable: true,   },
-    ];
     
 
-    const loantemp = { id: 1,  dueDate: new Date(),  principal : 0, interest : 0, amortization : 0, bank : null, checkNumber: 0}
+    // const loantemp = { id: 1,  dueDate: new Date(),  principal : 0, interest : 0, amortization : 0, bank : null, checkNumber: 0}
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
@@ -88,7 +80,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
     const [selectedDeduction, setSelectedDeduction] = useState({name : '', amount : 0});
 
     const [rowCount, setRowCount] = useState(1);
-    const [rows, setRows] = useState([loantemp]);
+    const [rows, setRows] = useState([]);
 
     const handleMoratoriumChange = (event) => {
       setShowMoratorium(event.target.checked);
@@ -157,47 +149,32 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
       
       setDeductionList(newDection)
     }
-
-    // End for the deduction
-    const handleRowInputChange = (row) => {
-      const newRow = rows.map((r)=> {
-        if(r.id === row.id){
-          for (const b of banks) {
-            if(b.name === row.bank){
-              return {...row, bank : b.id}
-            }
-          }
-        }
-        return r
-      })
-      setRows(newRow)
-    }
-
     const handleSubmit = async () => {
 
-      const data = {
-        header : loanHeaderValues,
-        deduction : deductionList,
-        details : rows
-      }
+      // const data = {
+      //   header : loanHeaderValues,
+      //   deduction : deductionList,
+      //   details : rows
+      // }
 
-      const req = await fetch('http://localhost:8000/loans', {
-        method : 'POST',
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data)
-      })
+      // const req = await fetch('http://localhost:8000/loans', {
+      //   method : 'POST',
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(data)
+      // })
 
-      const res = await req.json()
+      // const res = await req.json()
      
-      dispatcher({type : 'ADD', loans : {
-        ...loanInfo,
-        loan_header_id : res.id,
-        pn_number : res.pnNumber, 
-        status_code : res.status_code
-      }})
-      popups(false)
+      // dispatcher({type : 'ADD', loans : {
+      //   ...loanInfo,
+      //   loan_header_id : res.id,
+      //   pn_number : res.pnNumber, 
+      //   status_code : res.status_code
+      // }})
+      // popups(false)
+      console.log(rows)
     }
     // console.log('loanInfo', loanInfo)
   return (
@@ -421,7 +398,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
       </Grid>
       {/* ----------------------------- */}
       <Grid container>
-        <Grid item xs={4}>
+        <Grid item xs={2}>
         <Grid container>
             <Grid item xs={12}>
               <Autocomplete
@@ -430,7 +407,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
               value={ selectedDeduction && selectedDeduction.name}
               onChange={handleDeductionChange}
               renderInput={(params) => <TextField {...params} label="Deduction" fullWidth />}
-              sx={{width: "95%", margin: 1}}
+              sx={{width: "90%", margin: 1}}
               />
               <Button 
                 variant="outlined" 
@@ -442,7 +419,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
                   fontSize: "14px",
                   fontWeight: "bold",
                   padding: "10px 20px",
-                  width: "95%", marginTop: 2, margin: 1,
+                  width: "90%", marginTop: 2, margin: 1,
                   borderColor: colors.grey    [400],
                   "&:hover": {borderColor: colors.grey[400],
                               backgroundColor: colors.grey[700]        
@@ -453,7 +430,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
               </Button>
             </Grid>
             <Grid container spacing={1}>
-              <Grid item xs={4}>
+              <Grid item xs={12}>
                 {deductionList.map((deduction, index) => (
                    <TextField
                      key={index}
@@ -461,7 +438,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
                      label={deduction.name}
                      fullWidth
                      onChange={(e) => handleDeductionInputChange(e, deduction.name)}
-                     sx={{ width: "95%", margin: 1, textAlign: "end" }}
+                     sx={{ width: "90%", margin: 1, textAlign: "end" }}
                      InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -480,24 +457,9 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
             </Grid>
           </Grid>
         </Grid>
-        <Grid item xs={8}>
-          <DataGrid
-            rows={rows}
-            columns={columns}
-            editMode="row"
-            // pageSize={5}
-            getRowSpacing={params=> ({
-              top : params.isFirstVisible ? 0 : 5,
-              bottom : params.isLastVisible ? 0 : 5
-            })}
-            // getRowId={row => row.id}
-            // onRowModesModelChange={(params, details) => console.log(params, details)}
-            processRowUpdate={handleRowInputChange}
-            // onProcessRowUpdateError={(err) => console.log(err)}
-            // checkboxSelection
-            // isCellEditable={(params) => params.row.id !== undefined}
-          />
-          {/* <LoanTable rows={rows} setRows={setRows} /> */}
+        <Grid item xs={10}>
+          
+          <LoanDetailsTable banks={banks} rows={rows} setRows={setRows}/>
 
         </Grid>  
         <Button onClick={handleSubmit}>Submit</Button>
