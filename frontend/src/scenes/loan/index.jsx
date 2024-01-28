@@ -84,7 +84,6 @@ const Loan = () => {
         getData()
         
     }, [])
-    console.log(loans)
   return (
     <div style={ {height : '75%', padding : 20}}>
         <Header title="LOANS" subtitle="List of loans with details" showButton={true} onAddButtonClick={() => setOpenNewLoanPopup(true)} />
