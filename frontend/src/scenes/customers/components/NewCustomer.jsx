@@ -133,6 +133,11 @@ const formattedCustomer = {
 };
 // End handleSubmit
 
+const handleCancel = () => {
+  onClosePopup();
+  navigate('/customers');
+};
+
   return (
     <Grid container spacing={1}>
       <Grid item xs={4}>
@@ -356,6 +361,7 @@ const formattedCustomer = {
           <Grid item>
             <Tooltip title="Add" placement="top">
                 <Button variant="outlined" 
+                  onClick={handleCancel}
                   sx={{
                       backgroundColor: colors.blueAccent[700],
                       color: colors.grey[100],

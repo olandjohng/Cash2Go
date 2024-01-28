@@ -9,6 +9,9 @@ const bodyParser = require('body-parser')
 const facilityRouter = require('./routes/facility')
 const categoryRouter = require('./routes/category')
 const customerInfoRouter = require('./routes/customerInfo')
+const collateralRouter = require('./routes/collateral')
+const accountCategoryRouter = require('./routes/accountCategory')
+const accountTitleRouter = require('./routes/accountTitle')
 
 const PORT = 8000
 
@@ -26,6 +29,9 @@ app.use('/deductions', deductionRouter)
 app.use('/facility', facilityRouter)
 app.use('/category', categoryRouter)
 app.use('/customerInfo', customerInfoRouter)
+app.use('/collateral', collateralRouter)
+app.use('/account-category', accountCategoryRouter)
+app.use('/account-title', accountTitleRouter)
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`)

@@ -85,6 +85,11 @@ export default function NewCategory({onCategoryAdded, onClosePopup}) {
       };
     // End handleSubmit
 
+    const handleCancel = () => {
+      onClosePopup();
+      navigate('/category');
+    };
+
   return (
     <Grid container>
       <Grid width={350} item xs={12}>
@@ -122,6 +127,7 @@ export default function NewCategory({onCategoryAdded, onClosePopup}) {
           <Grid item>
             <Tooltip title="Add" placement="top">
                 <Button variant="outlined" 
+                  onClick={handleCancel}
                   sx={{
                       backgroundColor: colors.blueAccent[700],
                       color: colors.grey[100],
