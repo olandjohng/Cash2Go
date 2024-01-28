@@ -2,7 +2,7 @@ const knex = require('knex')
 
 const HOST = 'localhost'
 const USER = 'root'
-const PASSWORD = 'web001'
+const PASSWORD = 'root'
 const DATABASE = 'web_loan_db'
 
 

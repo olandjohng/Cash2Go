@@ -13,7 +13,7 @@ export default function NewAccountTitle({ onAccountTitleAdded, onClosePopup }) {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const navigate = useNavigate();
-    const [accountTitle, setAccountTitle] = useState({account_name: ''});
+    const [accountTitle, setAccountTitle] = useState({account_category_id: '', account_title: '', account_code: ''});
 
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -21,40 +21,63 @@ export default function NewAccountTitle({ onAccountTitleAdded, onClosePopup }) {
     // Start useEffect
     useEffect(() => {
       if (id) {
-          axios.get(`http://localhost:8000/account-category/read/${id}`)
+        axios.get(`http://localhost:8000/account-title/read/${id}`)
           .then((res) => {
-              console.log('API Response:', res.data);
-              
-              if (Array.isArray(res.data) && res.data.length > 0) {
-                  const { account_category_id, account_name, account_title, account_code } = res.data[0];
-                  console.log('Account Title:', { account_category_id, account_name, account_title, account_code });
-                  setAccountTitle({ account_category_id, account_name, account_title, account_code });
-              } else {
-                  console.error('Invalid data structure returned by the API');
-              }
+            console.log('API Response:', res.data);
+    
+            if (Array.isArray(res.data) && res.data.length > 0) {
+              const accountData = res.data[0];
+              console.log('Account Title:', accountData);
+              setAccountTitle((prevAccountTitle) => ({
+                ...prevAccountTitle,
+                account_category_id: accountData.account_category_id,
+                account_title: accountData.account_title,
+                account_code: accountData.account_code
+              }));
+    
+              // Find the category object based on account_category_id
+              const selectedCategoryObject = categories.find(category => category.id === accountData.account_category_id);
+    
+              // Update selectedCategory
+              setSelectedCategory(selectedCategoryObject || null);
+              //handleChangeCategory();
+            } else {
+              console.error('Invalid data structure returned by the API');
+            }
           })
           .catch((err) => console.log(err));
       }
-    }, [id]);
+    }, [categories, id]);
+    
     // End useEffect
 
   useEffect(() => {
-    // Fetch data from the database
     axios.get('http://localhost:8000/account-category')
       .then(response => {
-        // Update the state with the received data
         setCategories(response.data);
         console.log('Categories:', response.data);
       })
       .catch(error => {
         console.error('Error fetching data:', error);
       });
-  }, []); // The empty dependency array ensures that this effect runs once on component mount
+  }, []); 
+
+  useEffect(() => {
+    setAccountTitle((prevAccountTitle) => ({
+      ...prevAccountTitle,
+      account_category_id: selectedCategory ? selectedCategory.id : null,
+    }));
+  }, [selectedCategory]);
 
   const handleChangeCategory = (e) => {
-    console.log('Selected Category:', e.target.value);
-    setSelectedCategory(e.target.value);
+    const selectedCategoryId = e.target.value;
+  
+    // Find the category object based on account_name
+    const selectedCategoryObject = categories.find(category => category.account_name === selectedCategoryId);
+  
+    setSelectedCategory(selectedCategoryObject || null);
   };
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -72,12 +95,12 @@ const handleSubmit = async (e) => {
   console.log({accountTitle});
   const axiosMethod = id ? axios.put : axios.post;
 
-  const payload = {
-    ...accountTitle,
-    account_category_id: selectedCategory, // Add the selected category ID to the payload
-  };
+  // const payload = {
+  //   ...accountTitle,
+  //   account_category_id: selectedCategory ? selectedCategory.id : null,
+  // };
 
-  axiosMethod(apiURL, payload)
+  axiosMethod(apiURL, {accountTitle: accountTitle})
     .then((res) => {
       console.log(res);
       onAccountTitleAdded();
@@ -126,11 +149,11 @@ const handleCancel = () => {
         id="category-select"
         label="Account Category"
         name="category_name"
-        value={selectedCategory}
+        value={selectedCategory ? selectedCategory.account_name : ''}
         onChange={handleChangeCategory}
       >
         {categories.map(category => (
-          <MenuItem key={category.id} value={category.account_category_id}>
+          <MenuItem key={category.id} value={category.account_name}>
             {category.account_name}
           </MenuItem>
         ))}
