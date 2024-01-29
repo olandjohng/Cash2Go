@@ -66,8 +66,6 @@ const loanInfoHeader = {
 
 export default function NewLoanModal({customers, collaterals, facilities, banks, categories, dispatcher, popups }) {
     
-
-    // const loantemp = { id: 1,  dueDate: new Date(),  principal : 0, interest : 0, amortization : 0, bank : null, checkNumber: 0}
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
@@ -149,34 +147,48 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
       
       setDeductionList(newDection)
     }
+    
     const handleSubmit = async () => {
+      //TODO convert row details bank name to id
 
-      // const data = {
-      //   header : loanHeaderValues,
-      //   deduction : deductionList,
-      //   details : rows
-      // }
+      const details = rows.map((l) =>{
+        for (const b of banks) {
+          if(b.name === l.bank) { return {...l, bank : b.id}}
+        }
+      })
 
-      // const req = await fetch('http://localhost:8000/loans', {
-      //   method : 'POST',
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(data)
-      // })
+      const data = {
+        header : loanHeaderValues,
+        deduction : deductionList,
+        details : details
+      }
 
-      // const res = await req.json()
+      const req = await fetch('http://localhost:8000/loans', {
+        method : 'POST',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data)
+      })
+
+      const res = await req.json()
      
-      // dispatcher({type : 'ADD', loans : {
-      //   ...loanInfo,
-      //   loan_header_id : res.id,
-      //   pn_number : res.pnNumber, 
-      //   status_code : res.status_code
-      // }})
-      // popups(false)
-      console.log(rows)
+      console.log(res)
+      // id : id[0], 
+      // pnNumber : pnNumber,
+      // totalInterest : totalInterest,
+      // status_code : LoanStatus.ONGOING
+
+      dispatcher({type : 'ADD', loans : {
+        ...loanInfo,
+        loan_header_id : res.id,
+        pn_number : res.pnNumber, 
+        status_code : res.status_code,
+        total_interest : res.totalInterest
+      }})
+      popups(false)
+      console.log(data)
     }
-    // console.log('loanInfo', loanInfo)
   return (
     <div>
       <form>
@@ -254,7 +266,16 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
                 disablePortal
                 id="collateral"
                 options={collaterals.map((option) => option.name)}
-                onInputChange={(event, value) =>{console.log(value)} }
+                onInputChange= {
+                  (event, value) => {
+                    setloanInfo({...loanInfo,   loancategory: value})
+                    for (const c of collaterals) {
+                      if(c.name === value){
+                        setLoanHeaderValues({...loanHeaderValues, collateral_id : c.id})
+                      }
+                    }
+                  } 
+                }
                 sx={{width: "97%", margin: 1}}
                 renderInput={(params) => <TextField {...params} label="Loan Collateral" />}
               />
@@ -333,7 +354,7 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
               </Grid>
             </Grid>
             <Grid container>
-              <Grid item xs={12}>
+              {/* <Grid item xs={12}>
                 <TextField
                   variant="outlined"
                   label="Monthly Term"
@@ -342,9 +363,9 @@ export default function NewLoanModal({customers, collaterals, facilities, banks,
                   sx={{width: "97%", margin: 1}}
                   // inputProps={{ min: 0 }}
                   // value={rowCount}
-                  onChange={handleRowCountChange}
+                  // onChange={handleRowCountChange}
                 />
-              </Grid>
+              </Grid> */}
               <Grid item xs={12}>
                   {/* Checkbox for showing additional fields */}
                   <FormControlLabel 

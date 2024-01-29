@@ -60,8 +60,12 @@ loanRouter.post('/', async (req, res)=>{
 
   const pnNumber = await createPnNumber(req.body.header)
   // console.log(req.body)
+  const totalInterest = details.reduce((accumulator, current) => accumulator + Number(current.interest), 0)
 
-  // console.log(header.bank_id)
+  const deductionHistory = await builder.select('*').from('loan_deductiontbl')
+
+  console.log(details)
+  console.log(deductionHistory)
   await builder.transaction(async t =>{
     
     const id = await builder('loan_headertbl').insert({
@@ -69,15 +73,13 @@ loanRouter.post('/', async (req, res)=>{
       customer_id : header.customer_id,
       transaction_date : header.transaction_date,
       bank_account_id : header.bank_account_id,
-      // bank_account_pdc_id : header.borrower,
-      collateral_id : 1,
+      collateral_id : header.collateral_id,
       loan_category_id : header.loan_category_id,
       loan_facility_id : header.loan_facility_id,
       principal_amount : header.principal_amount,
       interest_rate : header.interest_rate,
-      // total_interest : loan.totalInterest,
-      term_month : header.term_month, 
-      // term_day : 0,
+      total_interest : totalInterest,
+      term_month : details.length, 
       date_granted : header.date_granted,
       status_code : LoanStatus.ONGOING,
       check_issued_name : header.check_issued_name,
@@ -86,7 +88,7 @@ loanRouter.post('/', async (req, res)=>{
       renewal_amount : 0
     }, '*').transacting(t)
     
-    const loanDetailsMap = details.map(v => {
+    const loanDetailsMap = details.map(v => { 
       return{
         loan_header_id : id[0],
         check_date : v.dueDate.split('T')[0],
@@ -98,19 +100,33 @@ loanRouter.post('/', async (req, res)=>{
         accumulated_penalty : 0
       }
     })
-    
+
     const loanDetails = await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
+      
+    const deductionFormat = deduction.map((v) =>{
+      for (const d of deductionHistory) {
+        if(v.name === d.deduction_type){
+          return {
+            loan_deduction_id : d.loan_deduction_id,
+            loan_header_id : id[0],
+            amount : v.amount
+          }
+        }
+      }
+    })
+
+    await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
 
     res.status(200).json({
       id : id[0], 
       pnNumber : pnNumber,
+      totalInterest : totalInterest,
       status_code : LoanStatus.ONGOING
     })
-
   })
   // calculate interest
-
-
+  
+  // res.status(200).send()
 
 
 })

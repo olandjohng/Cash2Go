@@ -33,13 +33,15 @@ const formatNumber = (params) =>{
   })
   return format
 }
+
+
 export default function LoanDetailsTable({banks, rows, setRows}) {
   const theme = useTheme()
   const colors =  tokens(theme.palette.mode)
   const [rowModesModel, setRowModesModel] = useState({})
 
   const handleDelete = (id) => {
-    const filterRows = rows.filter((row) => row.id !== id).map((r,i) => { return {...r, id : i + 1} })
+    const filterRows = rows.filter((row) => row.id !== id).map((r,i) =>  ({...r, id : i + 1}) )
     setRows(filterRows)
   }
 
@@ -47,10 +49,9 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
     setRowModesModel(newRowModesModel);
   };
 
-
   const handleRowInputChange = (newRow) =>{
     const updatedRow = { ...newRow, isNew : false}
-    setRows(rows.map((row)=> (row.id === newRow.id ? updatedRow : row)))
+    setRows(rows.map((row)=> (row.id === newRow.id ? updatedRow: row)))
     return updatedRow
   }
 
@@ -91,7 +92,6 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
             label='edit'
             sx={{color: colors.redAccent[500], cursor: 'auto'}}
             onClick={(e) => handleDelete(id)}
-
           />
         ]
       }
@@ -109,7 +109,6 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
       onRowModesModelChange={handleRowModesModelChange}
       onRowEditStop={handleRowEditStop}
       processRowUpdate={handleRowInputChange}
-
       slots={{
         toolbar: EditToolbar,
       }}
