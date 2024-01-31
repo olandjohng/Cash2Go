@@ -1,6 +1,9 @@
 const builder = require('../builder')
 
 async function getLoanList (req, res) {
+  
+  const search = req.query.search ? req.query.search : ''
+
   const loans = await builder.select(
     'loan_header_id',
     'pn_number',
@@ -13,7 +16,7 @@ async function getLoanList (req, res) {
     'date_granted',
     'status_code',
   )
-  .from('view_loan_header')
+  .from('view_loan_header').whereILike('customername', `%${search}%`).orWhereILike('pn_number', `%${search}%`)
   
   res.status(200).json(loans)
 }
