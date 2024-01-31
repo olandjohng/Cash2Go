@@ -4,10 +4,10 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import BorrowersModal from "./Components/BorrowersModal";
-import faker from "../../data/faker";
+// import faker from "../../data/faker";
 
 
-const useFakeData = true; // set to false to disable fakedata
+// const useFakeData = true; // set to false to disable fakedata
 
 function reducer(state, action){
   switch(action.type){
@@ -52,29 +52,29 @@ const Borrowers = () => {
     }
   }
 
-  const fakerData = {
-    borrower : {
-      fName : faker.person.firstName(),
-      mName : faker.person.middleName(),
-      lName : faker.person.lastName() ,
-      phoneNum : faker.phone.number(),
-      birthdate : faker.date.birthdate({ min: 18, max: 50, mode: 'age' }).toISOString().split('T')[0],
-      address : `${faker.location.streetAddress()} ${faker.location.city()}-${faker.location.zipCode()}`,
-      gender : faker.person.sexType().toUpperCase(),
-      civilStatus : 'MARRIED', 
-    },
-    spouse : {
-      fName : faker.person.firstName(),
-      mName : faker.person.middleName(),
-      lName : faker.person.lastName(),
-      birthdate : faker.date.birthdate({ min: 18, max: 50, mode: 'age' }).toISOString().split('T')[0],
-      phoneNum : faker.phone.number(),
-      address : `${faker.location.streetAddress()} ${faker.location.city()}-${faker.location.zipCode()}`,
-      gender : faker.person.sexType().toUpperCase()
-    }
-  }
+  // const fakerData = {
+  //   borrower : {
+  //     fName : faker.person.firstName(),
+  //     mName : faker.person.middleName(),
+  //     lName : faker.person.lastName() ,
+  //     phoneNum : faker.phone.number(),
+  //     birthdate : faker.date.birthdate({ min: 18, max: 50, mode: 'age' }).toISOString().split('T')[0],
+  //     address : `${faker.location.streetAddress()} ${faker.location.city()}-${faker.location.zipCode()}`,
+  //     gender : faker.person.sexType().toUpperCase(),
+  //     civilStatus : 'MARRIED', 
+  //   },
+  //   spouse : {
+  //     fName : faker.person.firstName(),
+  //     mName : faker.person.middleName(),
+  //     lName : faker.person.lastName(),
+  //     birthdate : faker.date.birthdate({ min: 18, max: 50, mode: 'age' }).toISOString().split('T')[0],
+  //     phoneNum : faker.phone.number(),
+  //     address : `${faker.location.streetAddress()} ${faker.location.city()}-${faker.location.zipCode()}`,
+  //     gender : faker.person.sexType().toUpperCase()
+  //   }
+  // }
 
-  const data = useFakeData ? fakerData : borrowersData
+  // const data = useFakeData ? fakerData : borrowersData
 
   const [open, setOpen] = useState(false)
 
