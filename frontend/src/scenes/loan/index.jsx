@@ -38,8 +38,11 @@ const Loan = () => {
         {field: "pn_number", headerName: "PN Number", width: 250},
         {field: "customername", headerName: "Customer", width: 250,
         valueFormatter : (params) => {
-            const name = params.value.split(' ');
-            return `${name[2]}, ${name[0]} ${name[1]}`
+            if(params.value) {
+                const name = params.value.split(' ');
+                return `${name[2]}, ${name[0]} ${name[1]}`
+
+            }
         }
         },
         {field: "bank_name", headerName: "Bank", width: 250 },
