@@ -18,8 +18,8 @@ bankRouter.get('/read/:id', async (req, res) =>{
 bankRouter.post('/new', async (req, res) => {
   try {
     const id = await builder('bank_accounttbl').insert({
-      bank_name: req.body.bank.name,
-      check_location: req.body.bank.check_location
+      bank_name: req.body.name,
+      check_location: req.body.check_location
     }, ['bank_account_id']);
 
     res.status(200).json({ id: id[0], message: 'Bank added successfully' });
@@ -36,9 +36,9 @@ bankRouter.put('/edit/:id', async (req, res) => {
     const update = await builder('bank_accounttbl')
       .where('bank_account_id', id)
       .update({
-          bank_name: req.body.bank.name,
-          check_location: req.body.bank.check_location,
-          type: req.body.bank.type
+          bank_name: req.body.name,
+          check_location: req.body.check_location,
+          type: req.body.type
       });
 
     if (update > 0) {

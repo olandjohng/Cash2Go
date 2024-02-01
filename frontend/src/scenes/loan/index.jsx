@@ -2,7 +2,7 @@ import {DataGrid} from '@mui/x-data-grid'
 import { tokens } from '../../theme'
 import {mockDataTeam} from '../../data/mockData'
 import { useTheme } from '@emotion/react'
-import { Box, InputBase, TextField } from '@mui/material'
+import { Box, IconButton, InputBase, TextField } from '@mui/material'
 import Header from '../../components/Header'
 import { useEffect, useReducer, useState } from 'react'
 import Popups from '../../components/Popups'
@@ -121,10 +121,22 @@ const Loan = () => {
   return (
     <div style={ {height : '75%', padding : 20}}>
         <Header title="LOANS" subtitle="List of loans with details" showButton={true} onAddButtonClick={() => setOpenNewLoanPopup(true)} />
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', mb : 2}}>
-            <TextField variant="standard" label= 'Search' onChange={handleSearch}/>
+        {/* <Box sx={{ display: 'flex', alignItems: 'flex-start', mb : 2}}>
+            <TextField variant="outlined" label= 'Search' onChange={handleSearch}/>
             <SearchOutlinedIcon sx={{ my: 'auto'}}/>
-        </Box>
+        </Box> */}
+        <Box 
+            display="flex" 
+            alignItems='flex-start'
+            marginBottom={2}
+            backgroundColor={colors.greenAccent[800]}
+            borderRadius="3px"
+            >
+                <InputBase sx={{ml: 2, mt: 0.5, flex: 1}} onChange={handleSearch} />
+                <IconButton type="button" sx={{ p: 1 }}>
+                    <SearchOutlinedIcon />
+                </IconButton>
+            </Box>
             <DataGrid sx={{height : '95%'}}
                 rows={loans}
                 columns={columns}

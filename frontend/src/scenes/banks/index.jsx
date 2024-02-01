@@ -11,6 +11,7 @@ import { DeleteOutlined, EditCalendarOutlined } from '@mui/icons-material'
 import { Button, Tooltip } from '@mui/material'
 import { Bounce, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import BankForm from './components/BankForm'
 
 export default function Banks() {
   const theme = useTheme();
@@ -143,7 +144,7 @@ export default function Banks() {
             setOpenPopup={setOpenPopup}
             toURL={'/banks'}
         >
-            <NewBank
+            <BankForm
               onBankAdded={handleBankAdded} 
               onClosePopup={handleClosePopup}
             />
