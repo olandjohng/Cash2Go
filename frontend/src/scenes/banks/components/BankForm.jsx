@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useTheme } from "@emotion/react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
@@ -26,6 +26,8 @@ export default function BankForm({ onBankAdded, onClosePopup }) {
   const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
 
+  const [initialValues, setInitialValues] = useState(INITIAL_FORM_STATE);
+
   useEffect(() => {
     if (id) {
       axios
@@ -33,8 +35,10 @@ export default function BankForm({ onBankAdded, onClosePopup }) {
         .then((res) => {
           const { name, check_location } = res.data[0];
           // Update INITIAL_FORM_STATE with the fetched data
-          INITIAL_FORM_STATE.name = name;
-          INITIAL_FORM_STATE.check_location = check_location;
+          // INITIAL_FORM_STATE.name = name;
+          // INITIAL_FORM_STATE.check_location = check_location;
+          setInitialValues({ name, check_location });
+          
         })
         .catch((err) => {
           console.error("Error fetching data:", err);
@@ -84,7 +88,7 @@ export default function BankForm({ onBankAdded, onClosePopup }) {
 
   return (
     <Formik
-      initialValues={INITIAL_FORM_STATE}
+      initialValues={initialValues}
       validationSchema={FORM_VALIDATION}
       onSubmit={handleSubmit}
       enableReinitialize // This is important when initialValues should be re-initialized
