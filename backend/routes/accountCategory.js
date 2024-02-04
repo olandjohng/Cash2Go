@@ -17,7 +17,7 @@ accountCategoryRouter.get('/', async (req, res) =>{
   accountCategoryRouter.post('/new', async (req, res) => {
     try {
       const id = await builder('account_categorytbl').insert({
-        account_name: req.body.accountCategory.account_name
+        account_name: req.body.account_name
       }, ['account_category_id']);
   
       res.status(200).json({ id: id[0], message: 'Account Category added successfully' });
@@ -34,7 +34,7 @@ accountCategoryRouter.get('/', async (req, res) =>{
       const update = await builder('account_categorytbl')
         .where('account_category_id', id)
         .update({
-          account_name: req.body.accountCategory.account_name
+          account_name: req.body.account_name
         });
   
       if (update > 0) {

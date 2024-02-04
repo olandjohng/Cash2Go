@@ -11,6 +11,7 @@ import { Bounce, toast } from 'react-toastify';
 import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import 'react-toastify/dist/ReactToastify.css';
+import AccountCategoryForm from './components/AccountCategoryForm'
 
 function AccountCategory() {
 
@@ -136,7 +137,7 @@ function AccountCategory() {
             setOpenPopup={setOpenPopup}
             toURL={'/account-category'}
         >
-            <NewAccountCategory 
+            <AccountCategoryForm 
               onAccountCategoryAdded={handleAccountCategoryAdded} 
               onClosePopup={handleClosePopup}
             />

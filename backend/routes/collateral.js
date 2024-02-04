@@ -17,7 +17,7 @@ collateralRouter.get('/', async (req, res) =>{
   collateralRouter.post('/new', async (req, res) => {
     try {
       const id = await builder('collateraltbl').insert({
-        description: req.body.collateral.description
+        description: req.body.description
       }, ['collateral_id']);
   
       res.status(200).json({ id: id[0], message: 'Collateral added successfully' });
@@ -34,7 +34,7 @@ collateralRouter.get('/', async (req, res) =>{
       const update = await builder('collateraltbl')
         .where('collateral_id', id)
         .update({
-          description: req.body.collateral.description
+          description: req.body.description
         });
   
       if (update > 0) {

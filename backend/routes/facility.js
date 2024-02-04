@@ -18,8 +18,8 @@ facilityRouter.get('/', async (req, res)=>{
   facilityRouter.post('/new', async (req, res) => {
     try {
       const id = await builder('loan_facilitytbl').insert({
-        description: req.body.facility.name,
-        code: req.body.facility.code
+        description: req.body.name,
+        code: req.body.code
       }, ['loan_facility_id']);
   
       res.status(200).json({ id: id[0], message: 'Facility added successfully' });
@@ -36,8 +36,8 @@ facilityRouter.get('/', async (req, res)=>{
       const update = await builder('loan_facilitytbl')
         .where('loan_facility_id', id)
         .update({
-            description: req.body.facility.name,
-            code: req.body.facility.code
+            description: req.body.name,
+            code: req.body.code
         });
   
       if (update > 0) {

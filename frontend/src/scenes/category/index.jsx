@@ -11,6 +11,7 @@ import { DeleteOutlined, EditCalendarOutlined } from '@mui/icons-material'
 import { Button, Tooltip } from '@mui/material'
 import { Bounce, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import CategroyForm from './components/CategroyForm'
 
 
 export default function Category() {
@@ -146,7 +147,7 @@ export default function Category() {
             setOpenPopup={setOpenPopup}
             toURL={'/category'}
         >
-            <NewCategory 
+            <CategroyForm 
               onCategoryAdded={handleCategoryAdded} 
               onClosePopup={handleClosePopup}
             />

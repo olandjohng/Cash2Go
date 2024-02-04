@@ -11,6 +11,7 @@ import { Bounce, toast } from 'react-toastify';
 import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import 'react-toastify/dist/ReactToastify.css';
+import DeductionForm from './components/DeductionForm'
 
 function DeductionType() {
 
@@ -136,7 +137,7 @@ function DeductionType() {
             setOpenPopup={setOpenPopup}
             toURL={'/deduction'}
         >
-            <NewDeduction 
+            <DeductionForm 
               onDeductionAdded={handleDeductionAdded} 
               onClosePopup={handleClosePopup}
             />

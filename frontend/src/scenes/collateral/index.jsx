@@ -11,6 +11,7 @@ import { Bounce, toast } from 'react-toastify';
 import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import 'react-toastify/dist/ReactToastify.css';
+import CollateralForm from './components/CollateralForm'
 
 function Collateral() {
 
@@ -136,7 +137,7 @@ function Collateral() {
             setOpenPopup={setOpenPopup}
             toURL={'/collateral'}
         >
-            <NewCollateral 
+            <CollateralForm 
               onCollateralAdded={handleCollateralAdded} 
               onClosePopup={handleClosePopup}
             />

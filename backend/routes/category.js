@@ -18,9 +18,9 @@ categoryRouter.get('/', async (req, res)=>{
   categoryRouter.post('/new', async (req, res) => {
     try {
       const id = await builder('loan_categorytbl').insert({
-        description: req.body.category.name,
-        code: req.body.category.code,
-        type: req.body.category.type
+        description: req.body.name,
+        code: req.body.code,
+        type: req.body.type
       }, ['loan_category_id']);
   
       res.status(200).json({ id: id[0], message: 'Category added successfully' });
@@ -37,9 +37,9 @@ categoryRouter.get('/', async (req, res)=>{
       const update = await builder('loan_categorytbl')
         .where('loan_category_id', id)
         .update({
-            description: req.body.category.name,
-            code: req.body.category.code,
-            type: req.body.category.type
+            description: req.body.name,
+            code: req.body.code,
+            type: req.body.type
         });
   
       if (update > 0) {
