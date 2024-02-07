@@ -42,7 +42,7 @@ const MultiStepForm = ({ children, initialValues, onSubmit }) => {
   };
 
   return (
-    <div>
+    <div >
       <Formik
         initialValues={snapshot}
         onSubmit={handleSubmit}
@@ -50,6 +50,7 @@ const MultiStepForm = ({ children, initialValues, onSubmit }) => {
       >
         {(formik) => (
           <Form>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
             <Stepper activeStep={stepNumber} style={{ marginBottom: 30 }}>
               {steps.map((currentStep, index) => {
                 const label = currentStep.props.stepName;
@@ -62,6 +63,8 @@ const MultiStepForm = ({ children, initialValues, onSubmit }) => {
                 );
               })}
             </Stepper>
+            </div>
+            
 
             {isFormSubmitted ? (
               <SuccessComponent />

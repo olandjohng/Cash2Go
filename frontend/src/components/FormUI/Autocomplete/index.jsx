@@ -1,38 +1,46 @@
-import { TextField } from '@mui/material';
-import Autocomplete from '@mui/material/Autocomplete';
-import { useFormikContext } from 'formik';
 import React from 'react';
+import { useField, useFormikContext } from 'formik';
+import { Autocomplete, TextField } from '@mui/material';
 
-function AutoCompleteWrapper(props) {
-  const { options, name, label, id } = props;
+const AutocompleteWrapper = ({ name, options, ...otherProps }) => {
+  const { setFieldValue, setFieldTouched } = useFormikContext();
+  const [field, meta] = useField(name);
 
-  const formik = useFormikContext();
+  const handleChange = (_event, value) => {
+    // Set the value of the field to the value of the selected option, or to an empty string if no option is selected
+    setFieldValue(name, value ? value.value : '');
+  };
+
+  const handleBlur = () => {
+    // Set the field as touched when it loses focus, to trigger validation
+    setFieldTouched(name, true);
+  };
+
+  // The option selected in the Autocomplete should be the one that matches the current field value
+  const selectedOption = options.find(option => option.value === field.value) || null;
 
   return (
     <Autocomplete
-      {...props}
-      multiple
+      {...otherProps}
+      id={name}
       options={options}
-      getOptionLabel={(option) => option.title}
-      onChange={(_, value) => formik.setFieldValue(name, value)}
-      filterSelectedOptions
-      isOptionEqualToValue={(item, current) => item.value === current.value}
+      getOptionLabel={(option) => option.label} // Assuming your options have a 'label' property
+      value={selectedOption}
+      onChange={handleChange}
+      onBlur={handleBlur}
       renderInput={(params) => (
         <TextField
           {...params}
-          id={id}
           name={name}
-          label={label}
-          variant={"outlined"}
-          onChange={formik.handleChange}
-          error={formik.touched[name] && Boolean(formik.errors[name])}
-          helperText={formik.errors[name]}
-          value={formik.values[name]}
+          variant="outlined"
           fullWidth
+          error={meta.touched && Boolean(meta.error)}
+          helperText={meta.touched && meta.error}
         />
       )}
+      isOptionEqualToValue={(option, value) => option.value === value.value}
     />
   );
-}
+};
 
-export default AutoCompleteWrapper;
+export default AutocompleteWrapper;

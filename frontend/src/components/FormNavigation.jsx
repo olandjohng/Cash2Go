@@ -1,5 +1,6 @@
 import React from "react";
 import Button from "@mui/material/Button";
+import { tokens } from "../theme";
 
 const FormNavigation = (props) => {
   return (
@@ -11,16 +12,12 @@ const FormNavigation = (props) => {
       }}
     >
       {props.hasPrevious && (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={props.onBackClick}
-        >
+        <Button variant="outlined" color="primary" onClick={props.onBackClick}>
           Back
         </Button>
       )}
 
-      <Button type="submit" variant="contained" color="primary">
+      <Button type="submit" variant="outlined" color="primary">
         {props.isLastStep ? "Submit" : "Next"}
       </Button>
     </div>
