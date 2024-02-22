@@ -34,7 +34,7 @@ const AutocompleteWrapper = ({ name, options, ...otherProps }) => {
           name={name}
           variant="outlined"
           fullWidth
-          error={meta.touched && Boolean(meta.error)}
+          error={Boolean(meta.error)}
           helperText={meta.touched && meta.error}
         />
       )}

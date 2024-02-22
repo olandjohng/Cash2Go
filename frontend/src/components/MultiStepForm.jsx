@@ -27,17 +27,20 @@ const MultiStepForm = ({ children, initialValues, onSubmit }) => {
     setStepNumber(stepNumber - 1);
   };
 
-  const handleSubmit = async (values, actions) => {
+  const handleSubmit = async (formik, actions) => {
+
+    console.log(formik)
+
     if (step.props.onSubmit) {
-      await step.props.onSubmit(values);
+      await step.props.onSubmit(formik.values);
     }
 
     if (isLastStep) {
-      await onSubmit(values, actions);
+      await onSubmit(formik.values);
       setIsFormSubmitted(true);
     } else {
-      actions.setTouched({});
-      next(values);
+      formik.setTouched({});
+      next(formik.values);
     }
   };
 
@@ -48,14 +51,13 @@ const MultiStepForm = ({ children, initialValues, onSubmit }) => {
         onSubmit={handleSubmit}
         validationSchema={step.props.validationSchema}
       >
-        {(formik) => (
+        {(formik) => ( 
           <Form>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
             <Stepper activeStep={stepNumber} style={{ marginBottom: 30 }}>
               {steps.map((currentStep, index) => {
                 const label = currentStep.props.stepName;
                 const isStepCompleted = completedSteps[label];
-
                 return (
                   <Step key={label} completed={isStepCompleted}>
                     <StepLabel>{label}</StepLabel>
@@ -63,21 +65,20 @@ const MultiStepForm = ({ children, initialValues, onSubmit }) => {
                 );
               })}
             </Stepper>
-            </div>
-            
-
-            {isFormSubmitted ? (
-              <SuccessComponent />
-            ) : (
-              <>
-                {step}
-                <FormNavigation
-                  isLastStep={isLastStep}
-                  hasPrevious={stepNumber > 0}
-                  onBackClick={() => previous(formik.values)}
-                />
-              </>
-            )}
+          </div>
+          {isFormSubmitted ? (
+            <SuccessComponent />
+          ) : (
+            <>
+              {step}
+              <FormNavigation
+                isLastStep={isLastStep}
+                hasPrevious={stepNumber > 0}
+                onBackClick={() => previous(formik.values)}
+                // submit={() => handleSubmit(formik)}
+              />
+            </>
+          )}
           </Form>
         )}
       </Formik>
@@ -87,4 +88,4 @@ const MultiStepForm = ({ children, initialValues, onSubmit }) => {
 
 export default MultiStepForm;
 
-export const FormStep = ({ stepName = "", children }) => children;
+export const FormStep = ({ stepName = "", schema, children }) => children;

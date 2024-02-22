@@ -10,6 +10,7 @@ import DetailsModal from './components/DetailsModal'
 import NewLoanModal from './components/NewLoanModal'
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import LoanForm from './components/LoanForm'
+import LoanForm1 from './components/LoanForm1'
 
 function reducer(state, action){
     switch(action.type){
@@ -169,7 +170,7 @@ const Loan = () => {
                 dispatcher={dispatch}
                 popups = {setOpenNewLoanPopup}
                 /> */}
-                <LoanForm />
+                <LoanForm1 />
         </Popups>
     </div>
   )

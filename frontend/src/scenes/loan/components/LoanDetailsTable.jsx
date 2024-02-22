@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react';
 import { DeleteOutlined } from '@mui/icons-material';
-import { Button } from '@mui/material';
-import { DataGrid, GridActionsCell, GridActionsCellItem, GridRowEditStopReasons, GridRowModes, GridToolbarContainer } from '@mui/x-data-grid';
+import { Button, Tooltip, styled, tooltipClasses } from '@mui/material';
+import { DataGrid, GridActionsCellItem, GridEditInputCell, GridRowEditStopReasons, GridRowModes, GridToolbarContainer } from '@mui/x-data-grid';
 import React, { useState } from 'react'
 import { tokens } from '../../../theme';
 
@@ -34,8 +34,18 @@ const formatNumber = (params) =>{
   return format
 }
 
+const StyledToolTip = styled(({className, ...props}) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: theme.palette.error.main,
+    color: theme.palette.error.contrastText,
+  },
+}));
+
 
 export default function LoanDetailsTable({banks, rows, setRows}) {
+
   const theme = useTheme()
   const colors =  tokens(theme.palette.mode)
   const [rowModesModel, setRowModesModel] = useState({})
@@ -56,7 +66,6 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
   }
 
   const handleRowEditStop = (params, event) => {
-    // console.log(params.id)
     if (params.reason === GridRowEditStopReasons.rowFocusOut) {
       event.defaultMuiPrevented = true;
     }
@@ -68,8 +77,25 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
     { field: 'principal', headerName: 'Principal', width: 150, editable: true, 
       valueFormatter : (params) => {
         return formatNumber(params)
-      } 
-        
+      },
+      preProcessEditCellProps : async (params) => {
+        const error = new Promise((resolve) => {
+          resolve(Number(params.props.value) <= 0 ? `Invalid Amount` : null)
+        })
+
+        return params.hasChanged ? {...params.props, error : await error} :  {...params.props}
+      },
+
+      renderEditCell : (params) => {
+        const {error} = params
+        // console.log(params)
+        return (
+          <StyledToolTip open={!!error} title={error} >
+            <GridEditInputCell {...params} />
+          </StyledToolTip>
+          
+        )
+      }
     },
     { field: 'interest', headerName: 'Interest', width: 150, editable: true, 
       valueFormatter : (params) => {
@@ -97,12 +123,11 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
       }
     },
   ];
-  
-
 
   return (
     <DataGrid
       columns={columns}
+      
       rows={rows}
       editMode="row"
       rowModesModel={rowModesModel}

@@ -1,13 +1,15 @@
-import { Formik } from "formik";
+
 import * as yup from 'yup';
 import MultiStepForm, { FormStep } from "../../../components/MultiStepForm";
 import { Grid } from "@mui/material";
 import InputField from '../../../components/FormUI/Textfield'
 import AutoCompleteField from '../../../components/FormUI/Autocomplete'
+import LoanDetailsTable from './LoanDetailsTable';
+import { useState } from 'react';
 
 const LOAN_INITIAL_VALUES = {
     customer_id: '',
-    customername: '',
+    customer_name: '',
     transaction_date: new Date().toISOString().split('T')[0],
     bank_account_id: '',
     bank_name: '',
@@ -41,7 +43,24 @@ const LOAN_INITIAL_VALUES = {
     },
 }
 
+const validationSchema = yup.object({
+  voucher_number : yup.string().required('Required'),
+  customer_name : yup.string().required('Required'),
+  bank_name : yup.string().required('Required'),
+  check_issued_name : yup.string().required('Required'),
+  collateral : yup.string().required('Required'),
+  loancategory : yup.string().required('Required'),
+  loanfacility : yup.string().required('Required'),
+})
+
+const banks = [{
+
+}]
+const initrows = [{
+  id : 1
+}]
 function LoanForm() {
+  const [rows, setRows] = useState(initrows)
 
   const options = [
     { value: 'option1', label: 'Option 1' },
@@ -79,14 +98,15 @@ function LoanForm() {
     >
       <FormStep
         stepName="Loan Requirements"
+        validationSchema={validationSchema}
         onSubmit={() => console.log('Step One')}
       >
         <Grid container spacing={2} >
           <Grid item xs={4}>
-            <InputField variant="standard" name="voucher_number" label="Voucher" />
+            <InputField variant="standard" name="voucher_number" label="Voucher"/>
           </Grid>
           <Grid item xs={8}>
-            <AutoCompleteField variant="standard" options={options} name="customername" label="Borrower" />
+            <AutoCompleteField variant="standard" options={options} name="customer_name" label="Borrower" />
           </Grid>
           <Grid item xs={5}>
             <AutoCompleteField variant="standard" options={BankOptions} name="bank_name" label="Bank" />
@@ -107,34 +127,22 @@ function LoanForm() {
       </FormStep>
       <FormStep
         stepName="Loan Details"
-        onSubmit={() => console.log('Step two')}
+        // onSubmit={() => console.log('Step two')}
       >
         <Grid container spacing={2} >
-          <Grid item xs={4}>
-            <InputField variant="standard" name="voucher_number" label="Voucher" />
+          <Grid item xs={9}>
+            <InputField variant="standard" type='number' name="principal_amount" label="Principal Amount" />
           </Grid>
-          <Grid item xs={8}>
-            <AutoCompleteField variant="standard" options={options} name="customername" label="Borrower" />
-          </Grid>
-          <Grid item xs={5}>
-            <AutoCompleteField variant="standard" options={BankOptions} name="bank_name" label="Bank" />
-          </Grid>
-          <Grid item xs={7}>
-            <InputField variant="standard" name="check_issued_name" label="Issued Name" />
+          <Grid item xs={3}>
+            <InputField variant="standard" name="interest_rate" label="Interest Rate" />
           </Grid>
           <Grid item xs={12}>
-            <AutoCompleteField variant="standard" options={collateralOptions} name="collateral" label="Collateral" />
-          </Grid>
-          <Grid item xs={12}>
-            <AutoCompleteField variant="standard" options={categoryOptions} name="loancategory" label="Category" />
-          </Grid>
-          <Grid item xs={12}>
-            <AutoCompleteField variant="standard" options={facilityOptions} name="loanfacility" label="Facility" />
+            <LoanDetailsTable banks={banks} rows={rows} setRows={setRows}/>
           </Grid>
         </Grid>
       </FormStep>
     </MultiStepForm>
-    </div>
+    </div>  
   )
 }
 
