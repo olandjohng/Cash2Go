@@ -1,7 +1,8 @@
 
 import * as yup from 'yup';
+import {AddOutlined, RemoveCircleOutline} from "@mui/icons-material"
 import MultiStepForm, { FormStep } from "../../../components/MultiStepForm";
-import { Autocomplete, Grid, TextField } from "@mui/material";
+import { Autocomplete, Grid, TextField, Button, InputAdornment, IconButton } from "@mui/material";
 import LoanDetailsTable from './LoanDetailsTable';
 import { useEffect, useRef, useState } from 'react';
 import MultiStepForm1 from '../../../components/MultiStepForm1';
@@ -27,7 +28,8 @@ const LOAN_INITIAL_VALUES = {
     voucher_number: '',
     renewal_id: 0,
     renewal_amount: 0,
-    loan_details : []
+    loan_details : [],
+    deduction : []
     // details: {
     //   check_date: new Date().toISOString().split('T')[0],
     //   check_number: '',
@@ -65,16 +67,25 @@ const loanDetailsSchema = yup.object({
   )
 })
 
+const deductionSchema = yup.object({
+  deduction : yup.array(
+    yup.object({
+      amount : yup.number().positive().moreThan(0)
+    })
+  )
+})
+
 const banks = [{
 
 }]
 const initrows = []
 
-function ComboBox ({inputChange, options, name , err, label}){
+function ComboBox ({inputChange, options, name , err, label, val}){
   const comboRef = useRef()
   return (
     <Autocomplete
     ref={comboRef}
+    value={val}
     onInputChange={(e, v) => inputChange(comboRef.current.getAttribute('name'), v)} 
     variant="standard" 
     options={options}
@@ -88,9 +99,13 @@ function ComboBox ({inputChange, options, name , err, label}){
 }
 
 function LoanForm1() {
-  const [formValue, setFormvValue] = useState(LOAN_INITIAL_VALUES)
-  const [rows, setRows] = useState(initrows)
-  const [validationError,setValidationError] = useState(null)
+  const [formValue, setFormvValue] = useState(LOAN_INITIAL_VALUES);
+  const [rows, setRows] = useState(initrows);
+  const [validationError,setValidationError] = useState(null);
+  const [deductions, setDeductions] = useState([]);
+  const [deductionItem, setDeductionItem] = useState(null); 
+  // const [selectedItem, setSelectedItem ] = useState('')
+
 
   const options = [
     { value: 'option1', label: 'Option 1' },
@@ -129,14 +144,18 @@ function LoanForm1() {
       setValidationError(error)
     }
   }
+
   useEffect(() => {
     setFormvValue({...formValue, loan_details : [...rows]})
+    console.log('useEffect rows')
   },[rows])
 
-  const handleLoanDetails = async () => {
-    
-    try {
+  useEffect(()=>{
+    console.log('useEffect fetch')
+  },[])
 
+  const handleLoanDetails = async () => {
+    try {
       const cast = loanDetailsSchema.cast({
         principal_amount : Number(formValue.principal_amount),
         interest_rate : Number(formValue.interest_rate),
@@ -173,9 +192,7 @@ function LoanForm1() {
     <div style={{width: 900}}>
       <MultiStepForm1
       initialFormValues={formValue}
-      onSubmit={(values) => {
-        alert(JSON.stringify(values, null, 2))
-      }}
+      onSubmit={() => console.log(formValue)}
     >
       <FormStep
         stepName="Loan Requirements"
@@ -196,6 +213,7 @@ function LoanForm1() {
           <Grid item xs={8}>
             <ComboBox 
               label='Borrower'
+              val={formValue.customer_name}
               inputChange={handleComboBox} 
               options={options} 
               name="customer_name"
@@ -207,6 +225,7 @@ function LoanForm1() {
           <ComboBox 
               label='Bank'
               inputChange={handleComboBox} 
+              val={formValue.bank_name}
               options={options} 
               name="bank_name"
               err={validationError}
@@ -216,6 +235,7 @@ function LoanForm1() {
             <TextField fullWidth variant="outlined"
               label="Issued Name"
               name="check_issued_name" 
+              value={formValue.check_issued_name}
               onChange={(e) => handleTextField(e)}
               error={ validationError && validationError.path === 'check_issued_name' ? true : false }
             />
@@ -224,6 +244,7 @@ function LoanForm1() {
             <ComboBox 
               label='Collateral'
               inputChange={handleComboBox} 
+              val={formValue.collateral}
               options={options} 
               name="collateral"
               err={validationError}
@@ -233,6 +254,7 @@ function LoanForm1() {
             <ComboBox 
               label='Category'
               inputChange={handleComboBox} 
+              val={formValue.loan_category}
               options={options} 
               name="loan_category"
               err={validationError}
@@ -242,6 +264,7 @@ function LoanForm1() {
             <ComboBox 
               label='Facility'
               inputChange={handleComboBox} 
+              val={formValue.loan_facility}
               options={options} 
               name="loan_facility"
               err={validationError}
@@ -252,7 +275,6 @@ function LoanForm1() {
       <FormStep
         stepName="Loan Details"
         onSubmit={handleLoanDetails}
-        // values={formValue.loan_details}
         schema={loanDetailsSchema}
       >
         <Grid container spacing={2} >
@@ -278,6 +300,114 @@ function LoanForm1() {
           </Grid>
         </Grid>
       </FormStep>
+      <FormStep
+        stepName="Deduction Details"
+        schema={deductionSchema}
+        onSubmit={() => {
+          try {
+            deductionSchema.validateSync(formValue, 
+              {abortEarly : false}
+            )
+          } catch (err) {
+            const errors = err.inner
+            const error = errors.reduce((acc, cur) =>  
+            {
+              const data =  cur.path.split('.')
+              const index = data[0].charAt(data[0].length - 2)
+              return {...acc, [deductions[index].name] : true}
+            }, 
+            {})
+            setValidationError(error)
+          }
+        }}
+      >
+        <Grid container >
+          <Grid item xs={10}>
+            <Autocomplete
+              options={["Appraisal Fee", "Notarial Fee", "Documentary Stamp", "Service Charge"]}
+              value={deductionItem}
+              onInputChange={ (e,v) => {
+                setDeductionItem(v)
+              }}
+              renderInput= { (params) => <TextField {...params} />}
+            />
+          </Grid>
+          <Grid item xs={2}>
+            <Button
+              onClick={() => {
+                if(deductionItem){
+                  let contains  = false;
+                  for (const d of deductions) {
+                    if(d.label === deductionItem){ contains = true }
+                    
+                  }
+                  if(!contains){
+                    const format = deductionItem.toLowerCase().split(' ').join('_')
+                    const d = [...deductions, {label : deductionItem, name : format, amount : ''}]
+                    setDeductions(d)
+                    setFormvValue({...formValue, deduction : d})
+                  }
+                }
+              }}
+
+              variant="outlined" 
+              sx={{ 
+                fontSize: "14px",
+                fontWeight: "bold",
+                width: "90%",
+                marginLeft : 'auto', 
+                marginRight : 'auto',
+                height : '100%',
+                mx : 1
+                // backgroundColor: colors.blueAccent[700],
+                // color: colors.grey[100],
+                // padding: "10px 20px",
+                // marginTop: 2, margin: 1,
+                // borderColor: colors.grey    [400],
+                // "&:hover": {borderColor: colors.grey[400],
+                //             backgroundColor: colors.grey[700]        
+                //     }
+               }}
+            >
+              <AddOutlined sx={{ mr: "2px" }} />
+            </Button>
+          </Grid>
+        </Grid>
+        <Grid container gap={1.5} marginTop={1.5}>
+          { deductions && deductions.map((d, i) =>(
+            <TextField 
+            label={d.label} 
+            value={d.amount}
+            error={validationError && Boolean(validationError[d.name])}
+            type='number'
+            onChange= {(e) =>{
+              setValidationError(null)
+              const d = deductions.map((v, index) => {
+                return i === index ? {...v, amount : e.target.value} : v
+              })
+              setDeductions(d)
+
+              setFormvValue({...formValue, deduction : d})
+            }}
+            InputProps={{
+              endAdornment : 
+                <InputAdornment position='end'>
+                  <IconButton
+                    onClick={(e) => {
+                      const d = deductions.filter((v, index) => index !== i) 
+                      setDeductions(d)
+                      setFormvValue({...formValue, deduction : d})
+                    }}
+                  >
+                    <RemoveCircleOutline />
+                  </IconButton>
+                </InputAdornment>
+            }}
+            />
+          ))}
+        </Grid>
+      </FormStep>
+
     </MultiStepForm1>
     </div>  
   )

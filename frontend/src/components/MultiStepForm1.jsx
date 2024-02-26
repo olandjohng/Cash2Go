@@ -44,15 +44,22 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
 
   const submit = async () => {
     const schema = step.props.schema
-    await step.props.onSubmit()
+    step.props.onSubmit()
     
-    console.log(schema)
     if(schema.isValidSync(initialFormValues)) {
-      console.log(initialFormValues)
-      next(initialFormValues)
+      
+      if(isLastStep){
+        onSubmit();
+        setIsFormSubmitted(true);
+      } else {
+        next(initialFormValues)
+      }
+      
     }else{
       console.log('error', initialFormValues)
     }
+    
+
   }
 
   return (
