@@ -5,7 +5,7 @@ import { Step, StepLabel, Stepper } from "@mui/material";
 import SuccessComponent from "./SuccessComponent"; // Import your success component
 
 const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
-  const [stepNumber, setStepNumber] = useState(1);
+  const [stepNumber, setStepNumber] = useState(0);
   const [isFormSubmitted, setIsFormSubmitted] = useState(false);
   const [completedSteps, setCompletedSteps] = useState({});
   const steps = React.Children.toArray(children);
@@ -45,9 +45,8 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
   const submit = async () => {
     const schema = step.props.schema
     step.props.onSubmit()
-    
-    if(schema.isValidSync(initialFormValues)) {
-      
+
+    if(schema && schema.isValidSync(initialFormValues)) {
       if(isLastStep){
         onSubmit();
         setIsFormSubmitted(true);
@@ -58,8 +57,6 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
     }else{
       console.log('error', initialFormValues)
     }
-    
-
   }
 
   return (
