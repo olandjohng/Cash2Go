@@ -8,6 +8,9 @@ async function getLoanList (req, res) {
     'loan_header_id',
     'pn_number',
     'customername',
+    'cfname',
+    'cmname',
+    'clname',
     'bank_name',
     'loancategory',
     'loanfacility',
@@ -17,8 +20,16 @@ async function getLoanList (req, res) {
     'status_code',
   )
   .from('view_loan_header').whereILike('customername', `%${search}%`).orWhereILike('pn_number', `%${search}%`)
-  
-  res.status(200).json(loans)
+  const loanMap = loans.map((v) => {
+    return {
+      ...v, name : {
+        fName : v.cfname,
+        lName : v.clname,
+        mName : v.cmname
+      }
+    }
+  })
+  res.status(200).json(loanMap)
 }
 
 async function getLoan(req, res) {

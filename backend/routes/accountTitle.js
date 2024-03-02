@@ -8,7 +8,9 @@ accountTitleRouter.get('/', async (req, res) =>{
              account_category_id: 'account_category_id' , 
              account_name : 'account_name', 
              account_title: 'account_title', 
-             account_code: 'account_code'})
+             account_code: 'account_code',
+             name : 'acc_title'
+            })
     .from('view_account_title')
     res.status(200).json(accountTitle)
   })

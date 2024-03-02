@@ -9,7 +9,6 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
   const [isFormSubmitted, setIsFormSubmitted] = useState(false);
   const [completedSteps, setCompletedSteps] = useState({});
   const steps = React.Children.toArray(children);
-
   const [snapshot, setSnapshot] = useState(initialFormValues);
   
   const step = steps[stepNumber];
@@ -44,6 +43,7 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
 
   const submit = async () => {
     const schema = step.props.schema
+    
     step.props.onSubmit()
 
     if(schema && schema.isValidSync(initialFormValues)) {
