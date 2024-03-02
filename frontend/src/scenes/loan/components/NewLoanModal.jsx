@@ -44,26 +44,6 @@ const loanInfoHeader = {
   status_code : null,
 }
 
-// const renderBankDropdown = (params) => {
-//   const banks = ['Bank A', 'Bank B', 'Bank C']; // Replace with your list of banks
-//   return (
-//     <TextField
-//       {...params}
-//       select
-//       // value={params.value}
-//       // onChange={(e) => params.api.setValue(params.id, 'bank', e.target.value)}
-//       style={{ width: '100%' }}
-//     >
-//       {banks.map((bank) => (
-//         <MenuItem key={bank} value={bank}>
-//           {bank}
-//         </MenuItem>
-//       ))}
-//     </TextField>
-//   );
-// };
-
-
 export default function NewLoanModal({customers, collaterals, facilities, banks, categories, dispatcher, popups }) {
     
     const theme = useTheme();

@@ -10,6 +10,7 @@ import DetailsModal from './components/DetailsModal'
 import NewLoanModal from './components/NewLoanModal'
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import LoanForm from './components/LoanForm'
+import LoanForm1 from './components/LoanForm1'
 
 function reducer(state, action){
     switch(action.type){
@@ -65,6 +66,8 @@ const Loan = () => {
     const [collaterals, setCollaterals] = useState([])
     const [banks, setBanks] = useState([])
     const [categories, setCategories] = useState([])
+    const [deductions, setDeductions] = useState([])
+    const [accountTitle, setAccountTitle] = useState([])
     
     // const [loans, setLoans] = useState([]);
     const [openPopup, setOpenPopup] = useState(false);
@@ -97,23 +100,33 @@ const Loan = () => {
                 fetch('http://localhost:8000/loans/facility'),
                 fetch('http://localhost:8000/banks'),
                 fetch('http://localhost:8000/loans/category'),
+                fetch('http://localhost:8000/deductions'),
+                fetch('http://localhost:8000/account-title'),
             ]
-            const req = await Promise.all(urls)
-
-            const loanData = await req[0].json()
-            const customerData = await req[1].json()
-            const collateralData = await req[2].json()
-            const facilityData = await req[3].json()
-            const banksData = await req[4].json()
-            const categoryData = await req[5].json()
-
-            dispatch({type : 'INIT', loans : loanData })
-            setCustomers(customerData)
-            setCollaterals(collateralData)
-
-            setFacilities(facilityData)
-            setBanks(banksData)
-            setCategories(categoryData)
+            try {
+                const req = await Promise.all(urls)
+    
+                const loanData = await req[0].json()
+                const customerData = await req[1].json()
+                const collateralData = await req[2].json()
+                const facilityData = await req[3].json()
+                const banksData = await req[4].json()
+                const categoryData = await req[5].json()
+                const deductionData = await req[6].json()
+                const accountTitleData = await req[7].json()
+    
+                dispatch({type : 'INIT', loans : loanData })
+                setCustomers(customerData)
+                setCollaterals(collateralData)
+    
+                setFacilities(facilityData)
+                setBanks(banksData)
+                setCategories(categoryData)
+                setDeductions(deductionData)
+                setAccountTitle(accountTitleData)
+            } catch (error) {
+                console.log('error', error)
+            }
         }
         getData()
         
@@ -160,16 +173,15 @@ const Loan = () => {
             openPopup={openNewLoanPopup}
             setOpenPopup={setOpenNewLoanPopup}
         >
-            {/* <NewLoanModal 
-                collaterals={collaterals}
-                customers={customers}
-                facilities={facilities} 
-                categories={categories} 
-                banks={banks}
-                dispatcher={dispatch}
-                popups = {setOpenNewLoanPopup}
-                /> */}
-                <LoanForm />
+            <LoanForm1
+                customers= {customers}
+                collaterals = {collaterals}
+                facilities = {facilities}
+                banks = {banks}
+                categories = {categories}
+                deductions = {deductions}
+                accountTitle = {accountTitle}
+            />
         </Popups>
     </div>
   )

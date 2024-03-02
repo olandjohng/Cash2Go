@@ -3,6 +3,9 @@ const loanRouter = express.Router()
 const builder = require('../builder')
 const {getLoanList, getLoan, saveLoan} = require('../controller/loanController')
 
+const ejs = require('ejs')
+const path = require('path');
+
 const LoanStatus = {
   RENEWED : 'Renewed',
   RECALCULATED : 'Recalculated',
@@ -10,10 +13,10 @@ const LoanStatus = {
   LOANRENEWAL: 'Loan Renewal'
 }
 
-async function createPnNumber(header){
-  const qCategoryCode = await builder.select({ code : 'code'}).from('loan_categorytbl').where('loan_category_id', header.loan_category_id)
-  const qFacilityCode = await builder.select({ code : 'code'}).from('loan_facilitytbl').where('loan_facility_id', header.loan_facility_id)
-  const qCustomerPnNumber = await builder.select({id : 'pn_number'}).from('loan_headertbl').where('customer_id', header.customer_id)
+async function createPnNumber(req){
+  const qCategoryCode = await builder.select({ code : 'code'}).from('loan_categorytbl').where('loan_category_id', req.loan_category_id)
+  const qFacilityCode = await builder.select({ code : 'code'}).from('loan_facilitytbl').where('loan_facility_id', req.loan_facility_id)
+  const qCustomerPnNumber = await builder.select({id : 'pn_number'}).from('loan_headertbl').where('customer_id', req.customer_id)
 
   const categoryCode = qCategoryCode[0].code + qFacilityCode[0].code
   let min = 0
@@ -31,7 +34,7 @@ async function createPnNumber(header){
   const id = '0000'.slice(count.length) + count
   const year = new Date().getFullYear();
 
-  return `${categoryCode}-${id}-${header.customer_id}-${year}`
+  return `${categoryCode}-${id}-${req.customer_id}-${year}`
 
 }
 
@@ -56,74 +59,120 @@ loanRouter.get('/recalculate/:id', async (req, res) =>{
 
 loanRouter.post('/', async (req, res)=>{
   
-  const {header, deduction, details} = req.body
-
-  const pnNumber = await createPnNumber(req.body.header)
-  // console.log(req.body)
-  const totalInterest = details.reduce((accumulator, current) => accumulator + Number(current.interest), 0)
+  const {voucher, deduction, loan_details} = req.body
+  const data =  req.body
+  const pnNumber = await createPnNumber(req.body)
+  const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest), 0)
 
   const deductionHistory = await builder.select('*').from('loan_deductiontbl')
+  
+  const accountTitle = await builder.select('acc_title','account_title_id').from('view_account_title')
+    // account_title_id
+    // debit_amount
+    // credit_amount
+    // loan_header_id
+  
+  
+  // console.log(mapVoucher)
+  
+  // console.log(accountTitle)dsds
 
-  console.log(details)
-  console.log(deductionHistory)
-  await builder.transaction(async t =>{
+  // await builder.transaction(async t =>{
     
-    const id = await builder('loan_headertbl').insert({
-      pn_number : pnNumber,
-      customer_id : header.customer_id,
-      transaction_date : header.transaction_date,
-      bank_account_id : header.bank_account_id,
-      collateral_id : header.collateral_id,
-      loan_category_id : header.loan_category_id,
-      loan_facility_id : header.loan_facility_id,
-      principal_amount : header.principal_amount,
-      interest_rate : header.interest_rate,
-      total_interest : totalInterest,
-      term_month : details.length, 
-      date_granted : header.date_granted,
-      status_code : LoanStatus.ONGOING,
-      check_issued_name : header.check_issued_name,
-      voucher_number : header.voucher_number,
-      renewal_id : 0,
-      renewal_amount : 0
-    }, '*').transacting(t)
+  //   const id = await builder('loan_headertbl').insert({
+  //     pn_number : pnNumber,
+  //     customer_id : req.body.customer_id,
+  //     transaction_date : req.body.transaction_date,
+  //     bank_account_id : req.body.bank_account_id,
+  //     collateral_id : req.body.collateral_id,
+  //     loan_category_id : req.body.loan_category_id,
+  //     loan_facility_id : req.body.loan_facility_id,
+  //     principal_amount : Number(req.body.principal_amount),
+  //     interest_rate : Number(req.body.interest_rate),
+  //     date_granted : req.body.date_granted,
+  //     check_issued_name : req.body.check_issued_name,
+  //     voucher_number : req.body.voucher_number,
+  //     total_interest : totalInterest,
+  //     term_month : loan_details.length, 
+  //     status_code : LoanStatus.ONGOING,
+  //     renewal_id : 0,
+  //     renewal_amount : 0
+  //   }, '*').transacting(t)
+  //   // console.log(id)
     
-    const loanDetailsMap = details.map(v => { 
-      return{
-        loan_header_id : id[0],
-        check_date : v.dueDate.split('T')[0],
-        check_number : Number(v.checkNumber),
-        bank_account_id : Number(v.bank),
-        monthly_amortization : Number(v.amortization),
-        monthly_interest : Number(v.interest),
-        monthly_principal : Number(v.principal),
-        accumulated_penalty : 0
-      }
-    })
+  //   const loanDetailsMap = loan_details.map(v => { 
+  //     return{
+  //       loan_header_id : id[0],
+  //       check_date : v.dueDate.split('T')[0],
+  //       check_number : Number(v.checkNumber),
+  //       bank_account_id : Number(v.bank_account_id),
+  //       monthly_amortization : Number(v.amortization),
+  //       monthly_interest : Number(v.interest),
+  //       monthly_principal : Number(v.principal),
+  //       accumulated_penalty : 0
+  //     }
+  //   })
 
-    const loanDetails = await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
+  //   const loanDetails = await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
       
-    const deductionFormat = deduction.map((v) =>{
-      for (const d of deductionHistory) {
-        if(v.name === d.deduction_type){
-          return {
-            loan_deduction_id : d.loan_deduction_id,
-            loan_header_id : id[0],
-            amount : v.amount
-          }
-        }
+  //   const deductionFormat = deduction.map((v) =>{
+  //     for (const d of deductionHistory) {
+  //       if(v.label === d.deduction_type){
+  //         return {
+  //           loan_deduction_id : d.loan_deduction_id,
+  //           loan_header_id : id[0],
+  //           amount : Number(v.amount)
+  //         }
+  //       }
+  //     }
+  //   })
+    
+  //   await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
+    
+  //   const mapVoucher = voucher.map((v) => {
+  //     for (const title of accountTitle) {
+  //       if(title.acc_title === v.name) {
+  //         console.log(title.account_title_id)
+  //         return {
+  //           account_title_id : title.account_title_id,
+  //           debit_amount : Number(v.debit),
+  //           credit_amount : Number(v.credit),
+  //           loan_header_id : id[0]
+  //         }
+  //       } 
+  //     }
+  //   })
+
+  //   const voucherId = await builder.insert(mapVoucher).into('vouchertbl').transacting(t)
+    
+      const voucherTemplate = path.join(path.dirname(__dirname), 'voucher.html')
+      
+      const voucherDataTemplate = {
+        borower : data.customer_name,
+        date : new Date().toISOString().split('T')[0], 
+        details : voucher
       }
-    })
 
-    await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
+      ejs.renderFile(voucherTemplate, voucherDataTemplate , (err, data) => {
+        // console.log('html', data)
+        if(err) {console.log(err)}
+        res.send({html : data})
+      })
+   // })
+  
+    // account_title_id
+    // debit_amount
+    // credit_amount
+    // loan_header_id
 
-    res.status(200).json({
-      id : id[0], 
-      pnNumber : pnNumber,
-      totalInterest : totalInterest,
-      status_code : LoanStatus.ONGOING
-    })
-  })
+  //   res.status(200).json({
+  //     id : id[0], 
+  //     pnNumber : pnNumber,
+  //     totalInterest : totalInterest,
+  //     status_code : LoanStatus.ONGOING
+  //   })
+
+
   // calculate interest
   
   // res.status(200).send()
