@@ -38,12 +38,11 @@ const Loan = () => {
     const columns = [
         {field: "loan_header_id", headerName: "ID" },
         {field: "pn_number", headerName: "PN Number", width: 250},
-        {field: "customername", headerName: "Customer", width: 250,
-        valueFormatter : (params) => {
-            if(params.value) {
-                const name = params.value.split(' ');
-                return `${name[2]}, ${name[0]} ${name[1]}`
-
+        {field: "name", headerName: "Customer", width: 250,
+        valueFormatter : (p) => {
+            const middleInitail = p.value.mName === '0' ? '' : p.value.mName
+            if(p.value) {
+                return `${p.value.lName}, ${p.value.fName} ${middleInitail}`
             }
         }
         },
@@ -116,7 +115,21 @@ const Loan = () => {
                 const accountTitleData = await req[7].json()
     
                 dispatch({type : 'INIT', loans : loanData })
-                setCustomers(customerData)
+
+                // convert customer name
+                const convertCustomer = customerData.map((v) => {
+                    const lastName = v.l_name.split(',')
+                    const firstName = v.f_name === '0' ? '' : v.f_name
+                    const middleInitail = v.m_name === '0' ? '' : v.m_name
+                    const extName = lastName[1] ? lastName[1] : ''
+                    const fullName = `${lastName[0]}, ${firstName} ${middleInitail} ${extName}`
+                    return {
+                        ...v,
+                        name : fullName.trim()
+                    }
+                })
+
+                setCustomers(convertCustomer)
                 setCollaterals(collateralData)
     
                 setFacilities(facilityData)
@@ -174,6 +187,7 @@ const Loan = () => {
             setOpenPopup={setOpenNewLoanPopup}
         >
             <LoanForm1
+                setModalOpen={setOpenNewLoanPopup}
                 customers= {customers}
                 collaterals = {collaterals}
                 facilities = {facilities}

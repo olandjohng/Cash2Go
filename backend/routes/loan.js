@@ -67,98 +67,91 @@ loanRouter.post('/', async (req, res)=>{
   const deductionHistory = await builder.select('*').from('loan_deductiontbl')
   
   const accountTitle = await builder.select('acc_title','account_title_id').from('view_account_title')
-    // account_title_id
-    // debit_amount
-    // credit_amount
-    // loan_header_id
+
+  // const mapVoucher = voucher.map((v) => {
+  //   return {
+  //     account_title_id : Number(v.id),
+  //     debit_amount : Number(v.debit),
+  //     credit_amount : Number(v.credit),
+  //     loan_header_id : 1
+  //   }
   
-  
+  // })
   // console.log(mapVoucher)
-  
-  // console.log(accountTitle)dsds
 
-  // await builder.transaction(async t =>{
-    
-  //   const id = await builder('loan_headertbl').insert({
-  //     pn_number : pnNumber,
-  //     customer_id : req.body.customer_id,
-  //     transaction_date : req.body.transaction_date,
-  //     bank_account_id : req.body.bank_account_id,
-  //     collateral_id : req.body.collateral_id,
-  //     loan_category_id : req.body.loan_category_id,
-  //     loan_facility_id : req.body.loan_facility_id,
-  //     principal_amount : Number(req.body.principal_amount),
-  //     interest_rate : Number(req.body.interest_rate),
-  //     date_granted : req.body.date_granted,
-  //     check_issued_name : req.body.check_issued_name,
-  //     voucher_number : req.body.voucher_number,
-  //     total_interest : totalInterest,
-  //     term_month : loan_details.length, 
-  //     status_code : LoanStatus.ONGOING,
-  //     renewal_id : 0,
-  //     renewal_amount : 0
-  //   }, '*').transacting(t)
-  //   // console.log(id)
-    
-  //   const loanDetailsMap = loan_details.map(v => { 
-  //     return{
-  //       loan_header_id : id[0],
-  //       check_date : v.dueDate.split('T')[0],
-  //       check_number : Number(v.checkNumber),
-  //       bank_account_id : Number(v.bank_account_id),
-  //       monthly_amortization : Number(v.amortization),
-  //       monthly_interest : Number(v.interest),
-  //       monthly_principal : Number(v.principal),
-  //       accumulated_penalty : 0
-  //     }
-  //   })
 
-  //   const loanDetails = await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
-      
-  //   const deductionFormat = deduction.map((v) =>{
-  //     for (const d of deductionHistory) {
-  //       if(v.label === d.deduction_type){
-  //         return {
-  //           loan_deduction_id : d.loan_deduction_id,
-  //           loan_header_id : id[0],
-  //           amount : Number(v.amount)
-  //         }
-  //       }
-  //     }
-  //   })
+  await builder.transaction(async t =>{
     
-  //   await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
-    
-  //   const mapVoucher = voucher.map((v) => {
-  //     for (const title of accountTitle) {
-  //       if(title.acc_title === v.name) {
-  //         console.log(title.account_title_id)
-  //         return {
-  //           account_title_id : title.account_title_id,
-  //           debit_amount : Number(v.debit),
-  //           credit_amount : Number(v.credit),
-  //           loan_header_id : id[0]
-  //         }
-  //       } 
-  //     }
-  //   })
+    const id = await builder('loan_headertbl').insert({
+      pn_number : pnNumber,
+      customer_id : req.body.customer_id,
+      transaction_date : req.body.transaction_date,
+      bank_account_id : req.body.bank_account_id,
+      collateral_id : req.body.collateral_id,
+      loan_category_id : req.body.loan_category_id,
+      loan_facility_id : req.body.loan_facility_id,
+      principal_amount : Number(req.body.principal_amount),
+      interest_rate : Number(req.body.interest_rate),
+      date_granted : req.body.date_granted,
+      check_issued_name : req.body.check_issued_name,
+      voucher_number : req.body.voucher_number,
+      total_interest : totalInterest,
+      term_month : loan_details.length, 
+      status_code : LoanStatus.ONGOING,
+      renewal_id : 0,
+      renewal_amount : 0
+    }, '*').transacting(t)
 
-  //   const voucherId = await builder.insert(mapVoucher).into('vouchertbl').transacting(t)
     
-      const voucherTemplate = path.join(path.dirname(__dirname), 'voucher.html')
-      
-      const voucherDataTemplate = {
-        borower : data.customer_name,
-        date : new Date().toISOString().split('T')[0], 
-        details : voucher
+    const loanDetailsMap = loan_details.map(v => { 
+      return{
+        loan_header_id : id[0],
+        check_date : v.dueDate.split('T')[0],
+        check_number : Number(v.checkNumber),
+        bank_account_id : Number(v.bank_account_id),
+        monthly_amortization : Number(v.amortization),
+        monthly_interest : Number(v.interest),
+        monthly_principal : Number(v.principal),
+        accumulated_penalty : 0
       }
+    })
 
-      ejs.renderFile(voucherTemplate, voucherDataTemplate , (err, data) => {
-        // console.log('html', data)
-        if(err) {console.log(err)}
-        res.send({html : data})
-      })
-   // })
+    const loanDetails = await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
+      
+    const deductionFormat = deduction.map((v) =>{
+      for (const d of deductionHistory) {
+        if(v.label === d.deduction_type){
+          return {
+            loan_deduction_id : d.loan_deduction_id,
+            loan_header_id : id[0],
+            amount : Number(v.amount)
+          }
+        }
+      }
+    })
+    
+    await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
+    
+    const mapVoucher = voucher.map((v) => {
+      return {
+        account_title_id : Number(v.id),
+        debit_amount : Number(v.debit),
+        credit_amount : Number(v.credit),
+        loan_header_id : id[0]
+      }
+    })
+
+    const voucherId = await builder.insert(mapVoucher).into('vouchertbl').transacting(t)
+    
+    res.status(200).json({
+      id : id[0], 
+      pnNumber : pnNumber,
+      totalInterest : totalInterest,
+      status_code : LoanStatus.ONGOING
+    })
+
+      
+})
   
     // account_title_id
     // debit_amount

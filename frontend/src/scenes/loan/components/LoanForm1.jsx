@@ -8,8 +8,9 @@ import { useEffect, useRef, useState } from 'react';
 import MultiStepForm1 from '../../../components/MultiStepForm1';
 import LoanTablePreview from './LoanTablePreview';
 import LoanDeductionPreview from './LoanDeductionPreview';
-import LoanVoucherPreview from './LoanVoucherPreview';
-// import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import * as ejs from 'ejs'
+
+import voucherHTMLTemplate from '../../../assets/voucher.html?raw'
 
 const LOAN_INITIAL_VALUES = {
     customer_id: '',
@@ -54,7 +55,7 @@ const loanDetailsSchema = yup.object({
     yup.object({
       dueDate : yup.date().required(),
       bank : yup.string().required(),
-      principal : yup.number().positive().moreThan(0),
+      // principal : yup.number().positive().moreThan(0),
       interest : yup.number().positive().moreThan(0),
       amortization : yup.number().positive().moreThan(0)
     })
@@ -80,18 +81,23 @@ const voucherSchema = yup.object({
 const numberFormat = Intl.NumberFormat(undefined,  {minimumFractionDigits: 2, maximumFractionDigits: 2})
 
 function ComboBox (props){
-  const {inputChange, options, nameField , err, label} = props
+  const {inputChange, nameField, idfield , err, label} = props
   const comboRef = useRef()
+
   return (
     <Autocomplete
     {...props}
     fullWidth
     ref={comboRef}
-    onInputChange={(e, v) => inputChange(comboRef.current.getAttribute('name'), v)} 
+    onInputChange={(e, v) => 
+    {
+      if(e){
+        inputChange({name :comboRef.current.getAttribute('name'), id : idfield }, { id : e.target.id, value : v})
+      }
+    }} 
     variant="standard" 
-    // options={options}
     name={nameField} 
-    renderInput={(params) => { return <TextField {...params} error={err && Boolean(err[nameField])} label={label} />}}
+    renderInput={(params) => <TextField {...params}  error={err && Boolean(err[nameField])} label={label} />}
     />
   )
 }
@@ -108,14 +114,14 @@ function TextInput({label, name, change, value, error}){
   )
 }
 
-function LoanForm1({ customers, collaterals, facilities, banks, categories, deductions , accountTitle}) {
+function LoanForm1({ customers, collaterals, facilities, banks, categories, deductions , accountTitle, setModalOpen}) {
   const [formValue, setFormvValue] = useState(LOAN_INITIAL_VALUES);
   const [rows, setRows] = useState([]);
   const [validationError,setValidationError] = useState(null);
   const [deductionsData, setDeductionsData] = useState([]);
   const [deductionItem, setDeductionItem] = useState(null); 
   const [voucher, setVoucher ] = useState(formValue.voucher)
-  const [voucherHTML, setVoucherHTML] = useState(null)
+  // const [voucherHTML, setVoucherHTML] = useState(voucherHTMLTemplate)
 
   const totalCredit = voucher.reduce((acc, cur) =>  acc + Number(cur.credit), 0)
   const totalDebit = voucher.reduce((acc, cur) =>  acc + Number(cur.debit), 0)
@@ -163,9 +169,10 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
     }
   }
 
-  const handleComboBox = (name, v) => {
+  const handleComboBox = (fields, v) => {
     setValidationError(null)
-    setFormvValue({...formValue , [name] : v})
+    // console.log('combo box', {...formValue , [fields.name] : v.value, [fields.id] : v.id })
+    setFormvValue({...formValue , [fields.name] : v.value, [fields.id] : v.id })
   }
   
   const handleTextField = (e) => {
@@ -177,7 +184,29 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
     <div style={{width: 900}}>
       <MultiStepForm1
       initialFormValues={formValue}
-      onSubmit={() => console.log(formValue.voucher)}
+      onSubmit={() => {
+        let data = {...formValue}
+        
+        const mapLoanDetails = data.loan_details.map((v) => {
+          for (const b of banks) {
+            if(v.bank === b.name) 
+              return {...v, bank_account_id : b.id }
+          }
+        })
+
+        data = {...data , loan_details : mapLoanDetails} 
+        
+        fetch('http://localhost:8000/loans', {
+          method : 'POST',
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data)
+        }).then((d) => d.json()).then((res) => {
+          console.log('response', res)
+          setModalOpen(false)}
+        ).catch(err => console.log(err))
+      }}
       >
         <FormStep
           stepName="Loan Requirements"
@@ -196,22 +225,36 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
               />
             </Grid>
             <Grid item xs={8}>
+              {/* {console.log('201', formValue.customer_name)} */}
               <ComboBox 
                 label='Borrower'
                 value={formValue.customer_name}
+                options={customers}
                 inputChange={handleComboBox} 
-                options={customers.map((v) => `${v.l_name}, ${v.f_name} ${v.m_name}`)} 
-                nameField="customer_name"
                 err={validationError}
+                nameField="customer_name"
+                idfield='customer_id'
+                getOptionLabel={(option) => option.name || "" || option}
+                renderOption={(props, option) => 
+                  <Box {...props} component='li' key={option.id} id={option.id}>
+                    {option.name}
+                  </Box>  
+                }
               />
-              
             </Grid>
             <Grid item xs={5}>
             <ComboBox 
                 label='Bank'
                 inputChange={handleComboBox} 
                 value={formValue.bank_name}
-                options={banks.map((v) => v.name)} 
+                options={banks}
+                idfield='bank_account_id'
+                getOptionLabel={(option) => option.name || "" || option}
+                renderOption={(props, option) => 
+                  <Box {...props} component='li' key={option.id} id={option.id}>
+                    {option.name}
+                  </Box>  
+                }
                 nameField="bank_name"
                 err={validationError}
             />
@@ -230,18 +273,31 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
                 label='Collateral'
                 inputChange={handleComboBox} 
                 value={formValue.collateral}
-                options={collaterals.map((v) => v.name)} 
+                options={collaterals}
+                idfield='collateral_id'
+                getOptionLabel={(option) => option.name || "" || option}
+                renderOption={(props, option) => 
+                  <Box {...props} component='li' key={option.id} id={option.id}>
+                    {option.name}
+                  </Box>  
+                }
                 nameField="collateral"
-                err={validationError}
-            />
+                err={validationError}/>
             </Grid>
             <Grid item xs={12}>
               <ComboBox 
                 label='Category'
                 inputChange={handleComboBox} 
                 value={formValue.loan_category}
-                options={categories.map((v) => v.name)} 
+                options={categories} 
                 nameField="loan_category"
+                idfield='loan_category_id'
+                getOptionLabel={(option) => option.name || "" || option}
+                renderOption={(props, option) => 
+                  <Box {...props} component='li' key={option.id} id={option.id}>
+                    {option.name}
+                  </Box>  
+                }
                 err={validationError}
               />
             </Grid>
@@ -250,8 +306,15 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
                 label='Facility'
                 inputChange={handleComboBox} 
                 nameField="loan_facility"
+                idfield='loan_facility_id'
                 value={formValue.loan_facility}
-                options={facilities.map((v) => v.name)} 
+                options={facilities} 
+                getOptionLabel={(option) => option.name || "" || option}
+                renderOption={(props, option) => 
+                  <Box {...props} component='li' key={option.id} id={option.id}>
+                    {option.name}
+                  </Box>  
+                }
                 err={validationError}
               />
             </Grid>
@@ -389,7 +452,6 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
           }}
           schema={yup.object({})}
         >
-          
           <Box
             display='flex'
             justifyContent='center'
@@ -461,54 +523,25 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
           stepName="Voucher Details"
           schema={voucherSchema}
           onSubmit={() => {
-            console.log(formValue)
-            const fullName = formValue.customer_name.split(',')
-            const bankName = formValue.bank_name
-            const categoryName = formValue.loan_category
-            let data = {...formValue}
             
-            for (const customer of customers) {
-              if(fullName[0] === customer.l_name && fullName[1].includes(customer.f_name)){
-                data = {...data, customer_id : customer.id}
-              }
-            }
-
-            for (const bank of banks) {
-              if(bank.name === bankName) data = {...data, bank_account_id : bank.id};
-            }
-
-            for (const category of categories) {
-              
-              if(category.name === categoryName) data = {...data , loan_category_id : category.id}
-            }
-
-            for (const facility of facilities) {
-              if(facility.name === formValue.loan_facility) data = {...data, loan_facility_id : facility.id}
-            }
-
-            for (const collateral of collaterals) {
-              if(collateral.name === formValue.collateral) data = {...data, collateral_id : collateral.id }
-            }
+            // let data = {...formValue}
             
-            const mapLoanDetails = data.loan_details.map((v) => {
-              for (const b of banks) {
-                if(v.bank === b.name) 
-                  return {...v, bank_account_id : b.id }
-              }
-            })
+            // const mapLoanDetails = data.loan_details.map((v) => {
+            //   for (const b of banks) {
+            //     if(v.bank === b.name) 
+            //       return {...v, bank_account_id : b.id }
+            //   }
+            // })
 
-            data = {...data , loan_details : mapLoanDetails} 
+            // data = {...data , loan_details : mapLoanDetails} 
             
-            
-            fetch('http://localhost:8000/loans', {
-              method : 'POST',
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data)
-            }).then((d) => d.json()).then((res) => setVoucherHTML(res.html))
-
-
+            // fetch('http://localhost:8000/loans', {
+            //   method : 'POST',
+            //   headers: {
+            //     "Content-Type": "application/json",
+            //   },
+            //   body: JSON.stringify(data)
+            // }).then((d) => d.json()).then((res) => setVoucherHTML(res.html))
           }}
         >
           <Button variant='outlined' color='success'
@@ -531,11 +564,20 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
                 <Grid item flex={1}>
                   <ComboBox fullWidth label='Account Title'
                     value={v.name} 
-                    options={accountTitle.map((v) => `${v.account_name} - ${v.account_title}`)} 
-                    inputChange={(n, value) => {
+                    options={accountTitle} 
+                    // idfield='customer_id'
+                    getOptionLabel={(option) => option.name || "" || option}
+                    renderOption={(props, option) => 
+                      <Box {...props} component='li' key={option.id} id={option.id}>
+                        {option.name}
+                      </Box>  
+                    }
+                    inputChange={(field, d) => {
+                      console.log(field, d)
                       const newValue = voucher.map((val, index) => {
-                        return i === index ? {...val,  name : value} : val
+                        return i === index ? {...val,  name : d.value, id : d.id  } : val
                       })
+                      console.log('newValue', newValue)
                       setVoucher(newValue)
                       setFormvValue({...formValue, voucher : newValue})
                     }} />
@@ -573,7 +615,6 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
                 </Grid>
                 <Grid item display='flex' >
                   <Button variant='outlined' color='error'
-                    // sx={{  }}
                     onClick={() => {
                       const filter = voucher.filter((v, index) => i !== index)
                       setVoucher(filter)
@@ -584,7 +625,6 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
                   </Button>
                 </Grid>
               </Grid>
-              
             ))
             }
             <Box mt={1} ml={2}>
@@ -600,25 +640,37 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
                 <Typography fontWeight='bold' textTransform='uppercase' letterSpacing='1px' > Balance :</Typography> 
                 <Typography fontStyle='italic' fontSize='14px' >{Math.abs(totalCredit - totalDebit)}</Typography>
               </Box>
-
             </Box>
           </Box>
         </FormStep>
         <FormStep
           stepName='Print Voucher'
+          schema={yup.object({})}
+          onSubmit = {() => {}}
         >
           <Box>
             <Typography display='flex' justifyContent='center'>
               <CheckCircleOutlineRounded color="success" sx={{fontSize : 70}}/>
             </Typography>
-            <Typography display='flex' justifyContent='center'  sx={{fontSize : 20}} >Save Successfully!</Typography>
+            <Typography display='flex' justifyContent='center'  sx={{fontSize : 20}} >All Setup?</Typography>
             <Typography display='flex' justifyContent='center' mt={2}>
               <Button variant='outlined' color='success'sx={{fontSize : 15}}
-              onClick={() => {
-                const voucherWindow = window.open('sdsd','Print Voucher')
+               onClick={() => {
+                console.log(formValue)
+                
+                const templateData = {
+                  borower : formValue.customer_name,
+                  date : new Date().toISOString().split('T')[0], 
+                  details : formValue.voucher,
+                  voucherNumber : formValue.voucher_number
+                }
+                const voucherHTML = ejs.render(voucherHTMLTemplate, templateData)
+
+                const voucherWindow = window.open('voucher','Print Voucher')
                 if(voucherHTML) {
                   voucherWindow.document.write(voucherHTML)
-                } 
+                }
+
               }}
               >Print Voucher</Button>
             </Typography>

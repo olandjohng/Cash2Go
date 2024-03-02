@@ -79,7 +79,7 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
 
   const handleRowInputChange = (newRow) =>{
     const updatedRow = { ...newRow, isNew : false}
-    setRows(rows.map((row)=> (row.id === newRow.id ? updatedRow: row)))
+    setRows(rows.map((row)=> (row.id === newRow.id ? updatedRow : row)))
     return updatedRow
   }
 
@@ -113,7 +113,7 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
       preProcessEditCellProps :  handleAmountValidation,
       renderEditCell : renderAmount
     },
-    { field: 'bank', headerName: 'Bank', width: 150, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name)},
+    { field: 'bank', headerName: 'Bank', width: 150, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name),},
     { field: 'checkNumber', headerName: 'Check Number', width: 120, editable: true,   },
     { field: 'action', type : 'actions',
       getActions : ({id}) => {
