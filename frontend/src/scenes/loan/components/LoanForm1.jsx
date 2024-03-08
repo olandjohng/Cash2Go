@@ -11,6 +11,7 @@ import LoanDeductionPreview from './LoanDeductionPreview';
 import * as ejs from 'ejs'
 
 import voucherHTMLTemplate from '../../../assets/voucher.html?raw'
+import { grey } from '@mui/material/colors';
 
 const LOAN_INITIAL_VALUES = {
     customer_id: '',
@@ -181,7 +182,7 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
   }
 
   return (
-    <div style={{width: 900}}>
+    <div style={{width: 900, color: grey[600]}} >
       <MultiStepForm1
       initialFormValues={formValue}
       onSubmit={() => {
