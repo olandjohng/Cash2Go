@@ -2,24 +2,65 @@ const express = require('express')
 const customerRouter = express.Router()
 const builder = require('../builder')
 
-customerRouter.get('/', async (req, res) =>{
-  const customers = await builder.select({
-    id : 'customerid',
-    f_name : 'cfname',
-    m_name : 'cmname',
-    l_name : 'clname',
-    contactNo : 'contactno',
-    address : 'address',
-    gender : 'gender',
-  }).from({ c : 'customertbl'})
+// customerRouter.get('/', async (req, res) =>{
+//   const customers = await builder.select({
+//     id : 'customerid',
+//     f_name : 'cfname',
+//     m_name : 'cmname',
+//     l_name : 'clname',
+//     contactNo : 'contactno',
+//     address : 'address',
+//     gender : 'gender',
+//   }).from({ c : 'customertbl'})
 
-  res.status(200).send(customers)
-})
+//   res.status(200).send(customers)
+// })
 
-customerRouter.get('/info', async (req, res)=>{
-  const customers = await builder.select('*').from('customertbl')
-  res.status(200).send(customers)
-})
+// customerRouter.get('/info', async (req, res)=>{
+//   const customers = await builder.select('*').from('customertbl')
+//   res.status(200).send(customers)
+// })
+// server-side code (Node.js/Express)
+customerRouter.get('/', async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
+  const offset = (page - 1) * pageSize;
+
+  try {
+    const totalCount = await builder('items').count('id as total').first();
+    const items = await builder
+      .select({
+        id: 'customerid',
+        f_name: 'cfname',
+        m_name: 'cmname',
+        l_name: 'clname',
+        contactNo: 'contactno',
+        address: 'address',
+        gender: 'gender',
+      })
+      .from({ c: 'customertbl' })
+      .limit(pageSize)
+      .offset(offset);
+
+    const response = {
+      page,
+      pageSize,
+      total: totalCount.total,
+      totalPages: Math.ceil(totalCount.total / pageSize),
+      rows: items,
+    };
+
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(500).send({
+      message: 'Error fetching customers',
+      error: err,
+    });
+  }
+});
+
+
+
 
 customerRouter.get('/info/:id', async (req, res)=>{
   const {id} = req.params
