@@ -12,6 +12,8 @@ import { Bounce, toast } from 'react-toastify';
 import voucherHTMLTemplate from '../../../assets/voucher.html?raw'
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
+import { grey } from '@mui/material/colors';
+
 
 const LOAN_INITIAL_VALUES = {
     customer_id: '',
@@ -191,7 +193,7 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
   }
 
   return (
-    <div style={{width: 900}}>
+    <div style={{width: 900, color: grey[600]}} >
       <MultiStepForm1
       initialFormValues={formValue}
       onSubmit={() => {

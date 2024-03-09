@@ -23,7 +23,7 @@ app.use(bodyParser.json())
 app.use(cors())
 
 app.use('/loans', loanRouter)
-app.use('/customers', customerRouter)
+// app.use('/customers', customerRouter)
 app.use('/banks', bankRouter)
 app.use('/deductions', deductionRouter)
 app.use('/facility', facilityRouter)
