@@ -40,6 +40,55 @@ async function createPnNumber(req){
 
 loanRouter.get('/', getLoanList)
 
+
+const convertEmpty = (name) => name !== '' ? name : ''
+
+
+loanRouter.get('/voucher/:id', async (req, res) =>{
+  
+  const {id} = req.params
+  const query = await builder.select('*').from('view_voucher').where('loan_header_id', id)
+  console.log(query)
+  if(query.length <= 0) {
+    return res.status(400).send()
+  }
+  
+  const details = query.map((v) => {
+    return {
+      name : v.acc_title,
+      title : v.account_title,
+      credit : v.credit_amount, 
+      debit : v.debit_amount
+    }
+  })
+  
+  const item = query[0]
+
+  const lastname = item.clname.split(',')
+
+  const firstName = convertEmpty(item.cfname) 
+  const extName = lastname[1] ? lastname[1] : ''
+  const midInitial = convertEmpty(item.cmname)
+  
+  const fullname = `${lastname[0]}, ${firstName}  ${midInitial} ${extName}`
+  
+  console.log(fullname)
+  //check_number
+  //check_number
+  const voucherInfo = {
+    details : details,
+    check_details : `${item.bank_name}-${item.check_number}`,
+    check_date : item.check_date,
+    borrower : fullname.trim(),
+    date : new Date().toISOString().split('T')[0],
+    voucherNumber : item.voucher_number
+  }
+
+
+  res.status(200).json(voucherInfo)
+})
+
+
 loanRouter.get('/recalculate/:id', async (req, res) =>{
   console.log(req.params)
   // get the header
@@ -60,7 +109,7 @@ loanRouter.get('/recalculate/:id', async (req, res) =>{
 loanRouter.post('/', async (req, res)=>{
   
   const {voucher, deduction, loan_details} = req.body
-  const data =  req.body
+
   const pnNumber = await createPnNumber(req.body)
   const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest), 0)
 
@@ -68,22 +117,12 @@ loanRouter.post('/', async (req, res)=>{
   
   const accountTitle = await builder.select('acc_title','account_title_id').from('view_account_title')
 
-  // const mapVoucher = voucher.map((v) => {
-  //   return {
-  //     account_title_id : Number(v.id),
-  //     debit_amount : Number(v.debit),
-  //     credit_amount : Number(v.credit),
-  //     loan_header_id : 1
-  //   }
-  
-  // })
-  // console.log(mapVoucher)
-
-
   await builder.transaction(async t =>{
     
     const id = await builder('loan_headertbl').insert({
       pn_number : pnNumber,
+      check_number :  req.body.check_number,
+      check_date : req.body.check_date,
       customer_id : req.body.customer_id,
       transaction_date : req.body.transaction_date,
       bank_account_id : req.body.bank_account_id,
@@ -172,6 +211,28 @@ loanRouter.post('/', async (req, res)=>{
 
 
 })
+loanRouter.put('/details/:id', async (req, res) => {
+  const {id} = req.params
+  const {loan_detail_id, check_number, bank_id} = req.body
+  
+  try {
+    const update = await builder('loan_detail').where({
+      loan_header_id : id,
+      loan_detail_id : loan_detail_id
+    }).update({
+      bank_account_id : bank_id,
+      check_number : check_number
+    })
+    return res.status(200).send()
+  } catch (error) {
+    return res.status(500).send(error)
+  }
+  
+
+ 
+
+})
+
 
 loanRouter.get('/category', async (req, res)=>{
   const banks = await builder.select({id : 'loan_category_id', name : 'description', code : 'code'}).from('loan_categorytbl')
