@@ -12,6 +12,7 @@ const customerInfoRouter = require('./routes/customerInfo')
 const collateralRouter = require('./routes/collateral')
 const accountCategoryRouter = require('./routes/accountCategory')
 const accountTitleRouter = require('./routes/accountTitle')
+const employeeRouter = require('./routes/employee')
 
 const PORT = 8000
 
@@ -32,6 +33,7 @@ app.use('/customerInfo', customerInfoRouter)
 app.use('/collateral', collateralRouter)
 app.use('/account-category', accountCategoryRouter)
 app.use('/account-title', accountTitleRouter)
+app.use('/employee', employeeRouter)
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`)
