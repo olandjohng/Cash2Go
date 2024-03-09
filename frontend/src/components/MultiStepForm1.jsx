@@ -29,7 +29,6 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
 
     if (isLastStep) {
       await onSubmit(formik.values);
-      setIsFormSubmitted(true);
     } else {
       formik.setTouched({});
       next(formik.values);
@@ -49,11 +48,9 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
     if(schema && schema.isValidSync(initialFormValues)) {
       if(isLastStep){
         onSubmit();
-        setIsFormSubmitted(true);
       } else {
         next(initialFormValues)
       }
-      
     }else{
       console.log('error', initialFormValues)
     }
@@ -74,9 +71,10 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
             })}
           </Stepper>
         </div>
-        {isFormSubmitted ? (
-          <SuccessComponent />
-        ) : (
+        {!isFormSubmitted && (
+        // ? (
+          // <SuccessComponent />
+        // ) : (
           <>
             {step}
             <FormNavigation

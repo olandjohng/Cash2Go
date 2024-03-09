@@ -1,4 +1,3 @@
-
 import * as yup from 'yup';
 import {AddOutlined, CheckCircleOutlineRounded, DeleteOutline, RemoveCircleOutline, } from "@mui/icons-material"
 import MultiStepForm, { FormStep } from "../../../components/MultiStepForm";
@@ -9,8 +8,10 @@ import MultiStepForm1 from '../../../components/MultiStepForm1';
 import LoanTablePreview from './LoanTablePreview';
 import LoanDeductionPreview from './LoanDeductionPreview';
 import * as ejs from 'ejs'
-
+import { Bounce, toast } from 'react-toastify';
 import voucherHTMLTemplate from '../../../assets/voucher.html?raw'
+import { DatePicker } from '@mui/x-date-pickers';
+import dayjs from 'dayjs';
 
 const LOAN_INITIAL_VALUES = {
     customer_id: '',
@@ -19,6 +20,8 @@ const LOAN_INITIAL_VALUES = {
     bank_account_id: '',
     bank_name: '',
     collateral_id: '',
+    check_date : null,
+    check_number : '',
     collateral: '',
     loan_category_id: '',
     loan_category: '',
@@ -40,7 +43,9 @@ const LOAN_INITIAL_VALUES = {
 
 const loanRequrementSchema = yup.object({
   voucher_number : yup.string().required('voucher_number is required'),
+  check_date : yup.date().required(),
   customer_name : yup.string().required(),
+  check_number : yup.string().required(),
   bank_name : yup.string().required(),
   check_issued_name : yup.string().required(),
   collateral : yup.string().required(),
@@ -92,7 +97,7 @@ function ComboBox (props){
     onInputChange={(e, v) => 
     {
       if(e){
-        inputChange({name :comboRef.current.getAttribute('name'), id : idfield }, { id : e.target.id, value : v})
+        inputChange({name : comboRef.current.getAttribute('name'), id : idfield }, { id : e.target.id, value : v})
       }
     }} 
     variant="standard" 
@@ -102,12 +107,14 @@ function ComboBox (props){
   )
 }
 
-function TextInput({label, name, change, value, error}){
+function TextInput(
+  // {label, name, change, value, error}
+  props
+  ) {
+  const {name, change, error} = props
   return (
     <TextField fullWidth variant="outlined"
-    label={label}
-    value={value}
-    name={name} 
+    {...props}
     onChange={(e) => change(e)}
     error={ error && Boolean(error[name])}
   />
@@ -115,12 +122,14 @@ function TextInput({label, name, change, value, error}){
 }
 
 function LoanForm1({ customers, collaterals, facilities, banks, categories, deductions , accountTitle, setModalOpen}) {
+
   const [formValue, setFormvValue] = useState(LOAN_INITIAL_VALUES);
   const [rows, setRows] = useState([]);
   const [validationError,setValidationError] = useState(null);
   const [deductionsData, setDeductionsData] = useState([]);
   const [deductionItem, setDeductionItem] = useState(null); 
   const [voucher, setVoucher ] = useState(formValue.voucher)
+  const [voucherWindow, setVoucherWindow] = useState(null)
   // const [voucherHTML, setVoucherHTML] = useState(voucherHTMLTemplate)
 
   const totalCredit = voucher.reduce((acc, cur) =>  acc + Number(cur.credit), 0)
@@ -150,6 +159,7 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
   },[rows])
 
   const handleLoanDetails = async () => {
+    console.log(rows)
     try {
       loanDetailsSchema.validateSync(formValue,
         {abortEarly : false}
@@ -185,7 +195,7 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
       <MultiStepForm1
       initialFormValues={formValue}
       onSubmit={() => {
-        let data = {...formValue}
+        let data = {...formValue, check_date : dayjs(formValue.check_date).format()}
         
         const mapLoanDetails = data.loan_details.map((v) => {
           for (const b of banks) {
@@ -204,7 +214,19 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
           body: JSON.stringify(data)
         }).then((d) => d.json()).then((res) => {
           console.log('response', res)
-          setModalOpen(false)}
+          setModalOpen(false)
+          toast.success('Save Successfully!', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+            transition: Bounce,
+          });
+        }  
         ).catch(err => console.log(err))
       }}
       >
@@ -215,7 +237,7 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
           schema={loanRequrementSchema}
         >
           <Grid container spacing={2} >
-            <Grid item xs={4}>
+            <Grid item xs={2}>
               <TextInput
                 value={formValue.voucher_number}
                 label="Voucher"
@@ -224,8 +246,7 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
                 change={(e) => handleTextField(e)}
               />
             </Grid>
-            <Grid item xs={8}>
-              {/* {console.log('201', formValue.customer_name)} */}
+            <Grid item xs={5}>
               <ComboBox 
                 label='Borrower'
                 value={formValue.customer_name}
@@ -243,30 +264,54 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
               />
             </Grid>
             <Grid item xs={5}>
-            <ComboBox 
-                label='Bank'
-                inputChange={handleComboBox} 
-                value={formValue.bank_name}
-                options={banks}
-                idfield='bank_account_id'
-                getOptionLabel={(option) => option.name || "" || option}
-                renderOption={(props, option) => 
-                  <Box {...props} component='li' key={option.id} id={option.id}>
-                    {option.name}
-                  </Box>  
-                }
-                nameField="bank_name"
-                err={validationError}
-            />
-            </Grid>
-            <Grid item xs={7}>
               <TextInput
                 value={formValue.check_issued_name}
-                label="Issued Name"
+                label="Check Name"
                 name="check_issued_name"
                 error={validationError}
                 change={(e) => handleTextField(e)}
               />
+            </Grid>
+            <Grid item xs={2}>
+              <ComboBox 
+                  label='Bank'
+                  inputChange={handleComboBox} 
+                  value={formValue.bank_name}
+                  options={banks}
+                  idfield='bank_account_id'
+                  getOptionLabel={(option) => option.name || "" || option}
+                  renderOption={(props, option) => 
+                    <Box {...props} component='li' key={option.id} id={option.id}>
+                      {option.name}
+                    </Box>  
+                  }
+                  nameField="bank_name"
+                  err={validationError}
+              />
+            </Grid>
+            <Grid item xs={7} >
+              <TextInput
+                  value={formValue.check_number}
+                  
+                  label="Check Number"
+                  name="check_number"
+                  error={validationError}
+                  change={(e) => handleTextField(e)}
+                />
+                {/* <TextField type='date' data} */}
+            </Grid>
+            <Grid item xs={3}>
+              <DatePicker  
+                label='Check Date'
+                name='check_date'
+                value={formValue.check_date ? dayjs(formValue.check_date) : formValue.check_date}
+                onChange={(val) => { 
+                  setValidationError(null)
+                  setFormvValue({...formValue , check_date : val.$d})
+                }}
+                slots={{
+                  textField : (params) => <TextField {...params} error={validationError && validationError.check_date} />
+                }}/>
             </Grid>
             <Grid item xs={12}>
               <ComboBox 
@@ -341,6 +386,9 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
                 label="Interest Rate"
                 value={formValue.interest_rate}
                 change={(e) => handleTextField(e)}
+                InputProps = {{
+                  endAdornment : <InputAdornment position='end'>%</InputAdornment>
+                }}
                 error={validationError}/>
             </Grid>
             <Grid item xs={12}>
@@ -396,8 +444,8 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
                     }
                   }
                 }}
-
                 variant="outlined" 
+                color='success'
                 sx={{ 
                   fontSize: "14px",
                   fontWeight: "bold",
@@ -453,10 +501,13 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
           schema={yup.object({})}
         >
           <Box
+            // make grid
             display='flex'
             justifyContent='center'
             gap={5}
             mt={5}
+            mx='auto'
+            width='70%'
           >
             <PreviewLabel
               label="Borrower's Name"
@@ -466,7 +517,17 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
               label="Check Issued Name"
               value={formValue.check_issued_name}
             />
+          </Box>
+          <Box 
+            display='flex'
+            justifyContent='center'
+            gap={5}
+            mt={3}
             
+          >
+            <PreviewLabel label='Bank Name' value={formValue.bank_name}/>
+            <PreviewLabel label='Check Number' value={formValue.check_number} />
+            <PreviewLabel label='Check Date' value={dayjs(formValue.check_date).format('MM-DD-YYYY')}/>
           </Box>
           <Box 
             display='flex'
@@ -499,12 +560,9 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
             />
             <PreviewLabel
               label='Interest Rate'
-              value={formValue.interest_rate}
+              value={`${Number(formValue.interest_rate).toFixed(2)}%`}
             />
-            <PreviewLabel
-              label='Bank Name'
-              value={formValue.bank_name}
-            />
+            
           </Box>
           <Box mt={3}>
             <Grid container gap={1}>
@@ -523,25 +581,14 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
           stepName="Voucher Details"
           schema={voucherSchema}
           onSubmit={() => {
-            
-            // let data = {...formValue}
-            
-            // const mapLoanDetails = data.loan_details.map((v) => {
-            //   for (const b of banks) {
-            //     if(v.bank === b.name) 
-            //       return {...v, bank_account_id : b.id }
-            //   }
-            // })
-
-            // data = {...data , loan_details : mapLoanDetails} 
-            
-            // fetch('http://localhost:8000/loans', {
-            //   method : 'POST',
-            //   headers: {
-            //     "Content-Type": "application/json",
-            //   },
-            //   body: JSON.stringify(data)
-            // }).then((d) => d.json()).then((res) => setVoucherHTML(res.html))
+            const nameFormat =voucher.map((v) => {
+              const names = v.name.split('-')
+              const format = names.filter((_, i) => i !== 0).join('-')
+              return { ...v, title : format.trim() }
+            })
+            console.log(formValue.check_date)
+            setVoucher(nameFormat)
+            setFormvValue({...formValue, voucher : nameFormat})
           }}
         >
           <Button variant='outlined' color='success'
@@ -577,6 +624,7 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
                       const newValue = voucher.map((val, index) => {
                         return i === index ? {...val,  name : d.value, id : d.id  } : val
                       })
+
                       console.log('newValue', newValue)
                       setVoucher(newValue)
                       setFormvValue({...formValue, voucher : newValue})
@@ -659,16 +707,29 @@ function LoanForm1({ customers, collaterals, facilities, banks, categories, dedu
                 console.log(formValue)
                 
                 const templateData = {
-                  borower : formValue.customer_name,
-                  date : new Date().toISOString().split('T')[0], 
+                  borrower : formValue.customer_name,
+                  date : dayjs(new Date()).format('MM-DD-YYYY'), 
                   details : formValue.voucher,
-                  voucherNumber : formValue.voucher_number
+                  voucherNumber : formValue.voucher_number,
+                  check_details : `${formValue.bank_name}-${formValue.check_number}`,
+                  check_date : dayjs(formValue.check_date).format('MM-DD-YYYY')
                 }
+
                 const voucherHTML = ejs.render(voucherHTMLTemplate, templateData)
 
-                const voucherWindow = window.open('voucher','Print Voucher')
-                if(voucherHTML) {
-                  voucherWindow.document.write(voucherHTML)
+                if(voucherWindow){
+                  voucherWindow.close()
+                  const voucherTab = window.open('voucher','Print Voucher')
+                  setVoucherWindow(voucherTab)
+                  if(voucherHTML) {
+                    voucherTab.document.write(voucherHTML)
+                  }
+                } else {
+                  const voucherTab = window.open('voucher','Print Voucher')
+                  setVoucherWindow(voucherTab)
+                  if(voucherHTML) {
+                    voucherTab.document.write(voucherHTML)
+                  }
                 }
 
               }}
@@ -699,14 +760,10 @@ function PreviewLabel({label, value}){
 }
 
 const StyledLabel = styled('div')({
-  // fontStyle : 'italic',
   fontWeight : 'bold',
   letterSpacing : '1.5px',
-  // borderWidth : '1px',
   textAlign: 'center',
-  // color: 'lightgray',
-  // borderWidth : 1,
-  // borderBottom : ['solid'],
+
   borderBottomWidth:  1,
 })
 

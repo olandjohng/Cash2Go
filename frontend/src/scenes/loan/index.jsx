@@ -1,4 +1,4 @@
-import {DataGrid} from '@mui/x-data-grid'
+import {DataGrid, GridActionsCell, GridActionsCellItem} from '@mui/x-data-grid'
 import { tokens } from '../../theme'
 import {mockDataTeam} from '../../data/mockData'
 import { useTheme } from '@emotion/react'
@@ -7,10 +7,14 @@ import Header from '../../components/Header'
 import { useEffect, useReducer, useState } from 'react'
 import Popups from '../../components/Popups'
 import DetailsModal from './components/DetailsModal'
-import NewLoanModal from './components/NewLoanModal'
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import LoanForm from './components/LoanForm'
 import LoanForm1 from './components/LoanForm1'
+import { PrintOutlined } from '@mui/icons-material'
+import voucherTemplateHTML from '../../assets/voucher.html?raw'
+import c2gImage from '../../assets/c2g_logo_nb.png'
+
+import * as ejs from 'ejs'
+import dayjs from 'dayjs'
 
 function reducer(state, action){
     switch(action.type){
@@ -30,34 +34,74 @@ const formatNumber = (value) => {
     return format;
 
 }
+
+const getVoucher = async (id) => {
+    console.log('36', id)
+    try {
+        const fetchData = await fetch(`http://localhost:8000/loans/voucher/${id}`)
+        const voucherJSON = await fetchData.json()
+        // console.log(voucherJSON)
+        
+        const format = { 
+            ...voucherJSON,
+            logo : c2gImage,
+            date : dayjs(voucherJSON.date).format('MM-DD-YYYY'),
+            check_date : dayjs(voucherJSON.check_date).format('MM-DD-YYYY')
+        }
+        const render = ejs.render(voucherTemplateHTML, format)
+        const voucherWindow = window.open('', 'Print Voucher')
+        voucherWindow.document.write(render)
+    } catch (error) {
+        console.log(error)
+    }
+
+}
+
 const Loan = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     let timeOut = null;
 
     const columns = [
-        {field: "loan_header_id", headerName: "ID" },
-        {field: "pn_number", headerName: "PN Number", width: 250},
-        {field: "name", headerName: "Customer", width: 250,
-        valueFormatter : (p) => {
-            const middleInitail = p.value.mName === '0' ? '' : p.value.mName
-            if(p.value) {
-                return `${p.value.lName}, ${p.value.fName} ${middleInitail}`
-            }
+        // {field: "loan_header_id", headerName: "ID" },
+        {field : 'voucher', headerName : 'Voucher', type: 'actions',
+        getActions : ({id}) => {
+            return [
+                <GridActionsCellItem 
+                    icon={<PrintOutlined />}
+                    color='success'
+                    label='Print Voucher'
+                    onClick={() => getVoucher(id)}
+                />
+            ]
         }
         },
-        {field: "bank_name", headerName: "Bank", width: 250 },
-        {field: "loancategory", headerName: "Category", width: 150},
-        {field: "loanfacility", headerName: "Facility", width: 150},
-        {field: "principal_amount", headerName: "Principal", width: 150, valueFormatter : (params) => {return formatNumber(params.value)}},
-        {field: "total_interest", headerName: "Interest", width: 150, valueFormatter : (params) => { return formatNumber(params.value)}},
         {field: "date_granted", headerName: "Date Granted", width: 150,
         valueFormatter : (params) =>{
            const dateFormat = params.value.split('T')[0]
            return dateFormat
         }
         },
+        {field: "name", headerName: "Borrower", width: 250,
+        valueFormatter : (p) => {
+            const lastName = p.value.lName.split(',')
+            const firsName = p.value.fName === '0' ? '' : p.value.fName
+            const middleInitail = p.value.mName === '0' ? '' : p.value.mName
+            const extName = lastName[1] ? lastName[1] : ''
+            const fullName = `${lastName[0]}, ${firsName} ${middleInitail} ${extName}`
+            if(p.value) {
+                return fullName.trim()
+            }s
+        }
+        },
+        {field: "pn_number", headerName: "PN Number", width: 250},
+        {field: "principal_amount", headerName: "Loan Granted", width: 150, valueFormatter : (params) => {return formatNumber(params.value)}},
+        {field: "total_interest", headerName: "Interest", width: 150, valueFormatter : (params) => { return formatNumber(params.value)}},
+        {field: "bank_name", headerName: "Bank", width: 150 },
+        {field: "loancategory", headerName: "Category", width: 150},
+        {field: "loanfacility", headerName: "Facility", width: 150},
         {field: "status_code", headerName: "Status", width: 150},
+        
     ]
 
     const [customers, setCustomers] = useState([])
@@ -116,7 +160,7 @@ const Loan = () => {
     
                 dispatch({type : 'INIT', loans : loanData })
 
-                // convert customer name
+                //TODO transfer code to backend
                 const convertCustomer = customerData.map((v) => {
                     const lastName = v.l_name.split(',')
                     const firstName = v.f_name === '0' ? '' : v.f_name
@@ -168,9 +212,7 @@ const Loan = () => {
                 rows={loans}
                 columns={columns}
                 getRowId={(row) => row.loan_header_id}
-                // autoHeight
                 onRowDoubleClick={handleRowDoubleClick}
-                // autoPageSize
             />
        
         <Popups
@@ -178,7 +220,7 @@ const Loan = () => {
             openPopup={openPopup}
             setOpenPopup={setOpenPopup}
         >
-            <DetailsModal selectedLoanId={selectedLoanId} />
+            <DetailsModal selectedLoanId={selectedLoanId} banks={banks} />
         </Popups>
 
         <Popups
