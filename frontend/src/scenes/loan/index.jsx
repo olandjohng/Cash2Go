@@ -12,7 +12,6 @@ import LoanForm1 from './components/LoanForm1'
 import { PrintOutlined } from '@mui/icons-material'
 import voucherTemplateHTML from '../../assets/voucher.html?raw'
 import c2gImage from '../../assets/c2g_logo_nb.png'
-
 import * as ejs from 'ejs'
 import dayjs from 'dayjs'
 
@@ -26,17 +25,15 @@ function reducer(state, action){
 }
 
 const formatNumber = (value) => {
-    const amount = value.split('.');
-    const format = Number(amount[0]).toLocaleString('en', {
+    // const amount = value.split('.');
+    const format = Number(value).toLocaleString('en', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2 
     });
     return format;
-
 }
 
 const getVoucher = async (id) => {
-    console.log('36', id)
     try {
         const fetchData = await fetch(`http://localhost:8000/loans/voucher/${id}`)
         const voucherJSON = await fetchData.json()
@@ -78,22 +75,10 @@ const Loan = () => {
         },
         {field: "date_granted", headerName: "Date Granted", width: 150,
         valueFormatter : (params) =>{
-           const dateFormat = params.value.split('T')[0]
-           return dateFormat
+            return dayjs(params.value).format('MM-DD-YYYY');
         }
         },
-        {field: "name", headerName: "Borrower", width: 250,
-        valueFormatter : (p) => {
-            const lastName = p.value.lName.split(',')
-            const firsName = p.value.fName === '0' ? '' : p.value.fName
-            const middleInitail = p.value.mName === '0' ? '' : p.value.mName
-            const extName = lastName[1] ? lastName[1] : ''
-            const fullName = `${lastName[0]}, ${firsName} ${middleInitail} ${extName}`
-            if(p.value) {
-                return fullName.trim()
-            }s
-        }
-        },
+        {field: "name", headerName: "Borrower", width: 250,},
         {field: "pn_number", headerName: "PN Number", width: 250},
         {field: "principal_amount", headerName: "Loan Granted", width: 150, valueFormatter : (params) => {return formatNumber(params.value)}},
         {field: "total_interest", headerName: "Interest", width: 150, valueFormatter : (params) => { return formatNumber(params.value)}},
@@ -112,7 +97,6 @@ const Loan = () => {
     const [deductions, setDeductions] = useState([])
     const [accountTitle, setAccountTitle] = useState([])
     
-    // const [loans, setLoans] = useState([]);
     const [openPopup, setOpenPopup] = useState(false);
     const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
     const [selectedLoanId, setSelectedLoanId] = useState(null);
@@ -121,7 +105,7 @@ const Loan = () => {
     const handleRowDoubleClick = (params) => {
         setSelectedLoanId(params.row.loan_header_id);
         setOpenPopup(true);
-      };
+    };
 
     // TODO: loan category
     
@@ -138,7 +122,6 @@ const Loan = () => {
         const getData = async () => {
             const urls = [
                 fetch('http://localhost:8000/loans'),
-                fetch('http://localhost:8000/customers'),
                 fetch('http://localhost:8000/loans/collateral'),
                 fetch('http://localhost:8000/loans/facility'),
                 fetch('http://localhost:8000/banks'),
@@ -146,34 +129,21 @@ const Loan = () => {
                 fetch('http://localhost:8000/deductions'),
                 fetch('http://localhost:8000/account-title'),
             ]
+
             try {
                 const req = await Promise.all(urls)
     
                 const loanData = await req[0].json()
-                const customerData = await req[1].json()
-                const collateralData = await req[2].json()
-                const facilityData = await req[3].json()
-                const banksData = await req[4].json()
-                const categoryData = await req[5].json()
-                const deductionData = await req[6].json()
-                const accountTitleData = await req[7].json()
+                // const customerData = await req[1].json()
+                const collateralData = await req[1].json()
+                const facilityData = await req[2].json()
+                const banksData = await req[3].json()
+                const categoryData = await req[4].json()
+                const deductionData = await req[5].json()
+                const accountTitleData = await req[6].json()
     
                 dispatch({type : 'INIT', loans : loanData })
 
-                //TODO transfer code to backend
-                const convertCustomer = customerData.map((v) => {
-                    const lastName = v.l_name.split(',')
-                    const firstName = v.f_name === '0' ? '' : v.f_name
-                    const middleInitail = v.m_name === '0' ? '' : v.m_name
-                    const extName = lastName[1] ? lastName[1] : ''
-                    const fullName = `${lastName[0]}, ${firstName} ${middleInitail} ${extName}`
-                    return {
-                        ...v,
-                        name : fullName.trim()
-                    }
-                })
-
-                setCustomers(convertCustomer)
                 setCollaterals(collateralData)
     
                 setFacilities(facilityData)
@@ -192,10 +162,7 @@ const Loan = () => {
   return (
     <div style={ {height : '75%', padding : 20}}>
         <Header title="LOANS" subtitle="List of loans with details" showButton={true} onAddButtonClick={() => setOpenNewLoanPopup(true)} />
-        {/* <Box sx={{ display: 'flex', alignItems: 'flex-start', mb : 2}}>
-            <TextField variant="outlined" label= 'Search' onChange={handleSearch}/>
-            <SearchOutlinedIcon sx={{ my: 'auto'}}/>
-        </Box> */}
+
         <Box 
             display="flex" 
             alignItems='flex-start'
@@ -237,6 +204,7 @@ const Loan = () => {
                 categories = {categories}
                 deductions = {deductions}
                 accountTitle = {accountTitle}
+                dispatcher = {dispatch}
             />
         </Popups>
     </div>

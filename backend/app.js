@@ -12,6 +12,7 @@ const customerInfoRouter = require('./routes/customerInfo')
 const collateralRouter = require('./routes/collateral')
 const accountCategoryRouter = require('./routes/accountCategory')
 const accountTitleRouter = require('./routes/accountTitle')
+const employeeRouter = require('./routes/employee')
 
 const PORT = 8000
 
@@ -23,7 +24,8 @@ app.use(bodyParser.json())
 app.use(cors())
 
 app.use('/loans', loanRouter)
-// app.use('/customers', customerRouter)
+app.use('/employee', employeeRouter)
+app.use('/customers', customerRouter)
 app.use('/banks', bankRouter)
 app.use('/deductions', deductionRouter)
 app.use('/facility', facilityRouter)
