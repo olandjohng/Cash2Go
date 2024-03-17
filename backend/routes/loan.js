@@ -14,6 +14,7 @@ const LoanStatus = {
 }
 
 async function createPnNumber(req){
+
   const qCategoryCode = await builder.select({ code : 'code'}).from('loan_categorytbl').where('loan_category_id', req.loan_category_id)
   const qFacilityCode = await builder.select({ code : 'code'}).from('loan_facilitytbl').where('loan_facility_id', req.loan_facility_id)
   const qCustomerPnNumber = await builder.select({id : 'pn_number'}).from('loan_headertbl').where('customer_id', req.customer_id)
@@ -35,7 +36,6 @@ async function createPnNumber(req){
   const year = new Date().getFullYear();
 
   return `${categoryCode}-${id}-${req.customer_id}-${year}`
-
 }
 
 loanRouter.get('/', getLoanList)
@@ -47,8 +47,9 @@ const convertEmpty = (name) => name !== '' ? name : ''
 loanRouter.get('/voucher/:id', async (req, res) =>{
   
   const {id} = req.params
+  
   const query = await builder.select('*').from('view_voucher').where('loan_header_id', id)
-  console.log(query)
+
   if(query.length <= 0) {
     return res.status(400).send()
   }
@@ -72,18 +73,17 @@ loanRouter.get('/voucher/:id', async (req, res) =>{
   
   const fullname = `${lastname[0]}, ${firstName}  ${midInitial} ${extName}`
   
-  console.log(fullname)
-  //check_number
-  //check_number
   const voucherInfo = {
     details : details,
+    prepared_by : item.prepared_by,
+    approved_by : item.approved_by,
+    checked_by : item.checked_by,
     check_details : `${item.bank_name}-${item.check_number}`,
     check_date : item.check_date,
     borrower : fullname.trim(),
     date : new Date().toISOString().split('T')[0],
     voucherNumber : item.voucher_number
   }
-
 
   res.status(200).json(voucherInfo)
 })
@@ -111,11 +111,10 @@ loanRouter.post('/', async (req, res)=>{
   const {voucher, deduction, loan_details} = req.body
 
   const pnNumber = await createPnNumber(req.body)
+
   const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest), 0)
 
   const deductionHistory = await builder.select('*').from('loan_deductiontbl')
-  
-  const accountTitle = await builder.select('acc_title','account_title_id').from('view_account_title')
 
   await builder.transaction(async t =>{
     
@@ -123,9 +122,12 @@ loanRouter.post('/', async (req, res)=>{
       pn_number : pnNumber,
       check_number :  req.body.check_number,
       check_date : req.body.check_date,
+      prepared_by : req.body.prepared_by,
+      approved_by : req.body.approved_by,
+      checked_by : req.body.checked_by,
       customer_id : req.body.customer_id,
       transaction_date : req.body.transaction_date,
-      bank_account_id : req.body.bank_account_id,
+      bank_account_id : Number(req.body.bank_account_id),
       collateral_id : req.body.collateral_id,
       loan_category_id : req.body.loan_category_id,
       loan_facility_id : req.body.loan_facility_id,
@@ -135,7 +137,7 @@ loanRouter.post('/', async (req, res)=>{
       check_issued_name : req.body.check_issued_name,
       voucher_number : req.body.voucher_number,
       total_interest : totalInterest,
-      term_month : loan_details.length, 
+      term : loan_details.length, 
       status_code : LoanStatus.ONGOING,
       renewal_id : 0,
       renewal_amount : 0
@@ -156,7 +158,7 @@ loanRouter.post('/', async (req, res)=>{
     })
 
     const loanDetails = await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
-      
+    //TODO : refactor 
     const deductionFormat = deduction.map((v) =>{
       for (const d of deductionHistory) {
         if(v.label === d.deduction_type){
@@ -176,39 +178,25 @@ loanRouter.post('/', async (req, res)=>{
         account_title_id : Number(v.id),
         debit_amount : Number(v.debit),
         credit_amount : Number(v.credit),
-        loan_header_id : id[0]
+        loan_header_id : id[0],
       }
     })
 
     const voucherId = await builder.insert(mapVoucher).into('vouchertbl').transacting(t)
     
     res.status(200).json({
-      id : id[0], 
-      pnNumber : pnNumber,
-      totalInterest : totalInterest,
-      status_code : LoanStatus.ONGOING
-    })
-
-      
+      loan_header_id : id[0],
+      date_granted : req.body.date_granted,
+      name : req.body.customer_name,
+      pn_number : pnNumber,
+      principal_amount : Number(req.body.principal_amount),
+      total_interest : totalInterest,
+      bank_name : req.body.bank_name ,
+      loancategory : req.body.loan_category,
+      loanfacility : req.body.loan_facility,
+      status_code : LoanStatus.ONGOING,
+    })   
 })
-  
-    // account_title_id
-    // debit_amount
-    // credit_amount
-    // loan_header_id
-
-  //   res.status(200).json({
-  //     id : id[0], 
-  //     pnNumber : pnNumber,
-  //     totalInterest : totalInterest,
-  //     status_code : LoanStatus.ONGOING
-  //   })
-
-
-  // calculate interest
-  
-  // res.status(200).send()
-
 
 })
 loanRouter.put('/details/:id', async (req, res) => {

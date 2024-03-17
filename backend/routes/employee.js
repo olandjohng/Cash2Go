@@ -2,10 +2,25 @@ const express = require('express')
 const employeeRouter = express.Router()
 const builder = require('../builder')
 
-employeeRouter.get('/', async (req, res) =>{
-    const employee = await builder.select({id : 'employee_id', fname : 'fname', mname : 'mname', lname : 'lname', role : 'role'}).from('employeetbl')
-    res.status(200).json(employee)
-  })
+
+employeeRouter.get('/', async (req, res) => {
+   const employees = await builder('employeetbl').select('*')
+   const mapEmployees = employees.map((v) => {
+    const fullName = `${v.lname}, ${v.fname} ${v.mname}.`
+    return {
+      ...v, 
+      name : fullName
+    }
+   })
+   res.status(200).json(mapEmployees)
+})
+
+// module.exports = employeeRouter
+
+// employeeRouter.get('/', async (req, res) =>{
+//     const employee = await builder.select({id : 'employee_id', fname : 'fname', mname : 'mname', lname : 'lname', role : 'role'}).from('employeetbl')
+//     res.status(200).json(employee)
+//   })
 
   employeeRouter.get('/read/:id', async (req, res) =>{
     const id = req.params.id;
