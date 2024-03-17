@@ -163,11 +163,7 @@ function Customers() {
   // End useEffect
 
   const handlePaginationModelChange = (newPaginationModel) => {
-    // loadCustomerData()
-    
     setPaginationModel(newPaginationModel);
-    
-    // loadCustomerData()
   };
 
   return (

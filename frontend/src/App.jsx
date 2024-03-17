@@ -16,6 +16,7 @@ import Customers from "./scenes/customers";
 import Collateral from "./scenes/collateral";
 import AccountCategory from "./scenes/accountCategory";
 import AccountTitle from "./scenes/accountTitle";
+import Employee from "./scenes/employee";
 
 function App() {
 
@@ -65,6 +66,10 @@ function App() {
               <Route path="/account-title" element={<AccountTitle />} />
               <Route path="/account-title/new" element={<AccountTitle />} />
               <Route path="/account-title/:id" element={<AccountTitle />} />
+
+              <Route path="/employee" element={<Employee />} />
+              <Route path="/employee/new" element={<Employee />} />
+              <Route path="/employee/:id" element={<Employee />} />
             </Routes>
             <ToastContainer />
           </main>
