@@ -13,6 +13,7 @@ const collateralRouter = require('./routes/collateral')
 const accountCategoryRouter = require('./routes/accountCategory')
 const accountTitleRouter = require('./routes/accountTitle')
 const employeeRouter = require('./routes/employee')
+const paymentRouter = require('./routes/payment')
 
 const PORT = 8000
 
@@ -24,6 +25,7 @@ app.use(bodyParser.json())
 app.use(cors())
 
 app.use('/loans', loanRouter)
+app.use('/payments', paymentRouter)
 // app.use('/customers', customerRouter)
 app.use('/banks', bankRouter)
 app.use('/deductions', deductionRouter)
@@ -34,6 +36,7 @@ app.use('/collateral', collateralRouter)
 app.use('/account-category', accountCategoryRouter)
 app.use('/account-title', accountTitleRouter)
 app.use('/employee', employeeRouter)
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`)

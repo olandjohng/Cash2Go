@@ -17,6 +17,7 @@ import Collateral from "./scenes/collateral";
 import AccountCategory from "./scenes/accountCategory";
 import AccountTitle from "./scenes/accountTitle";
 import Employee from "./scenes/employee";
+import LoanPayment from "./scenes/payment";
 
 function App() {
 
@@ -33,6 +34,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/loans" element={<Loan />} />
+              <Route path="/payments" element={<LoanPayment />} />
               {/* <Route path="/borrowers" element={<Borrowers />}/> */}
 
               <Route path="/customers" element={<Customers />}/>
