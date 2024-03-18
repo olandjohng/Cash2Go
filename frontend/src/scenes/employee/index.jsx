@@ -128,7 +128,7 @@ function Employee() {
     <DataGrid 
       columns={columns}
       rows={employee}
-      
+      getRowId={(rows) => rows.employee_id}
     />
 
       <Popups

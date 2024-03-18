@@ -21,6 +21,39 @@ const builder = require('../builder')
 //   res.status(200).send(customers)
 // })
 // server-side code (Node.js/Express)
+
+customerRouter.get('/search', async (req, res) =>{
+  const {name} = req.query
+
+  const customers = await builder.select({
+    id : 'customerid',
+    f_name : 'cfname',
+    m_name : 'cmname',
+    l_name : 'clname',
+    contactNo : 'contactno',
+    address : 'address',
+    gender : 'gender', })
+  .from({ c : 'customertbl'}) 
+  .whereILike('clname', `%${name}%`)
+  .orWhereILike('cfname', `%${name}%`)
+  
+  const customer = customers.map((customer, index) => {
+    const lastName = customer.l_name.split(',')
+    const firstName = customer.f_name === '' ? '' : `, ${customer.f_name}`
+    const middleName = customer.m_name === '' ? '' : ` ${customer.m_name}`
+    const extName = lastName[1] ? `${lastName[1]}` : ''
+    const fullName = lastName[0] + firstName + middleName + extName
+    
+    return {
+      ...customer,
+      name : fullName.trim()
+    }
+  })
+  
+  res.send(customer)
+})
+
+
 customerRouter.get('/', async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const pageSize = parseInt(req.query.pageSize) || 10;

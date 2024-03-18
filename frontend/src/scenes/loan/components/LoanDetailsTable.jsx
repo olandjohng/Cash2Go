@@ -135,7 +135,7 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
       }
       
     },
-    { field: 'principal', headerName: 'Principal', width: 150, editable: true, type : 'number',
+    { field: 'principal', headerName: 'Principal', width: 150, editable: true, type : 'number', 
       valueFormatter : (params) => {
         return formatNumber(params)
       },
