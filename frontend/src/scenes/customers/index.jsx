@@ -170,7 +170,6 @@ function Customers() {
     <div style={{ height: "75%", padding: 20 }}>
       <Header
         title={"Customer"}
-        subtitle={"List of customers together with some informations!"}
         showButton={true}
         onAddButtonClick={() => setOpenPopup(true)}
         toURL={loc.pathname + "/new"}

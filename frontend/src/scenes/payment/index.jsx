@@ -211,7 +211,7 @@ function LoanPayment() {
 
   return (
     <div style={{ height: "75%", padding: 20 }}>
-      <Header title="LOAN PAYMENTS" subtitle="List of Payments and balances" />
+      <Header title="LOAN PAYMENTS"  />
       <Box
         display="flex"
         alignItems="flex-start"
