@@ -87,7 +87,7 @@ const LeftSidebar = () => {
                   alt="profile-user"
                   width="100px"
                   height="100px"
-                  src={`../../assets/user.png`}
+                  src={`../../assets/c2g_logo.png`}
                   style={{ cursor: "pointer", borderRadius: "50%" }}
                 />
               </Box>
@@ -98,7 +98,7 @@ const LeftSidebar = () => {
                   fontWeight="bold"
                   sx={{ m: "10px 0 0 0" }}
                 >
-                  RD Vincent
+                  Administrator
                 </Typography>
                 <Typography variant="h5" color={colors.greenAccent[500]}>
                   Administrator
