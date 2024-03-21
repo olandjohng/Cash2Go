@@ -34,7 +34,9 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/loans" element={<Loan />} />
+
               <Route path="/payments" element={<LoanPayment />} />
+              <Route path="/payments/:id" element={<LoanPayment />} />
               {/* <Route path="/borrowers" element={<Borrowers />}/> */}
 
               <Route path="/customers" element={<Customers />}/>

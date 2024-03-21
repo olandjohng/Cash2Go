@@ -270,7 +270,7 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
 
   
   return (
-    <div style={{width: 900, color: grey[600]}} >
+    <div style={{width: 900}} >
       <MultiStepForm1
       initialFormValues={formValue}
       onSubmit={() => {
