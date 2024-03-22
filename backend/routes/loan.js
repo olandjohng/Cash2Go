@@ -90,7 +90,7 @@ loanRouter.get('/voucher/:id', async (req, res) =>{
 
 
 loanRouter.get('/recalculate/:id', async (req, res) =>{
-  console.log(req.params)
+  // console.log(req.params)
   // get the header
   const loanTYPE = LoanStatus.RECALCULATED
   const header = await builder.select({
@@ -102,7 +102,7 @@ loanRouter.get('/recalculate/:id', async (req, res) =>{
   const paymentDetails = await builder.sum( {payment : 'principal_payment'}).from('view_detail_payment').where('loan_header_id', req.params.id )
   
   
-  console.log(paymentDetails)
+  // console.log(paymentDetails)
   res.json(header)
 })
 
@@ -115,7 +115,7 @@ loanRouter.post('/', async (req, res)=>{
   const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest), 0)
 
   const deductionHistory = await builder.select('*').from('loan_deductiontbl')
-  console.log(req.body)
+
   await builder.transaction(async t =>{
     
     const id = await builder('loan_headertbl').insert({
@@ -171,7 +171,7 @@ loanRouter.post('/', async (req, res)=>{
         }
       }
     })
-    
+
     if(deductionFormat.length > 0) {
       await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
     }
