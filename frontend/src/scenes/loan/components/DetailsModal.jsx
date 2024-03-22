@@ -123,7 +123,6 @@ export default function DetailsModal(props) {
     if(newRow.bank_name === oldRow.bank_name && newRow.check_number === oldRow.check_number) {
       return oldRow
     }
-    console.log(newRow)
     const row = await update(newRow)
     
     return row
@@ -131,7 +130,7 @@ export default function DetailsModal(props) {
 
 
   const columns = [
-    {field: "loan_detail_id", headerName: "ID" },
+    // {field: "loan_detail_id", headerName: "ID" },
     {field: "check_date", headerName: "Check Date", width: 150,
     valueFormatter : (params) => {
       return dayjs(params.value).format('MM-DD-YYYY');
