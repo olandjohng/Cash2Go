@@ -115,7 +115,7 @@ loanRouter.post('/', async (req, res)=>{
   const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest), 0)
 
   const deductionHistory = await builder.select('*').from('loan_deductiontbl')
-
+  console.log(req.body)
   await builder.transaction(async t =>{
     
     const id = await builder('loan_headertbl').insert({
@@ -172,7 +172,9 @@ loanRouter.post('/', async (req, res)=>{
       }
     })
     
-    await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
+    if(deductionFormat.length > 0) {
+      await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
+    }
     
     const mapVoucher = voucher.map((v) => {
       return {
@@ -195,7 +197,7 @@ loanRouter.post('/', async (req, res)=>{
       bank_name : req.body.bank_name ,
       loancategory : req.body.loan_category,
       loanfacility : req.body.loan_facility,
-      loan_term : `${req.body.term} ${req.body.term_type}`,
+      loan_term : `${loan_details.length} ${req.body.term_type}`,
       status_code : LoanStatus.ONGOING,
     })   
 })
