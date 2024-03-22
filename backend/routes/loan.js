@@ -121,6 +121,7 @@ loanRouter.post('/', async (req, res)=>{
     const id = await builder('loan_headertbl').insert({
       pn_number : pnNumber,
       check_number :  req.body.check_number,
+      term_type : req.body.term_type,
       check_date : req.body.check_date,
       prepared_by : req.body.prepared_by,
       approved_by : req.body.approved_by,
@@ -194,6 +195,7 @@ loanRouter.post('/', async (req, res)=>{
       bank_name : req.body.bank_name ,
       loancategory : req.body.loan_category,
       loanfacility : req.body.loan_facility,
+      loan_term : `${req.body.term} ${req.body.term_type}`,
       status_code : LoanStatus.ONGOING,
     })   
 })
@@ -215,10 +217,6 @@ loanRouter.put('/details/:id', async (req, res) => {
   } catch (error) {
     return res.status(500).send(error)
   }
-  
-
- 
-
 })
 
 
