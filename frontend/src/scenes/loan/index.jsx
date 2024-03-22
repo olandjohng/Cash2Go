@@ -92,8 +92,8 @@ const Loan = () => {
     {
       field: "principal_amount",
       headerName: "Loan Granted",
-      align: "right",
-      headerAlign: "right",
+      align: "left",
+      headerAlign: "left",
       width: 150,
       valueFormatter: (params) => {
         return formatNumber(params.value);
@@ -102,15 +102,16 @@ const Loan = () => {
     {
       field: "total_interest",
       headerName: "Interest",
-      align: "right",
-      headerAlign: "right",
+      align: "left",
+      headerAlign: "left",
       width: 150,
       valueFormatter: (params) => {
         return formatNumber(params.value);
       },
     },
-    { field: "bank_name", headerName: "Bank", width: 150 },
-    { field: "loancategory", headerName: "Category", width: 150 },
+    {field : 'loan_term', headerName : 'Term', width : 100}, 
+    { field: "bank_name", headerName: "Bank", width: 150, align: "left", headerAlign: "left", },
+    { field: "loancategory", headerName: "Category", width: 150,},
     { field: "loanfacility", headerName: "Facility", width: 150 },
     { field: "status_code", headerName: "Status", width: 150 },
   ];

@@ -23,6 +23,7 @@ const LOAN_INITIAL_VALUES = {
     customer_name: '',
     transaction_date: new Date().toISOString().split('T')[0],
     bank_account_id: '',
+    term_type : 'months',
     bank_name: '',
     collateral_id: '',
     check_date : null,
@@ -328,7 +329,6 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
             values={formValue}
             schema={loanRequrementSchema}
           >
-            
             <LoanRequirementsForm banks={banks} collaterals={collaterals} categories={categories} facilities={facilities}/>
           </FormStep>
           <FormStep
@@ -358,7 +358,7 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
                   error={validationError}/>
               </Grid>
               <Grid item >
-                <Box display='flex' gap={1}>
+                <Box width='100%' display='flex' gap={1}>
                   <MuiFileInput 
                     value={file}
                     placeholder='Upload .csv file'
@@ -371,7 +371,6 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
                     onChange={ async (file) => { setFile(file) }}/>
                   <Button color='success' variant='outlined' 
                     onClick={ async () => {
-
                       if(file){
                         Papa.parse(file, {
                           header : true,
@@ -390,20 +389,26 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
                             }
 
                             if(field === 'amortization' || field === 'interest' || field === 'principal') {
-                              //  console.log(field, Number(value.trim()))
                               return Number(value.replace(/[^0-9.-]+/g,""))
                             }
                             return value.trim()
                           }
-                          // chunk : (result, parse) => {
-                          //   console.log('484', result)
-                          // }
                         })
                       }
                     }}
                   >Generate</Button>
                 </Box>
+                  <Autocomplete sx={{mt : 2 , width : 150}} 
+                    options={['months', 'days']} 
+                    value={formValue.term_type}
+                    onInputChange={(event, value) => {
+                      setValidationError(null);
+                      setFormValue((old) => ({...old, term_type : value}))
+                    }}
+                    renderInput={(params) => <TextField {...params} label='Term Type' size='small'/>}
+                  />
               </Grid>
+              
               <Grid item xs={12}>
                 <LoanDetailsTable banks={banks} rows={rows} setRows={setRows}/>
               </Grid>

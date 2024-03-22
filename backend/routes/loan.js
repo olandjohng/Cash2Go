@@ -90,7 +90,7 @@ loanRouter.get('/voucher/:id', async (req, res) =>{
 
 
 loanRouter.get('/recalculate/:id', async (req, res) =>{
-  console.log(req.params)
+  // console.log(req.params)
   // get the header
   const loanTYPE = LoanStatus.RECALCULATED
   const header = await builder.select({
@@ -102,7 +102,7 @@ loanRouter.get('/recalculate/:id', async (req, res) =>{
   const paymentDetails = await builder.sum( {payment : 'principal_payment'}).from('view_detail_payment').where('loan_header_id', req.params.id )
   
   
-  console.log(paymentDetails)
+  // console.log(paymentDetails)
   res.json(header)
 })
 
@@ -121,6 +121,7 @@ loanRouter.post('/', async (req, res)=>{
     const id = await builder('loan_headertbl').insert({
       pn_number : pnNumber,
       check_number :  req.body.check_number,
+      term_type : req.body.term_type,
       check_date : req.body.check_date,
       prepared_by : req.body.prepared_by,
       approved_by : req.body.approved_by,
@@ -170,8 +171,10 @@ loanRouter.post('/', async (req, res)=>{
         }
       }
     })
-    
-    await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
+
+    if(deductionFormat.length > 0) {
+      await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
+    }
     
     const mapVoucher = voucher.map((v) => {
       return {
@@ -194,6 +197,7 @@ loanRouter.post('/', async (req, res)=>{
       bank_name : req.body.bank_name ,
       loancategory : req.body.loan_category,
       loanfacility : req.body.loan_facility,
+      loan_term : `${loan_details.length} ${req.body.term_type}`,
       status_code : LoanStatus.ONGOING,
     })   
 })
@@ -215,10 +219,6 @@ loanRouter.put('/details/:id', async (req, res) => {
   } catch (error) {
     return res.status(500).send(error)
   }
-  
-
- 
-
 })
 
 

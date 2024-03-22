@@ -18,6 +18,8 @@ async function getLoanList (req, res) {
     'total_interest',
     'date_granted',
     'status_code',
+    'term_type',
+    'term'
   )
   .from('view_loan_header').whereILike('customername', `%${search}%`).orWhereILike('pn_number', `%${search}%`)
   
@@ -48,9 +50,17 @@ async function getLoanList (req, res) {
     const midInitial = item.cmname === '' ? '' : ` ${item.cmname}`
     
     const fullname = lastname[0] + firstName + midInitial + extName
+    
+    let term = v.term
+    
+    if(v.term_type) {
+      term = `${v.term} ${v.term_type}`
+    } 
+
 
     return {
-      ...v, name : fullname.trim()
+      ...v, name : fullname.trim(),
+      loan_term : term
     }
 
   })
