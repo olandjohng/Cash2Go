@@ -5,7 +5,7 @@ import { Step, StepLabel, Stepper } from "@mui/material";
 import SuccessComponent from "./SuccessComponent"; // Import your success component
 
 const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
-  const [stepNumber, setStepNumber] = useState(1);
+  const [stepNumber, setStepNumber] = useState(0);
   const [isFormSubmitted, setIsFormSubmitted] = useState(false);
   const [completedSteps, setCompletedSteps] = useState({});
   const steps = React.Children.toArray(children);
