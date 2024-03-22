@@ -120,7 +120,6 @@ function Employee() {
     <div style={ {height : '75%', padding : 20}}>
     <Header 
       title={'Employee'} 
-      subtitle={'List of employee with thier roles use in voucher printing'} 
       showButton={true} 
       onAddButtonClick={()=> setOpenPopup(true)} 
       toURL={loc.pathname + '/new'}
