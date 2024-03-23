@@ -146,6 +146,7 @@ const Loan = () => {
   };
 
   useEffect(() => {
+    console.log('effet')
     const getData = async () => {
       const urls = [
         fetch("http://localhost:8000/loans"),
@@ -170,7 +171,7 @@ const Loan = () => {
         const accountTitleData = await req[6].json();
 
         dispatch({ type: "INIT", loans: loanData });
-
+        console.log('173', banksData)
         setCollaterals(collateralData);
 
         setFacilities(facilityData);
@@ -184,7 +185,7 @@ const Loan = () => {
     };
     getData();
   }, []);
-
+  console.log(banks)
   return (
     <div style={{ height: "75%", padding: 20 }}>
       <Header

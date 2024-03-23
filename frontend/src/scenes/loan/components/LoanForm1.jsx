@@ -17,6 +17,9 @@ import { grey } from '@mui/material/colors';
 import { MuiFileInput } from 'mui-file-input'
 import Papa, { parse } from 'papaparse';
 import LoanRequirementsForm from './LoanRequirementsForm';
+import LoanDetailsForm from './LoanDetailsForm';
+import DeductionDetailsForm from './DeductionDetailsForm';
+import SummaryForm from './SummaryForm';
 
 const LOAN_INITIAL_VALUES = {
     customer_id: '',
@@ -99,7 +102,7 @@ const voucherSchema = yup.object({
   )
 })
 
-const numberFormat = Intl.NumberFormat(undefined,  {minimumFractionDigits: 2, maximumFractionDigits: 2})
+export const numberFormat = Intl.NumberFormat(undefined,  {minimumFractionDigits: 2, maximumFractionDigits: 2})
 
 export function ComboBox (props){
   const {inputChange, nameField, idfield , err, label} = props
@@ -274,9 +277,8 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
     setFormValue({...formValue , [e.target.name] : e.target.value})
   }
 
-  
   return (
-    <LoanFormContext.Provider value={{formValue, setFormValue, validationError, setValidationError}}>
+    <LoanFormContext.Provider value={{formValue, setFormValue, validationError, setValidationError,}}>
       <div style={{width: 900, color: grey[600]}} >
         <MultiStepForm1
         initialFormValues={formValue}
@@ -336,83 +338,7 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
             onSubmit={handleLoanDetails}
             schema={loanDetailsSchema}
           >
-            <Grid container spacing={2} >
-              <Grid item xs={9}>
-                <TextInput 
-                  name="principal_amount" 
-                  label="Principal Amount"
-                  value={formValue.principal_amount}
-                  change={(e) => handleTextField(e)}
-                  error={validationError}
-                />
-              </Grid>
-              <Grid item xs={3}>
-                <TextInput 
-                  name="interest_rate" 
-                  label="Interest Rate"
-                  value={formValue.interest_rate}
-                  change={(e) => handleTextField(e)}
-                  InputProps = {{
-                    endAdornment : <InputAdornment position='end'>%</InputAdornment>
-                  }}
-                  error={validationError}/>
-              </Grid>
-              <Grid item >
-                <Box width='100%' display='flex' gap={1}>
-                  <MuiFileInput 
-                    value={file}
-                    placeholder='Upload .csv file'
-                    hideSizeText 
-                    getInputText={(value) => value ? value.name : ''}
-                    size='small'
-                    sx={{ width : '200px' }}
-                    InputProps={{ startAdornment : <AttachFile /> }}
-                    inputProps={{ accept : '.csv'}}
-                    onChange={ async (file) => { setFile(file) }}/>
-                  <Button color='success' variant='outlined' 
-                    onClick={ async () => {
-                      if(file){
-                        Papa.parse(file, {
-                          header : true,
-                          skipEmptyLines : true,
-                          complete : (result, file) => {
-                            console.log(result)
-                            const data = result.data.map((v, i) => ({
-                              ...v, id : i + 1
-                            }))
-                            setRows(data)
-
-                          },
-                          transform : (value, field) => {
-                            if(field === 'dueDate') {
-                              return dayjs(value)
-                            }
-
-                            if(field === 'amortization' || field === 'interest' || field === 'principal') {
-                              return Number(value.replace(/[^0-9.-]+/g,""))
-                            }
-                            return value.trim()
-                          }
-                        })
-                      }
-                    }}
-                  >Generate</Button>
-                </Box>
-                  <Autocomplete sx={{mt : 2 , width : 150}} 
-                    options={['months', 'days']} 
-                    value={formValue.term_type}
-                    onInputChange={(event, value) => {
-                      setValidationError(null);
-                      setFormValue((old) => ({...old, term_type : value}))
-                    }}
-                    renderInput={(params) => <TextField {...params} label='Term Type' size='small'/>}
-                  />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <LoanDetailsTable banks={banks} rows={rows} setRows={setRows}/>
-              </Grid>
-            </Grid>
+            <LoanDetailsForm  banks={banks} rows={rows} setRows={setRows}/>
           </FormStep>
           <FormStep
             stepName="Deduction Details"
@@ -435,91 +361,16 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
               }
             }}
           >
-            <Grid container >
-              <Grid item xs={10}>
-                <Autocomplete
-                  options={deductions.map((v) => v.deductionType)}
-                  value={deductionItem}
-                  onInputChange={ (e,v) => {
-                    setDeductionItem(v)
-                  }}
-                  renderInput= { (params) => <TextField {...params}  label='Deductions'/>}
-                />
-              </Grid>
-              <Grid item xs={2}>
-                <Button
-                  onClick={() => {
-                    if(deductionItem){
-                      let contains  = false;
-                      for (const d of deductionsData) {
-                        if(d.label === deductionItem){ contains = true }
-                      }
-                      if(!contains){
-                        const format = deductionItem.toLowerCase().split(' ').join('_')
-                        const d = [...deductionsData, {label : deductionItem, name : format, amount : ''}]
-                        setDeductionsData(d)
-                        setFormValue({...formValue, deduction : d})
-                      }
-                    }
-                  }}
-                  variant="outlined" 
-                  color='success'
-                  sx={{ 
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    width: "90%",
-                    marginLeft : 'auto', 
-                    marginRight : 'auto',
-                    height : '100%',
-                    mx : 1
-                  }}
-                >
-                  <AddOutlined sx={{ mr: "2px" }} />
-                </Button>
-              </Grid>
-            </Grid>
-            <Grid container gap={1.5} marginTop={1.5}>
-              { deductionsData && deductionsData.map((d, i) =>(
-                <TextField 
-                label={d.label} 
-                value={d.amount}
-                error={validationError && Boolean(validationError[d.name])}
-                type='number'
-                onChange= {(e) =>{
-                  setValidationError(null)
-                  const d = deductionsData.map((v, index) => {
-                    return i === index ? {...v, amount : e.target.value} : v
-                  })
-                  setDeductionsData(d)
-                  setFormValue({...formValue, deduction : d})
-                }}
-                InputProps={{
-                  endAdornment : 
-                    <InputAdornment position='end'>
-                      <IconButton
-                        onClick={(e) => {
-                          const d = deductionsData.filter((v, index) => index !== i) 
-                          setDeductionsData(d)
-                          setFormValue({...formValue, deduction : d})
-                        }}
-                      >
-                        <RemoveCircleOutline />
-                      </IconButton>
-                    </InputAdornment>
-                }}
-                />
-              ))}
-            </Grid>
+            <DeductionDetailsForm deductions={deductions} deductionsData={deductionsData} setDeductionsData={setDeductionsData}/>
           </FormStep>
           <FormStep
             stepName="Summary"
             onSubmit={() => {
-              
             }}
             schema={yup.object({})}
           >
-            <Box
-              // make grid
+            <SummaryForm />
+            {/* <Box
               display='flex'
               justifyContent='center'
               gap={5}
@@ -592,7 +443,7 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
                   <LoanDeductionPreview details={formValue.deduction}/>
                 </Grid>
               </Grid>
-            </Box>
+            </Box> */}
           </FormStep>
           <FormStep
             stepName="Voucher Details"
@@ -818,7 +669,7 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
   )
 }
 
-function PreviewLabel({label, value}){
+export function PreviewLabel({label, value}){
   return(
     
   <Box>

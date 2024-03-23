@@ -67,7 +67,6 @@ const CustomerComboBox = ({value, setter}) => {
 
 export default function LoanRequirementsForm({banks, collaterals, categories, facilities}) {
   const {formValue, setFormValue, validationError, setValidationError} = useContext(LoanFormContext)
-  
   const handleTextInputChange = (e, field) => {
     setValidationError(null)
     setFormValue((old) => ({...old , [field] : e.target.value}))
