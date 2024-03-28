@@ -7,6 +7,7 @@ import dayjs from 'dayjs'
 import LoanDetailsTable from './LoanDetailsTable'
 import { AttachFile } from '@mui/icons-material'
 import Papa, { parse } from 'papaparse';
+import CurrencyInput from './fields/CurrencyInput'
 
 export default function LoanDetailsForm({banks, rows, setRows}) {
 
@@ -18,16 +19,16 @@ export default function LoanDetailsForm({banks, rows, setRows}) {
   return (
     <Grid container spacing={2} >
               <Grid item xs={9}>
-                <TextInput
-                  name="principal_amount" 
-                  label="Principal Amount"
-                  value={formValue.principal_amount}
-                  change={(e, field) => handleTextField(e, field)}
-                  error={validationError}
-                />
+                <CurrencyInput fullWidth name='principal_amount' label='Principal Amount' value={formValue.principal_amount} customInput={TextField}
+                  onValueChange ={(values, sourceInfo) => {
+                    const field = sourceInfo.event.target.name
+                      setFormValue((old) => ({...old, [field] : values.floatValue}))
+                  }}
+                  error={ validationError && Boolean(validationError['principal_amount'])}
+                  />
               </Grid>
               <Grid item xs={3}>
-                <TextInput 
+                <TextInput  
                   name="interest_rate" 
                   label="Interest Rate"
                   value={formValue.interest_rate}

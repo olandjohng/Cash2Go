@@ -1,2 +1,4 @@
 /node_modules
 /cash2go
+/sqlitedata
+cash2go.sqlite

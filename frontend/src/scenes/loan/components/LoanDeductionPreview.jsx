@@ -1,5 +1,6 @@
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import React from 'react'
+import { numberFormat } from './LoanForm1'
 
 export default function LoanDeductionPreview({details}) {
   return (
@@ -16,15 +17,9 @@ export default function LoanDeductionPreview({details}) {
           { details && details.map((v) => (
             <TableRow>
               <TableCell>{v.label}</TableCell>
-              <TableCell>{v.amount}</TableCell>
+              <TableCell>{numberFormat.format(v.amount)}</TableCell>
             </TableRow>
           ))}
-          
-          {/* end */}
-          {/* <TableRow>
-            <TableCell align='right'>Total</TableCell>
-            <TableCell>1551</TableCell>
-          </TableRow> */}
         </TableBody>
       </Table>
     </TableContainer>

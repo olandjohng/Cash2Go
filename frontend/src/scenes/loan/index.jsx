@@ -13,11 +13,12 @@ import Popups from "../../components/Popups";
 import DetailsModal from "./components/DetailsModal";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import LoanForm1 from "./components/LoanForm1";
-import { PrintOutlined } from "@mui/icons-material";
+import { AutorenewOutlined, PrintOutlined } from "@mui/icons-material";
 import voucherTemplateHTML from "../../assets/voucher.html?raw";
 import c2gImage from "../../assets/c2g_logo_nb.png";
 import * as ejs from "ejs";
 import dayjs from "dayjs";
+import LoanRenewForm from "./components/LoanRenewForm";
 
 function reducer(state, action) {
   switch (action.type) {
@@ -28,8 +29,41 @@ function reducer(state, action) {
   }
 }
 
+
+export const LOAN_INITIAL_VALUES = {
+  customer_id: '',
+  customer_name: '',
+  transaction_date: new Date().toISOString().split('T')[0],
+  bank_account_id: '',
+  term_type : 'months',
+  bank_name: '',
+  collateral_id: '',
+  check_date : null,
+  check_number : '',
+  collateral: '',
+  loan_category_id: '',
+  loan_category: '',
+  loan_facility_id: '',
+  loan_facility: '',
+  principal_amount: '',
+  interest_rate: '',
+  total_interest: 0,
+  term_month: 0,
+  date_granted: new Date().toISOString().split('T')[0],
+  check_issued_name: '',
+  voucher_number: '',
+  renewal_id: 0,
+  renewal_amount: 0,
+  loan_details : [],
+  deduction : [],
+  voucher : [{name : '', credit : '', debit : '' }],
+  prepared_by : '',
+  approved_by : '',
+  checked_by : ''
+}
+
+
 const formatNumber = (value) => {
-  // const amount = value.split('.');
   const format = Number(value).toLocaleString("en", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -57,6 +91,7 @@ const getVoucher = async (id) => {
   }
 };
 
+
 const Loan = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -75,6 +110,12 @@ const Loan = () => {
             color="success"
             label="Print Voucher"
             onClick={() => getVoucher(id)}
+          />,
+          <GridActionsCellItem
+            icon={<AutorenewOutlined />}
+            color="success"
+            label="Print Voucher"
+            onClick={() => renewLoan(id)}
           />,
         ];
       },
@@ -115,7 +156,7 @@ const Loan = () => {
     { field: "loanfacility", headerName: "Facility", width: 150 },
     { field: "status_code", headerName: "Status", width: 150 },
   ];
-
+  const [renewFormValue,setRenewFormValue] = useState({})
   const [customers, setCustomers] = useState([]);
   const [facilities, setFacilities] = useState([]);
   const [collaterals, setCollaterals] = useState([]);
@@ -125,6 +166,7 @@ const Loan = () => {
   const [accountTitle, setAccountTitle] = useState([]);
 
   const [openPopup, setOpenPopup] = useState(false);
+  const [openRenewPopup, setOpenRenewPopup] = useState(false);
   const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState(null);
   const [loans, dispatch] = useReducer(reducer, []);
@@ -133,9 +175,13 @@ const Loan = () => {
     setSelectedLoanId(params.row.loan_header_id);
     setOpenPopup(true);
   };
-
-  // TODO: loan category
-
+  const renewLoan = async (id) =>{
+    const request = await fetch(`http://localhost:8000/loans/renew/${id}`)
+    const responseJSON = await request.json()
+    setRenewFormValue({...LOAN_INITIAL_VALUES , ...responseJSON})
+    setOpenRenewPopup(true)
+  
+  }
   const handleSearch = (e) => {
     clearTimeout(timeOut);
     timeOut = setTimeout(() => {
@@ -185,7 +231,7 @@ const Loan = () => {
     };
     getData();
   }, []);
-  console.log(banks)
+
   return (
     <div style={{ height: "75%", padding: 20 }}>
       <Header
@@ -221,13 +267,20 @@ const Loan = () => {
       >
         <DetailsModal selectedLoanId={selectedLoanId} banks={banks} />
       </Popups>
-
+      <Popups 
+        title='Renew' 
+        openPopup={openRenewPopup}
+        setOpenPopup={setOpenRenewPopup}
+        >
+          <LoanRenewForm renew={true} deductions={deductions} loanInitialValue={renewFormValue}  banks={banks} collaterals={collaterals} categories={categories} facilities={facilities} />
+      </Popups>
       <Popups
         title="New Loan"
         openPopup={openNewLoanPopup}
         setOpenPopup={setOpenNewLoanPopup}
       >
         <LoanForm1
+          loanInitialValue={LOAN_INITIAL_VALUES}
           setModalOpen={setOpenNewLoanPopup}
           customers={customers}
           collaterals={collaterals}

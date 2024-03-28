@@ -2,6 +2,7 @@ import { AddOutlined, RemoveCircleOutline } from '@mui/icons-material';
 import { Autocomplete, Button, Grid, IconButton, InputAdornment, TextField } from '@mui/material';
 import React, { useContext, useState } from 'react'
 import { LoanFormContext } from './LoanForm1';
+import CurrencyInput from './fields/CurrencyInput';
 
 export default function DeductionDetailsForm({deductions, deductionsData, setDeductionsData}) {
   const [deductionItem, setDeductionItem] = useState(null);   
@@ -54,15 +55,16 @@ export default function DeductionDetailsForm({deductions, deductionsData, setDed
       </Grid>
       <Grid container gap={1.5} marginTop={1.5}>
         { deductionsData && deductionsData.map((d, i) =>(
-          <TextField 
+          <CurrencyInput 
           label={d.label} 
           value={d.amount}
+          customInput={TextField}
           error={validationError && Boolean(validationError[d.name])}
-          type='number'
-          onChange= {(e) =>{
+          // type='number'
+          onValueChange= {(value) =>{
             setValidationError(null)
             const d = deductionsData.map((v, index) => {
-              return i === index ? {...v, amount : e.target.value} : v
+              return i === index ? {...v, amount : value.floatValue} : v
             })
             setDeductionsData(d)
             setFormValue({...formValue, deduction : d})

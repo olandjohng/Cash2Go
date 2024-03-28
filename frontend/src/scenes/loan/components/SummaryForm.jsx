@@ -6,7 +6,7 @@ import LoanTablePreview from './LoanTablePreview'
 import LoanDeductionPreview from './LoanDeductionPreview'
 import dayjs from 'dayjs'
 
-export default function SummaryForm() {
+export default function SummaryForm({netProceeds}) {
   const {formValue, setFormValue, validationError, setValidationError} = useContext(LoanFormContext)
 
   return (
@@ -70,6 +70,10 @@ export default function SummaryForm() {
         <PreviewLabel
           label='Interest Rate'
           value={`${Number(formValue.interest_rate).toFixed(2)}%`}
+        />
+        <PreviewLabel
+          label='Net Proceeds'
+          value={numberFormat.format(netProceeds())}
         />
         
       </Box>

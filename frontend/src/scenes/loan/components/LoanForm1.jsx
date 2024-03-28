@@ -1,63 +1,24 @@
 import * as yup from 'yup';
 import {AddOutlined, CheckCircleOutlineRounded, DeleteOutline, RemoveCircleOutline, AttachFile } from "@mui/icons-material"
-import MultiStepForm, { FormStep } from "../../../components/MultiStepForm";
+import { FormStep } from "../../../components/MultiStepForm1";
 import { Autocomplete, Grid, TextField, Button, InputAdornment, IconButton, Box, styled, Typography, TableContainer, Paper } from "@mui/material";
-import LoanDetailsTable from './LoanDetailsTable';
 import { createContext, useEffect, useRef, useState } from 'react';
 import MultiStepForm1 from '../../../components/MultiStepForm1';
-import LoanTablePreview from './LoanTablePreview';
-import LoanDeductionPreview from './LoanDeductionPreview';
 import * as ejs from 'ejs'
 import { Bounce, toast } from 'react-toastify';
 import voucherHTMLTemplate from '../../../assets/voucher.html?raw'
 import c2gLogo from '../../../assets/c2g_logo_nb.png'
-import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import { grey } from '@mui/material/colors';
-import { MuiFileInput } from 'mui-file-input'
-import Papa, { parse } from 'papaparse';
 import LoanRequirementsForm from './LoanRequirementsForm';
 import LoanDetailsForm from './LoanDetailsForm';
 import DeductionDetailsForm from './DeductionDetailsForm';
 import SummaryForm from './SummaryForm';
-
-const LOAN_INITIAL_VALUES = {
-    customer_id: '',
-    customer_name: '',
-    transaction_date: new Date().toISOString().split('T')[0],
-    bank_account_id: '',
-    term_type : 'months',
-    bank_name: '',
-    collateral_id: '',
-    check_date : null,
-    check_number : '',
-    collateral: '',
-    loan_category_id: '',
-    loan_category: '',
-    loan_facility_id: '',
-    loan_facility: '',
-    principal_amount: '',
-    interest_rate: '',
-    total_interest: 0,
-    term_month: 0,
-    date_granted: new Date().toISOString().split('T')[0],
-    check_issued_name: '',
-    voucher_number: '',
-    renewal_id: 0,
-    renewal_amount: 0,
-    loan_details : [],
-    deduction : [],
-    voucher : [{name : '', credit : '', debit : '' }],
-    prepared_by : '',
-    approved_by : '',
-    checked_by : ''
-}
-
+import VoucherForm from './VoucherForm';
 
 export const LoanFormContext = createContext(null)
 
-
-const loanRequrementSchema = yup.object({
+export const loanRequrementSchema = yup.object({
   voucher_number : yup.string().required('voucher_number is required'),
   check_date : yup.date().required(),
   customer_name : yup.string().required(),
@@ -69,21 +30,20 @@ const loanRequrementSchema = yup.object({
   loan_facility : yup.string().required('loan facilities is required'),
 })
 
-const loanDetailsSchema = yup.object({
+export const loanDetailsSchema = yup.object({
   principal_amount : yup.number().required().moreThan(0),
   interest_rate : yup.number().required().moreThan(0),
   loan_details : yup.array(
     yup.object({
       dueDate : yup.date().required(),
       bank : yup.string().required(),
-      // principal : yup.number().positive().moreThan(0),
       interest : yup.number().positive().moreThan(0),
       amortization : yup.number().positive().moreThan(0)
     })
   )
 })
 
-const deductionSchema = yup.object({
+export const deductionSchema = yup.object({
   deduction : yup.array(
     yup.object({
       amount : yup.number().positive().moreThan(0)
@@ -91,7 +51,7 @@ const deductionSchema = yup.object({
   )
 })
 
-const voucherSchema = yup.object({
+export const voucherSchema = yup.object({
   prepared_by : yup.string().required(),
   checked_by : yup.string().required(),
   approved_by : yup.string().required(),
@@ -197,19 +157,18 @@ const CustomerComboBox = ({value, setter}) => {
   )
 }
 
-function LoanForm1({ collaterals, facilities, banks, categories, deductions , accountTitle, setModalOpen, dispatcher}) {
+function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories, deductions , accountTitle, setModalOpen, dispatcher}) {
 
-  const [formValue, setFormValue] = useState(LOAN_INITIAL_VALUES);
+  const [formValue, setFormValue] = useState(loanInitialValue);
   const [rows, setRows] = useState([]);
   const [validationError,setValidationError] = useState(null);
   const [deductionsData, setDeductionsData] = useState([]);
-  const [deductionItem, setDeductionItem] = useState(null); 
   const [voucher, setVoucher ] = useState(formValue.voucher)
   const [voucherWindow, setVoucherWindow] = useState(null)
   const [employees, setEmployees] = useState([])
   const totalCredit = voucher.reduce((acc, cur) =>  acc + Number(cur.credit), 0)
   const totalDebit = voucher.reduce((acc, cur) =>  acc + Number(cur.debit), 0)
-  const [file, setFile] = useState(null)
+
   const handleLoanRequirement = async () => {
     try {
       loanRequrementSchema.validateSync(formValue, 
@@ -217,7 +176,6 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
       )
     } catch (err) {
       console.dir(err)
-      //TODO: display all error for all input 
       const errors = err.inner
       const error = errors.reduce((acc, cur) => {
         return {
@@ -225,7 +183,6 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
           [cur.path] : true
         }
       }, {})
-      console.log('151', error)
       setValidationError(error)
     }
   }
@@ -233,6 +190,7 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
   useEffect(() => {
     setFormValue({...formValue, loan_details : [...rows]})
   },[rows])
+
   useEffect(() => {
     const getEmployees = async () =>{
       try {
@@ -266,15 +224,10 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
     }
   }
 
-  const handleComboBox = (fields, v) => {
-    setValidationError(null)
-    console.log(fields, v)
-    setFormValue({...formValue , [fields.name] : v.value, [fields.id] : v.id })
-  }
-  
-  const handleTextField = (e) => {
-    setValidationError(null)
-    setFormValue({...formValue , [e.target.name] : e.target.value})
+  const handlNetProceed = () => {
+      if(formValue.deduction.length > 0) {
+        return formValue.deduction.reduce((acc, curr) => acc - curr.amount, formValue.principal_amount)
+      }
   }
 
   return (
@@ -366,10 +319,11 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
           <FormStep
             stepName="Summary"
             onSubmit={() => {
+              console.log(formValue)
             }}
             schema={yup.object({})}
           >
-            <SummaryForm />
+            <SummaryForm netProceeds={handlNetProceed}/>
             {/* <Box
               display='flex'
               justifyContent='center'
@@ -449,7 +403,7 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
             stepName="Voucher Details"
             schema={voucherSchema}
             onSubmit={() => {
-              const nameFormat =voucher.map((v) => {
+              const nameFormat = voucher.map((v) => {
                 const names = v.name.split('-')
                 const format = names.filter((_, i) => i !== 0).join('-')
                 return { ...v, title : format.trim() }
@@ -459,157 +413,7 @@ function LoanForm1({ collaterals, facilities, banks, categories, deductions , ac
               setFormValue({...formValue, voucher : nameFormat})
             }}
           >
-            <Box display='flex' gap={2} my={2}>
-              {/* <TextField fullWidth label='Prepared by'/>
-              */}
-              <ComboBox 
-                value={formValue.prepared_by}
-                nameField='prepared_by'
-                label='Prepared By'
-                options={employees}
-                err= {validationError}
-                getOptionLabel={(option) => option.name || option ||"" }
-                renderOption={(props, option) => 
-                  <Box {...props} component='li' key={option.employee_id} id={option.employee_id}>
-                    {option.name}
-                  </Box>  
-                }
-                inputChange= {(field, v) => {
-                  setFormValue({...formValue, [field.name] : v.value})
-                }}
-              />
-              <ComboBox 
-                value={formValue.checked_by}
-                nameField='checked_by'
-                label='Checked By'
-                options={employees}
-                err= {validationError}
-                getOptionLabel={(option) => option.name || option ||"" }
-                renderOption={(props, option) => 
-                  <Box {...props} component='li' key={option.employee_id} id={option.employee_id}>
-                    {option.name}
-                  </Box>  
-                }
-                inputChange= {(field, v) => {
-                  setFormValue({...formValue, [field.name] : v.value})
-                }}
-              />
-              <ComboBox 
-                value={formValue.approved_by}
-                nameField='approved_by'
-                label='Approved By'
-                options={employees}
-                err= {validationError}
-                getOptionLabel={(option) => option.name || option ||"" }
-                renderOption={(props, option) => 
-                  <Box {...props} component='li' key={option.employee_id} id={option.employee_id}>
-                    {option.name}
-                  </Box>  
-                }
-                inputChange= {(field, v) => {
-                  setFormValue({...formValue, [field.name] : v.value})
-                }}
-            />
-            </Box>
-            <Button variant='outlined' color='success'
-              onClick={() => {
-                const voucherItem = [...voucher, {name : '', credit : '', debit : '' }]
-                setVoucher(voucherItem)
-                setFormValue({...formValue, voucher : voucherItem})
-              }}
-            >
-              Add Account Title
-            </Button>
-            <Box
-              marginTop={2}
-              display='flex'
-              flexDirection='column'      
-              gap={1.5}
-            >
-              { voucher && voucher.map((v, i)=> (
-                <Grid container gap={1}>
-                  <Grid item flex={1}>
-                    <ComboBox fullWidth label='Account Title'
-                      value={v.name} 
-                      options={accountTitle} 
-                      // idfield='customer_id'
-                      getOptionLabel={(option) => option.name || "" || option}
-                      renderOption={(props, option) => 
-                        <Box {...props} component='li' key={option.id} id={option.id}>
-                          {option.name}
-                        </Box>  
-                      }
-                      inputChange={(field, d) => {
-                        console.log(field, d)
-                        const newValue = voucher.map((val, index) => {
-                          return i === index ? {...val,  name : d.value, id : d.id  } : val
-                        })
-
-                        console.log('newValue', newValue)
-                        setVoucher(newValue)
-                        setFormValue({...formValue, voucher : newValue})
-                      }} />
-                  </Grid>
-                  <Grid item>
-                    <TextField 
-                      type='number'  
-                      label="Credit"
-                      sx={{width : 150}}
-                      value={v.credit}
-                      onChange={(e)=>{
-                        const newValue = voucher.map((val, index) => {
-                          return i === index ? {...val, credit : e.target.value} : val
-                        })
-                        setVoucher(newValue)
-                        setFormValue({...formValue, voucher : newValue })
-                      }}
-                      />
-                  </Grid>
-                  <Grid item >
-                    <TextField 
-                      type='number'
-                      label="Debit"
-                      sx={{width : 150}}
-                      value={v.debit}
-                      onChange={(e)=>{
-                        const newValue = voucher.map((val, index) => {
-                          console.log(index)
-                          return i === index ? {...val, debit : e.target.value} : val
-                        })
-                        setVoucher(newValue)
-                        setFormValue({...formValue, voucher : newValue})
-                      }}
-                    />
-                  </Grid>
-                  <Grid item display='flex' >
-                    <Button variant='outlined' color='error'
-                      onClick={() => {
-                        const filter = voucher.filter((v, index) => i !== index)
-                        setVoucher(filter)
-                        setFormValue({...formValue, voucher : filter})
-                      }}  
-                    >
-                      <DeleteOutline/>
-                    </Button>
-                  </Grid>
-                </Grid>
-              ))
-              }
-              <Box mt={1} ml={2}>
-                <Box display='flex' gap={1}>
-                  <Typography fontWeight='bold' textTransform='uppercase' letterSpacing='1px' > Credit Total :</Typography> 
-                  <Typography fontStyle='italic' fontSize='14px' letterSpacing='1px'>{numberFormat.format(Number(totalCredit))}</Typography>
-                </Box>
-                <Box display='flex' gap={1}>
-                  <Typography fontWeight='bold' textTransform='uppercase' letterSpacing='1px' > Debit Total :</Typography> 
-                  <Typography fontStyle='italic' fontSize='14px' letterSpacing='1px' >{numberFormat.format(Number(totalDebit))}</Typography>
-                </Box>
-                <Box display='flex' gap={1}>
-                  <Typography fontWeight='bold' textTransform='uppercase' letterSpacing='1px' > Balance :</Typography> 
-                  <Typography fontStyle='italic' fontSize='14px' >{Math.abs(totalCredit - totalDebit)}</Typography>
-                </Box>
-              </Box>
-            </Box>
+            <VoucherForm accountTitle={accountTitle} voucher={voucher} setVoucher={setVoucher}/>
           </FormStep>
           <FormStep
             stepName='Print Voucher'

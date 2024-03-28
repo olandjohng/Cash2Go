@@ -37,33 +37,33 @@
         </div>
       </div>
       <div class="flex w-full mt-2"> 
-        <div class="w-[75%] border-r border-t border-b border-slate-900 ">
+        <div class="w-[80%] border-r border-t border-b border-slate-900 ">
           <div class="flex justify-center font-bold border-b border-slate-900">PARTICULARS</div>
           <div class="my-2">
             <% details.forEach(function(v){ %>
               <div class="flex">
               <div class="text-sm"><%= v.title %></div>
+              <!-- <div class="basis-1/4 flex justify-around "> -->
+                <!-- <div class="basis-[12%] text-center text-sm"> -->
+                  <%# if(Number(v.credit) > 0) { %>
+                    <%# Intl.NumberFormat(undefined,  {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(Number(v.credit))  %>
+                  <%# } else { %>  <%# } %>
+                <!-- </div> -->
+                <!-- <div class="basis-[12%] text-center text-sm"> -->
+                  <%# if(Number(v.debit) > 0) { %>
+                    <%# Intl.NumberFormat(undefined,  {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(Number(v.debit))  %>
+                  <%# } else { %>  <%#} %>
+                <!-- </div> -->
+              <!-- </div> -->
             </div>
             <% }); %>
           </div>
         </div>
-        <div class="w-[25%] border-t border-b border-slate-900">
+        <div class="w-[20%] border-t border-b border-slate-900">
           <div class="flex justify-center font-bold border-b border-slate-900">AMOUNT</div>
-          <div class="my-2">
-            <% details.forEach(function(v) { %>
-              <div class="flex justify-around">
-                <div class="flex-1 text-sm text-center">
-                  <% if(Number(v.credit) > 0) { %>
-                      <%= Intl.NumberFormat(undefined,  {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(Number(v.credit))  %>
-                    <% } else { %> - <% } %>
-                </div>
-                <div class="flex-1 text-sm text-center">
-                  <% if(Number(v.debit) > 0) { %>
-                      <%= Intl.NumberFormat(undefined,  {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(Number(v.debit))  %>
-                    <% } else { %> - <% } %>
-                </div>
-              </div>
-              <% }) %>
+          <div class="flex my-2 justify-around">
+            <div class="text-sm">1,000,000</div>
+            <div class="text-sm">12,3445</div>
           </div>
         </div>
       </div>
@@ -73,7 +73,7 @@
           <div>
             <div class="flex flex-col gap-1 pr-2 py-2 border-r border-slate-900">
               <div>
-                <div class="font-semibold text-sm">Received from CASH 2 GO FINANCE, INC. the amout in full</div>
+                <div class="font-semibold text-sm">Received from CASH 2 GO FINANCE, INC. the amout of full</div>
               </div>
               <div class="flex gap-2 ">
                 <div>Check:</div>

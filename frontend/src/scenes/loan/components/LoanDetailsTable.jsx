@@ -6,6 +6,7 @@ import React, { useState } from 'react'
 import { tokens } from '../../../theme';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
+import CurrencyInput from './fields/CurrencyInput';
 
 function EditToolbar(props) {
   const {setRows, rows, setRowModesModel} = props
@@ -63,6 +64,18 @@ const handleAmountValidation = async (params) => {
   return params.hasChanged ? {...params.props, error : await error} :  {...params.props}
 }
 
+const WrappedGridEditDateInput = (props) => {
+  const {placeholder, value, ...other} = props
+  return (
+  <InputBase sx={{padding : '0 15px', fontSize : 'inherit'}}
+    {...props.InputProps}
+    placeholder={placeholder}
+    value={value}
+    {...other}
+  />
+)
+}
+
 const GridDatePicker = (params) => {
   const refApi = useGridApiContext()
   const {value, id, field} = params
@@ -74,22 +87,22 @@ const GridDatePicker = (params) => {
   return ( 
   <DatePicker
     value={value}
+    sx={{px : 1.5}}
     onChange={handleChange}
     slots={{
-      textField : (props) => {
-        const {placeholder, value} = props
-        return (
-        <InputBase sx={{padding : '0 15px', fontSize : 'inherit'}}
-          {...props.InputProps}
-          placeholder={placeholder}
-          value={value}
-          {...props.other}
-        />)
-      }
+      textField : WrappedGridEditDateInput
     }} 
   />)
 }
 
+const GridCurrency = (params) => {
+  const refApi = useGridApiContext()
+  const {value, id, field} = params
+  const handleChange = (newValue) => {
+    refApi.current.setEditCellValue({ id, field, value: newValue.floatValue })
+  }
+  return <CurrencyInput sx={{ px : 1.5}} value={value} customInput={InputBase} onValueChange={handleChange}/>
+}
 
 export default function LoanDetailsTable({banks, rows, setRows}) {
 
@@ -107,7 +120,6 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
   };
 
   const handleRowInputChange = (newRow) => {
-    // console.log('row change', newRow)
     const updatedRow = { ...newRow, isNew : false}
     setRows(rows.map((row)=> (row.id === newRow.id ? updatedRow : row)))
     return updatedRow
@@ -123,33 +135,32 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
     { field: 'id', headerName: 'Count', editable: false },
     { field: 'dueDate', headerName: 'Due Date', editable: true, width: 180,
       GRID_DATE_COL_DEF, 
-      renderEditCell : GridDatePicker,
+      renderEditCell : (params) => { return <GridDatePicker {...params} />} ,
       valueFormatter : (params) => {
-        if (typeof params.value === 'string') {
-          return params.value;
-        }
-        if(params.value) {
+        if(params.value){
           return dayjs(params.value).format('MM/DD/YYYY')
         }
         return ''
       }
       
     },
-    { field: 'principal', headerName: 'Principal', width: 150, editable: true, type : 'number', 
+    { field: 'principal', headerName: 'Principal', width: 150, editable: true,
+      
       valueFormatter : (params) => {
         return formatNumber(params)
       },
       preProcessEditCellProps :  handleAmountValidation,
-      renderEditCell : renderAmount
+      renderEditCell : GridCurrency
     },
-    { field: 'interest', headerName: 'Interest', width: 150, editable: true, type : 'number',
+    { field: 'interest', headerName: 'Interest', width: 150, editable: true, 
       valueFormatter : (params) => {
         return formatNumber(params)
       },
       preProcessEditCellProps :  handleAmountValidation,
-      renderEditCell : renderAmount
+      renderEditCell : GridCurrency
     },
-    { field: 'amortization', headerName: 'Amortization', editable: true, width: 150, type : 'number',
+    { field: 'amortization', headerName: 'Amortization', editable: true, width: 150,
+      renderEditCell : GridCurrency,
       valueFormatter : (params) => {
         return formatNumber(params)
       },
