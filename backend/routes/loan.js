@@ -88,6 +88,27 @@ loanRouter.get('/voucher/:id', async (req, res) =>{
   res.status(200).json(voucherInfo)
 })
 
+loanRouter.get('/renew/:id', async (req, res) => {
+  const renewLoan = await builder('view_loan_renew').select('*').where('loan_header_id', req.params.id).first()
+  
+  const lastName = renewLoan.clname.split(' ')
+  const firstName = renewLoan.cfname === '' ? '' : `, ${renewLoan.cfname}`
+  const middleName = renewLoan.cmname === '' ? '' : ` ${renewLoan.cmname}`
+  const extName = lastName[1] ? lastName[1] : ''
+  const fullname = lastName[0] + firstName + middleName + extName
+
+  const format = {
+    loan_header_id: renewLoan.loan_header_id, 
+    customer_id : renewLoan.customer_id,
+    PrincipalBalance : Number(renewLoan.PrincipalBalance),
+    Penalty :  Number(renewLoan.Penalty),
+    InterestBalance: Number(renewLoan.InterestBalance),
+    Balance : Number(renewLoan.Balance),
+    customer_name : fullname
+  }
+  
+  res.status(200).json(format)
+})
 
 loanRouter.get('/recalculate/:id', async (req, res) =>{
   // console.log(req.params)

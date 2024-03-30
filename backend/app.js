@@ -1,4 +1,5 @@
 const express = require('express')
+const liveServer = require("live-server");
 const app = express()
 const cors = require('cors')
 const path = require('path')
@@ -15,9 +16,10 @@ const collateralRouter = require('./routes/collateral')
 const accountCategoryRouter = require('./routes/accountCategory')
 const accountTitleRouter = require('./routes/accountTitle')
 const employeeRouter = require('./routes/employee')
-const paymentRouter = require('./routes/payment')
+const paymentRouter = require('./routes/payment');
+const builder = require('./builder');
 
-const indexHtml = path.join(__dirname, 'public', 'index.html')
+const production = true;
 
 const PORT = 8000
 app.use(express.static('public'))
@@ -28,11 +30,11 @@ app.use(bodyParser.json())
 
 app.use(cors())
 
-app.get('/', (req, res) => {
-  const template = fs.readFile(indexHtml, 'utf-8', (err, html) =>{
-    res.send(html)
-  })
-})
+// app.get('/', (req, res) => {
+//   const template = fs.readFile(indexHtml, 'utf-8', (err, html) =>{
+//     res.send(html)
+//   })
+// })
 
 app.use('/loans', loanRouter)
 app.use('/payments', paymentRouter)
@@ -50,7 +52,18 @@ app.use('/employee', employeeRouter)
 
 
 app.listen(PORT, () => {
+  const params = {
+    port : 8080,
+    host: "localhost",
+    root: "./public", 
+    file: "index.html", 
+    logLevel: 0,
+  };
+
+  if(production) {
+    liveServer.start(params)
+  }
   console.log(`Server running...`)
-  console.log(`Click link to open http://localhost:${PORT}`)
-  // console.log('Do not close this window');
+  console.log(`Click link to open http://localhost:${params.port}`)
+  console.log('Do not close this window');
 })

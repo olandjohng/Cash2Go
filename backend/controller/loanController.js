@@ -23,24 +23,6 @@ async function getLoanList (req, res) {
   )
   .from('view_loan_header').whereILike('customername', `%${search}%`).orWhereILike('pn_number', `%${search}%`)
   
-  if(loans <= 0) return
-
-  // const item = query[0]
-
-  // const lastname = item.clname.split(',')
-  // const firstName = item.cfname === '0' ? '' :  `, ${item.cfname}`
-  // const extName = lastname[1] ? lastname[1] : ''
-  // const midInitial = item.cmname === '0' ? '' : ` ${item.cmname}`
-  
-  // const fullname = lastname[0] + firstName + midInitial + extName
-  
-  // const voucherInfo = {
-  //   details : details,
-  //   borrower : fullname.trim(),
-  //   date : new Date().toISOString().split('T')[0],
-  //   voucherNumber : item.voucher_number
-  // }
-  
   const loanMap = loans.map((v) =>{
     const item = v
 
@@ -65,16 +47,6 @@ async function getLoanList (req, res) {
 
   })
 
-  // const loanMap = loans.map((v) => {
-  //   return {
-  //     ...v, name : {
-  //       fName : v.cfname,
-  //       lName : v.clname,
-  //       mName : v.cmname
-  //     }
-  //   }
-  // })
-  // console.log(loanMap)
   res.status(200).json(loanMap)
 }
 

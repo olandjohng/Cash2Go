@@ -5,7 +5,7 @@ import { DatePicker } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
 
 
-const CustomerComboBox = ({value, setter}) => {
+const CustomerComboBox = ({value, setter, renew}) => {
   const ref = useRef()
   const [customers, setCustomers] = useState([])
   
@@ -49,6 +49,7 @@ const CustomerComboBox = ({value, setter}) => {
   return(
     <Autocomplete
       fullWidth
+      disabled={renew}
       options={customers}
       ref={ref}
       onInputChange={handleInputChange}
@@ -65,9 +66,8 @@ const CustomerComboBox = ({value, setter}) => {
   )
 }
 
-export default function LoanRequirementsForm({banks, collaterals, categories, facilities}) {
+export default function LoanRequirementsForm({banks, collaterals, categories, facilities, renew} ) {
   const {formValue, setFormValue, validationError, setValidationError} = useContext(LoanFormContext)
-  
   const handleTextInputChange = (e, field) => {
     setValidationError(null)
     setFormValue((old) => ({...old , [field] : e.target.value}))
@@ -91,6 +91,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
       </Grid>
       <Grid item xs={5}>
         <CustomerComboBox
+          renew={renew}
           setter = {setFormValue}
           value = {formValue.customer_name}
         /> 
@@ -139,9 +140,10 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
             setValidationError(null)
             setFormValue((old) => ({...old , check_date : val.$d}))
           }}
-          slots={{
-            textField : (params) => <TextField {...params} error={validationError && validationError.check_date} />
-          }}/>
+          // slots={{
+          //   // textField : (params) => <TextField {...params}  />
+          // }}
+          />
       </Grid>
       <Grid item xs={12}>
         <ComboBox 
