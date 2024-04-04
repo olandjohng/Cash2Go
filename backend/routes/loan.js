@@ -88,20 +88,37 @@ loanRouter.get('/voucher/:id', async (req, res) =>{
   res.status(200).json(voucherInfo)
 })
 
-loanRouter.get('/renew/:id', async (req, res) => {
-  const renewLoan = await builder('view_loan_renew').select('*').where('loan_header_id', req.params.id).first()
+const formatName = (name) =>  {
   
-  const lastName = renewLoan.clname.split(' ')
-  const firstName = renewLoan.cfname === '' ? '' : `, ${renewLoan.cfname}`
-  const middleName = renewLoan.cmname === '' ? '' : ` ${renewLoan.cmname}`
+  const lastName = name.clname.split(',')
+  const firstName = name.cfname === '' ? '' : `, ${name.cfname}`
+  const middleName = name.cmname === '' ? '' : ` ${name.cmname}`
   const extName = lastName[1] ? lastName[1] : ''
   const fullname = lastName[0] + firstName + middleName + extName
+
+  return fullname;
+
+}
+
+loanRouter.get('/renew/:id', async (req, res) => {
+  console.log(req.params.id)
+  const renewLoan = await builder('view_loan_renew').select('*').where('loan_header_id', req.params.id).first()
+  
+  console.log(renewLoan)
+
+  // const lastName = renewLoan.clname.split(',')
+  // const firstName = renewLoan.cfname === '' ? '' : `, ${renewLoan.cfname}`
+  // const middleName = renewLoan.cmname === '' ? '' : ` ${renewLoan.cmname}`
+  // const extName = lastName[1] ? lastName[1] : ''
+  // const fullname = lastName[0] + firstName + middleName + extName
+
+  const fullname = formatName(renewLoan)
 
   const format = {
     loan_header_id: renewLoan.loan_header_id, 
     customer_id : renewLoan.customer_id,
     PrincipalBalance : Number(renewLoan.PrincipalBalance),
-    Penalty :  Number(renewLoan.Penalty),
+    PenaltyBalance :  Number(renewLoan.PenaltyBalance),
     InterestBalance: Number(renewLoan.InterestBalance),
     Balance : Number(renewLoan.Balance),
     customer_name : fullname
@@ -110,9 +127,107 @@ loanRouter.get('/renew/:id', async (req, res) => {
   res.status(200).json(format)
 })
 
+loanRouter.post('/renew', async (req, res) => {
+
+  const pnNumber = await createPnNumber(req.body)
+
+  const {loan_details, voucher, deduction } = req.body
+  
+  const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest), 0)
+
+  try {
+
+    await builder.transaction(async (t) => {
+      // update old loan 
+      await t('loan_headertbl').where({ loan_header_id : req.body.loan_header_id}).update({status_code : LoanStatus.RENEWED}, ['loan_header_id'])
+      // insert new loan
+      const loanHeaderId = await t('loan_headertbl').insert({
+        pn_number : pnNumber,
+        check_number :  req.body.check_number,
+        term_type : req.body.term_type,
+        check_date : req.body.check_date,
+        prepared_by : req.body.prepared_by,
+        approved_by : req.body.approved_by,
+        checked_by : req.body.checked_by,
+        customer_id : req.body.customer_id,
+        transaction_date : req.body.transaction_date,
+        bank_account_id : Number(req.body.bank_account_id),
+        collateral_id : req.body.collateral_id,
+        loan_category_id : req.body.loan_category_id,
+        loan_facility_id : req.body.loan_facility_id,
+        principal_amount : Number(req.body.principal_amount),
+        interest_rate : Number(req.body.interest_rate),
+        date_granted : req.body.date_granted,
+        check_issued_name : req.body.check_issued_name,
+        voucher_number : req.body.voucher_number,
+        total_interest : totalInterest,
+        term : loan_details.length, 
+        status_code : LoanStatus.ONGOING,
+        renewal_id : req.body.loan_header_id,
+        renewal_amount : req.body.Balance
+      }, ['loan_header_id'] )
+
+      const loanDetailsMap = loan_details.map(v => ({ 
+          loan_header_id : loanHeaderId[0],
+          check_date : v.dueDate.split('T')[0],
+          check_number : Number(v.checkNumber),
+          bank_account_id : Number(v.bank_account_id),
+          monthly_amortization : Number(v.amortization),
+          monthly_interest : Number(v.interest),
+          monthly_principal : Number(v.principal),
+          accumulated_penalty : 0
+      }))
+
+      await t('loan_detail').insert(loanDetailsMap)
+
+      if(deduction.length > 0) {
+        await t('loan_deduction_historytbl').insert(
+          deduction.map((v) => ({
+            loan_deduction_id : v.id,
+            loan_header_id : loanHeaderId[0],
+            amount : v.amount
+        })))
+      }
+      
+      await t('vouchertbl').insert(
+        voucher.map((v) => ({
+          account_title_id : +v.id,
+          debit_amount : +v.debit,
+          credit_amount : +v.credit,
+          loan_header_id : loanHeaderId[0]
+        })
+      ))
+
+
+
+      res.status(200).json({
+        renewal_id : req.body.loan_header_id,
+        loan : {
+          loan_header_id : loanHeaderId[0],
+          date_granted : req.body.transaction_date,
+          name : req.body.customer_name,
+          pn_number : pnNumber,
+          principal_amount : req.body.principal_amount,
+          total_interest : totalInterest,
+          bank_name : req.body.bank_name,
+          loancategory : req.body.loan_category,
+          loanfacility : req.body.loan_facility,
+          loan_term : `${loan_details.length} ${req.body.term_type}`,
+          status_code : LoanStatus.ONGOING,
+        }
+      })
+    })
+    // send response
+      // res.sendStatus(200).send('success!')
+    
+
+  }catch(e) {
+    console.log(e)
+  }
+})
+
+
 loanRouter.get('/recalculate/:id', async (req, res) =>{
-  // console.log(req.params)
-  // get the header
   const loanTYPE = LoanStatus.RECALCULATED
   const header = await builder.select({
       pn_number : 'pn_number',
@@ -179,24 +294,19 @@ loanRouter.post('/', async (req, res)=>{
       }
     })
 
-    const loanDetails = await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
+    await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
     //TODO : refactor 
-    const deductionFormat = deduction.map((v) =>{
-      for (const d of deductionHistory) {
-        if(v.label === d.deduction_type){
-          return {
-            loan_deduction_id : d.loan_deduction_id,
-            loan_header_id : id[0],
-            amount : Number(v.amount)
-          }
-        }
-      }
-    })
+    //TODO handle deduction id in client
+    const deductionFormat = deduction.map((v) =>({
+      loan_deduction_id : v.id,
+      loan_header_id : id[0],
+      amount : v.amount
+    }))
 
     if(deductionFormat.length > 0) {
       await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
     }
-    
+
     const mapVoucher = voucher.map((v) => {
       return {
         account_title_id : Number(v.id),
@@ -241,7 +351,6 @@ loanRouter.put('/details/:id', async (req, res) => {
     return res.status(500).send(error)
   }
 })
-
 
 loanRouter.get('/category', async (req, res)=>{
   const banks = await builder.select({id : 'loan_category_id', name : 'description', code : 'code'}).from('loan_categorytbl')

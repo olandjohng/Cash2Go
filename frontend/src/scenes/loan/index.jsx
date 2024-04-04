@@ -26,6 +26,21 @@ function reducer(state, action) {
       return action.loans;
     case "ADD":
       return [...state, action.loans];
+    case "RENEW":
+      const updateLoan = state.map((v) => {
+        console.log(action)
+        if(action.renewal_id === v.loan_header_id){
+          return {...v, status_code : 'Renewed'}
+        }
+        return v
+     })
+
+     return [...updateLoan, action.loan]
+     // return state
+      // get the id of the renewal loan
+       // change the the status of the loan details for renewal
+       // add the new loan
+      
   }
 }
 
@@ -72,10 +87,10 @@ const formatNumber = (value) => {
 };
 
 const getVoucher = async (id) => {
+  
   try {
     const fetchData = await fetch(`http://localhost:8000/loans/voucher/${id}`);
     const voucherJSON = await fetchData.json();
-    // console.log(voucherJSON)
 
     const format = {
       ...voucherJSON,
@@ -89,6 +104,7 @@ const getVoucher = async (id) => {
   } catch (error) {
     console.log(error);
   }
+
 };
 
 
@@ -96,7 +112,6 @@ const Loan = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   let timeOut = null;
-
   const columns = [
     // {field: "loan_header_id", headerName: "ID" },
     {
@@ -104,6 +119,13 @@ const Loan = () => {
       headerName: "Voucher",
       type: "actions",
       getActions: ({ id }) => {
+        const item = loans.filter((v) => id == v.loan_header_id)[0]
+        let isLoanOnGoing = true;
+        
+        if(item.status_code == "On Going") {
+          isLoanOnGoing = false
+        } 
+        
         return [
           <GridActionsCellItem
             icon={<PrintOutlined />}
@@ -115,6 +137,7 @@ const Loan = () => {
             icon={<AutorenewOutlined />}
             color="success"
             label="Print Voucher"
+            disabled={isLoanOnGoing}
             onClick={() => renewLoan(id)}
           />,
         ];
@@ -175,6 +198,7 @@ const Loan = () => {
     setSelectedLoanId(params.row.loan_header_id);
     setOpenPopup(true);
   };
+
   const renewLoan = async (id) =>{
     const request = await fetch(`http://localhost:8000/loans/renew/${id}`)
     const responseJSON = await request.json()
@@ -192,7 +216,6 @@ const Loan = () => {
   };
 
   useEffect(() => {
-    console.log('effet')
     const getData = async () => {
       const urls = [
         fetch("http://localhost:8000/loans"),
@@ -217,7 +240,7 @@ const Loan = () => {
         const accountTitleData = await req[6].json();
 
         dispatch({ type: "INIT", loans: loanData });
-        console.log('173', banksData)
+        // console.log('173', banksData)
         setCollaterals(collateralData);
 
         setFacilities(facilityData);
@@ -231,7 +254,7 @@ const Loan = () => {
     };
     getData();
   }, []);
-
+  console.log(loans)
   return (
     <div style={{ height: "75%", padding: 20 }}>
       <Header
@@ -272,7 +295,7 @@ const Loan = () => {
         openPopup={openRenewPopup}
         setOpenPopup={setOpenRenewPopup}
         >
-          <LoanRenewForm renew={true} deductions={deductions} loanInitialValue={renewFormValue}  banks={banks} collaterals={collaterals} categories={categories} facilities={facilities} />
+          <LoanRenewForm popup={setOpenRenewPopup} dispatcher={dispatch} renew={true} deductions={deductions} loanInitialValue={renewFormValue}  banks={banks} collaterals={collaterals} categories={categories} facilities={facilities} accountTitle={accountTitle}/>
       </Popups>
       <Popups
         title="New Loan"
@@ -282,7 +305,7 @@ const Loan = () => {
         <LoanForm1
           loanInitialValue={LOAN_INITIAL_VALUES}
           setModalOpen={setOpenNewLoanPopup}
-          customers={customers}
+          // customers={customers}
           collaterals={collaterals}
           facilities={facilities}
           banks={banks}

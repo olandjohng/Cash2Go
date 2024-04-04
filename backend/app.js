@@ -19,7 +19,7 @@ const employeeRouter = require('./routes/employee')
 const paymentRouter = require('./routes/payment');
 const builder = require('./builder');
 
-const production = true;
+const production = false;
 
 const PORT = 8000
 app.use(express.static('public'))
