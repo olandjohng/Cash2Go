@@ -30,9 +30,7 @@ function Employee() {
   };
 
   const columns = [
-    { field: 'fname', flex: 1, headerName: 'First Name' },
-    { field: 'mname', flex: 1, headerName: 'Middle Name' },
-    { field: 'lname', flex: 1, headerName: 'Last Name' },
+    { field: 'name', flex: 1, headerName: 'FullName' },
     { field: 'role', flex: 1, headerName: 'Role' },
     {
       field: 'actions',
@@ -127,7 +125,7 @@ function Employee() {
     <DataGrid 
       columns={columns}
       rows={employee}
-      getRowId={(rows) => rows.employee_id}
+      
     />
 
       <Popups

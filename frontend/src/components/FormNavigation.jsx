@@ -28,6 +28,7 @@ const FormNavigation = (props) => {
       )}
 
       <Button
+        type="submit"
         variant="outlined"
         color="primary"
         sx={{
@@ -35,7 +36,7 @@ const FormNavigation = (props) => {
           borderColor: grey[500],
           "&:hover": { borderColor: "white", color: "white" },
         }}
-        onClick={props.submit}
+       
       >
         {props.isLastStep ? "Submit" : "Next"}
       </Button>
