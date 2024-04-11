@@ -29,39 +29,37 @@ function reducer(state, action) {
   }
 }
 
-
 export const LOAN_INITIAL_VALUES = {
-  customer_id: '',
-  customer_name: '',
-  transaction_date: new Date().toISOString().split('T')[0],
-  bank_account_id: '',
-  term_type : 'months',
-  bank_name: '',
-  collateral_id: '',
-  check_date : null,
-  check_number : '',
-  collateral: '',
-  loan_category_id: '',
-  loan_category: '',
-  loan_facility_id: '',
-  loan_facility: '',
-  principal_amount: '',
-  interest_rate: '',
+  customer_id: "",
+  customer_name: "",
+  transaction_date: new Date().toISOString().split("T")[0],
+  bank_account_id: "",
+  term_type: "months",
+  bank_name: "",
+  collateral_id: "",
+  check_date: null,
+  check_number: "",
+  collateral: "",
+  loan_category_id: "",
+  loan_category: "",
+  loan_facility_id: "",
+  loan_facility: "",
+  principal_amount: "",
+  interest_rate: "",
   total_interest: 0,
   term_month: 0,
-  date_granted: new Date().toISOString().split('T')[0],
-  check_issued_name: '',
-  voucher_number: '',
+  date_granted: new Date().toISOString().split("T")[0],
+  check_issued_name: "",
+  voucher_number: "",
   renewal_id: 0,
   renewal_amount: 0,
-  loan_details : [],
-  deduction : [],
-  voucher : [{name : '', credit : '', debit : '' }],
-  prepared_by : '',
-  approved_by : '',
-  checked_by : ''
-}
-
+  loan_details: [],
+  deduction: [],
+  voucher: [{ name: "", credit: "", debit: "" }],
+  prepared_by: "",
+  approved_by: "",
+  checked_by: "",
+};
 
 const formatNumber = (value) => {
   const format = Number(value).toLocaleString("en", {
@@ -90,7 +88,6 @@ const getVoucher = async (id) => {
     console.log(error);
   }
 };
-
 
 const Loan = () => {
   const theme = useTheme();
@@ -150,13 +147,19 @@ const Loan = () => {
         return formatNumber(params.value);
       },
     },
-    {field : 'loan_term', headerName : 'Term', width : 100}, 
-    { field: "bank_name", headerName: "Bank", width: 150, align: "left", headerAlign: "left", },
-    { field: "loancategory", headerName: "Category", width: 150,},
+    { field: "loan_term", headerName: "Term", width: 100 },
+    {
+      field: "bank_name",
+      headerName: "Bank",
+      width: 150,
+      align: "left",
+      headerAlign: "left",
+    },
+    { field: "loancategory", headerName: "Category", width: 150 },
     { field: "loanfacility", headerName: "Facility", width: 150 },
     { field: "status_code", headerName: "Status", width: 150 },
   ];
-  const [renewFormValue,setRenewFormValue] = useState({})
+  const [renewFormValue, setRenewFormValue] = useState({});
   const [customers, setCustomers] = useState([]);
   const [facilities, setFacilities] = useState([]);
   const [collaterals, setCollaterals] = useState([]);
@@ -175,13 +178,12 @@ const Loan = () => {
     setSelectedLoanId(params.row.loan_header_id);
     setOpenPopup(true);
   };
-  const renewLoan = async (id) =>{
-    const request = await fetch(`http://localhost:8000/loans/renew/${id}`)
-    const responseJSON = await request.json()
-    setRenewFormValue({...LOAN_INITIAL_VALUES , ...responseJSON})
-    setOpenRenewPopup(true)
-  
-  }
+  const renewLoan = async (id) => {
+    const request = await fetch(`http://localhost:8000/loans/renew/${id}`);
+    const responseJSON = await request.json();
+    setRenewFormValue({ ...LOAN_INITIAL_VALUES, ...responseJSON });
+    setOpenRenewPopup(true);
+  };
   const handleSearch = (e) => {
     clearTimeout(timeOut);
     timeOut = setTimeout(() => {
@@ -192,7 +194,7 @@ const Loan = () => {
   };
 
   useEffect(() => {
-    console.log('effet')
+    console.log("effet");
     const getData = async () => {
       const urls = [
         fetch("http://localhost:8000/loans"),
@@ -217,7 +219,7 @@ const Loan = () => {
         const accountTitleData = await req[6].json();
 
         dispatch({ type: "INIT", loans: loanData });
-        console.log('173', banksData)
+        console.log("173", banksData);
         setCollaterals(collateralData);
 
         setFacilities(facilityData);
@@ -267,12 +269,20 @@ const Loan = () => {
       >
         <DetailsModal selectedLoanId={selectedLoanId} banks={banks} />
       </Popups>
-      <Popups 
-        title='Renew' 
+      <Popups
+        title="Renew"
         openPopup={openRenewPopup}
         setOpenPopup={setOpenRenewPopup}
-        >
-          <LoanRenewForm renew={true} deductions={deductions} loanInitialValue={renewFormValue}  banks={banks} collaterals={collaterals} categories={categories} facilities={facilities} />
+      >
+        <LoanRenewForm
+          renew={true}
+          deductions={deductions}
+          loanInitialValue={renewFormValue}
+          banks={banks}
+          collaterals={collaterals}
+          categories={categories}
+          facilities={facilities}
+        />
       </Popups>
       <Popups
         title="New Loan"

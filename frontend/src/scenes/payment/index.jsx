@@ -34,6 +34,7 @@ function LoanPayment() {
   const [rows, setRows] = useState([]);
   const [rowCount, setRowCount] = useState(0);
   const [openPopup, setOpenPopup] = useState(false);
+  const [selectedLoanId, setSelectedLoanId] = useState(null);
 
   const [searchValue, setSearchValue] = useState("");
 
@@ -70,7 +71,8 @@ function LoanPayment() {
   };
 
   const handlePaymentButtonClick = () => {
-    setOpenPopup(true);
+    //setSelectedLoanId(params.row.id);
+     setOpenPopup(true);
   };
 
   const columns = [
@@ -83,10 +85,10 @@ function LoanPayment() {
         <div className="flex items-center justify-between">
           <Tooltip title="Payment" placement="top" arrow>
             <Button
-              component={Link}
+               component={Link}
               to={`/payments/${params.row.id}`}
               sx={{ color: colors.greenAccent[400], cursor: "auto" }}
-              onClick={() => setOpenPopup(true)}
+              onClick={() => handlePaymentButtonClick()}
             >
               <PointOfSaleOutlined sx={{ cursor: "pointer" }} />
             </Button>
@@ -244,7 +246,7 @@ function LoanPayment() {
         title="Loan Payment Details"
         openPopup={openPopup}
         setOpenPopup={setOpenPopup}
-       // toURL={`/payment/${params.row.id}`}
+        toURL={`/payments`}
       >
           <PaymentForm />
       </Popups>
