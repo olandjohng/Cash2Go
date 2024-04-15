@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import { grey } from '@mui/material/colors';
 import MultiStepForm1, { FormStep } from '../../../components/MultiStepForm1';
 import LoanRequirementsForm from './LoanRequirementsForm';
-import { LoanFormContext, loanDetailsSchema, loanRequirementSchema } from './LoanForm1';
+import { LoanFormContext, loanDetailsSchema, loanRequirementSchema, voucherSchema } from './LoanForm1';
 import { Box, TextField } from '@mui/material';
 import LoanDetailsForm from './LoanDetailsForm';
 import CurrencyInput from './fields/CurrencyInput';
@@ -195,6 +195,7 @@ export default function LoanRestructureForm({popup, dispatcher, loanInitialValue
           </FormStep>
           <FormStep
             stepName='Voucher Details'
+            schema={voucherSchema}
             onSubmit={() => {
               const nameFormat = voucher.map((v) => {
                 const names = v.name.split('-')
