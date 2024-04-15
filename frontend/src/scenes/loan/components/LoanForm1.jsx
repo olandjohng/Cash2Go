@@ -19,7 +19,7 @@ import VoucherPrint from './VoucherPrint';
 
 export const LoanFormContext = createContext(null)
 
-export const loanRequrementSchema = yup.object({
+export const loanRequirementSchema = yup.object({
   voucher_number : yup.string().required('voucher_number is required'),
   check_date : yup.date().required(),
   customer_name : yup.string().required(),
@@ -92,7 +92,6 @@ export function TextInput(props) {
   const {name, change, error} = props
   return (
     <TextField fullWidth variant="outlined"
-    
     {...props}
     onChange={(e) => change(e, name)}
     error={ error && Boolean(error[name])}
@@ -173,7 +172,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
 
   const handleLoanRequirement = async () => {
     try {
-      loanRequrementSchema.validateSync(formValue, 
+      loanRequirementSchema.validateSync(formValue, 
         {abortEarly : false}
       )
     } catch (err) {
@@ -284,7 +283,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
             stepName="Loan Requirements"
             onSubmit={handleLoanRequirement}
             values={formValue}
-            schema={loanRequrementSchema}
+            schema={loanRequirementSchema}
           >
             <LoanRequirementsForm banks={banks} collaterals={collaterals} categories={categories} facilities={facilities}/>
           </FormStep>

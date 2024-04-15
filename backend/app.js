@@ -30,12 +30,6 @@ app.use(bodyParser.json())
 
 app.use(cors())
 
-// app.get('/', (req, res) => {
-//   const template = fs.readFile(indexHtml, 'utf-8', (err, html) =>{
-//     res.send(html)
-//   })
-// })
-
 app.use('/loans', loanRouter)
 app.use('/payments', paymentRouter)
 app.use('/employee', employeeRouter)

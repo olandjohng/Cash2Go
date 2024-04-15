@@ -6,10 +6,10 @@ import CurrencyInput from './fields/CurrencyInput'
 
 export default function VoucherForm({accountTitle, voucher, setVoucher }) {
   const {formValue, setFormValue, validationError, setValidationError} = useContext(LoanFormContext)
-
   const [employees, setEmployees] = useState([])
   const totalCredit = voucher.reduce((acc, cur) =>  acc + Number(cur.credit), 0)
   const totalDebit = voucher.reduce((acc, cur) =>  acc + Number(cur.debit), 0)
+  
   useEffect(() => {
     const getEmployees = async () =>{
       try {
@@ -107,12 +107,10 @@ export default function VoucherForm({accountTitle, voucher, setVoucher }) {
                   </Box>  
                 }
                 inputChange={(field, d) => {
-                  console.log(field, d)
                   const newValue = voucher.map((val, index) => {
                     return i === index ? {...val,  name : d.value, id : d.id  } : val
                   })
-
-                  console.log('newValue', newValue)
+                  
                   setVoucher(newValue)
                   setFormValue({...formValue, voucher : newValue})
                 }} />

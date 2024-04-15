@@ -73,7 +73,7 @@ export default function SummaryForm({netProceeds}) {
         />
         <PreviewLabel
           label='Net Proceeds'
-          value={numberFormat.format(netProceeds())}
+          value={numberFormat.format(netProceeds && netProceeds() || 0)}
         />
         
       </Box>

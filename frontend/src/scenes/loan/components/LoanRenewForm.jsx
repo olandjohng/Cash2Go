@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import * as yup from 'yup';
 import MultiStepForm1, { FormStep } from '../../../components/MultiStepForm1'
-import { LoanFormContext, TextInput, loanDetailsSchema, loanRequrementSchema, voucherSchema } from './LoanForm1'
+import { LoanFormContext, TextInput, loanDetailsSchema, loanRequirementSchema, voucherSchema } from './LoanForm1'
 import LoanRequirementsForm from './LoanRequirementsForm'
 import { grey } from '@mui/material/colors';
 import LoanDetailsForm from './LoanDetailsForm';
@@ -16,12 +16,13 @@ import voucherHTMLTemplate from '../../../assets/voucher.html?raw'
 import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
 
-export default function LoanRenewForm({dispatcher, popup, loanInitialValue, banks, collaterals, categories, deductions, facilities, accountTitle, renew = false}) {
+export default function LoanRenewForm({dispatcher, popup, loanInitialValue, banks, collaterals, categories, deductions, facilities, accountTitle, renew = false, restructure = false}) {
   const [formValue, setFormValue] = useState(loanInitialValue)
   const [validationError, setValidationError] = useState(null);
   const [rows, setRows] = useState([])
   const [deductionsData, setDeductionsData] = useState([])
   const [voucher, setVoucher] = useState(formValue.voucher);
+
   const handleNetProceeds = () => {
     const newPrincipal = formValue.principal_amount - formValue.Balance
     return formValue.deduction.reduce((acc, curr) => acc - curr.amount, newPrincipal)
@@ -29,7 +30,7 @@ export default function LoanRenewForm({dispatcher, popup, loanInitialValue, bank
 
   const handleLoanRequirement = async () => {
     try {
-      loanRequrementSchema.validateSync(formValue, 
+      loanRequirementSchema.validateSync(formValue, 
         {abortEarly : false}
       )
     } catch (err) {
@@ -123,9 +124,9 @@ export default function LoanRenewForm({dispatcher, popup, loanInitialValue, bank
           stepName="Loan Requirements"
           onSubmit={handleLoanRequirement}
           values={formValue}
-          schema={loanRequrementSchema}
+          schema={loanRequirementSchema}
         >
-          <LoanRequirementsForm renew={renew} banks={banks} collaterals={collaterals} categories={categories} facilities={facilities}/>
+          <LoanRequirementsForm isRenew={renew} banks={banks} collaterals={collaterals} categories={categories} facilities={facilities}/>
         </FormStep>
         <FormStep 
           stepName="Loan Details"
@@ -138,9 +139,7 @@ export default function LoanRenewForm({dispatcher, popup, loanInitialValue, bank
         <FormStep 
           stepName="Adjusting Entry"
           values={formValue}
-          onSubmit={() => {
-            console.log(formValue)
-          }}
+          onSubmit={() => {}}
           schema = {yup.object()}
         > 
         <Box display='flex' gap={1.5}>
@@ -193,6 +192,7 @@ export default function LoanRenewForm({dispatcher, popup, loanInitialValue, bank
               check_date : dayjs(formValue.check_date).format('MM-DD-YYYY')
             }
             const voucherHTML = ejs.render(voucherHTMLTemplate, templateData)
+            // console.log(voucherHTML)
             const voucherTab = window.open('voucher','Print Voucher')
             voucherTab.document.write(voucherHTML)
           }} />
