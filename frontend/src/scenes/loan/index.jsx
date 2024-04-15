@@ -13,12 +13,13 @@ import Popups from "../../components/Popups";
 import DetailsModal from "./components/DetailsModal";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import LoanForm1 from "./components/LoanForm1";
-import { AutorenewOutlined, PrintOutlined } from "@mui/icons-material";
+import { AccountTreeOutlined, AutorenewOutlined, PrintOutlined } from "@mui/icons-material";
 import voucherTemplateHTML from "../../assets/voucher.html?raw";
 import c2gImage from "../../assets/c2g_logo_nb.png";
 import * as ejs from "ejs";
 import dayjs from "dayjs";
 import LoanRenewForm from "./components/LoanRenewForm";
+import LoanRestructureForm from "./components/LoanRestructureForm";
 
 function reducer(state, action) {
   switch (action.type) {
@@ -26,6 +27,24 @@ function reducer(state, action) {
       return action.loans;
     case "ADD":
       return [...state, action.loans];
+    case "RENEW":
+      const updateLoan = state.map((v) => {
+        console.log(action)
+        if(action.renewal_id === v.loan_header_id){
+          return {...v, status_code : 'Renewed'}
+        }
+        return v
+     })
+     return [...updateLoan, action.loan];
+    case "RECAL": 
+      const recal = state.map((v) => {
+        console.log(action)
+        if(action.renewal_id === v.loan_header_id){
+          return {...v, status_code : 'Restructured'}
+        }
+        return v
+     })
+    return [...recal, action.loan]
   }
 }
 
@@ -70,11 +89,10 @@ const formatNumber = (value) => {
 };
 
 const getVoucher = async (id) => {
+  
   try {
     const fetchData = await fetch(`http://localhost:8000/loans/voucher/${id}`);
     const voucherJSON = await fetchData.json();
-    // console.log(voucherJSON)
-
     const format = {
       ...voucherJSON,
       logo: c2gImage,
@@ -87,23 +105,32 @@ const getVoucher = async (id) => {
   } catch (error) {
     console.log(error);
   }
+
 };
 
 const Loan = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   let timeOut = null;
-
   const columns = [
     // {field: "loan_header_id", headerName: "ID" },
     {
       field: "voucher",
-      headerName: "Voucher",
+      // headerName: "Actions",
       type: "actions",
+      width: 100,
       getActions: ({ id }) => {
+        const item = loans.filter((v) => id == v.loan_header_id)[0]
+        let isLoanOnGoing = true;
+        
+        if(item.status_code == "On Going") {
+          isLoanOnGoing = false
+        } 
+        
         return [
           <GridActionsCellItem
             icon={<PrintOutlined />}
+            showInMenu
             color="success"
             label="Print Voucher"
             onClick={() => getVoucher(id)}
@@ -111,8 +138,18 @@ const Loan = () => {
           <GridActionsCellItem
             icon={<AutorenewOutlined />}
             color="success"
-            label="Print Voucher"
+            label="Renew"
+            showInMenu
+            disabled={isLoanOnGoing}
             onClick={() => renewLoan(id)}
+          />,
+          <GridActionsCellItem
+            icon={<AccountTreeOutlined />}
+            color="success"
+            label="Restructure"
+            disabled={isLoanOnGoing}
+            showInMenu
+            onClick={() => restructureLoan(id)}
           />,
         ];
       },
@@ -159,8 +196,8 @@ const Loan = () => {
     { field: "loanfacility", headerName: "Facility", width: 150 },
     { field: "status_code", headerName: "Status", width: 150 },
   ];
-  const [renewFormValue, setRenewFormValue] = useState({});
-  const [customers, setCustomers] = useState([]);
+  const [renewFormValue,setRenewFormValue] = useState(LOAN_INITIAL_VALUES)
+  const [restructureFormValue, setRestructureFormValue] = useState(LOAN_INITIAL_VALUES)
   const [facilities, setFacilities] = useState([]);
   const [collaterals, setCollaterals] = useState([]);
   const [banks, setBanks] = useState([]);
@@ -170,6 +207,7 @@ const Loan = () => {
 
   const [openPopup, setOpenPopup] = useState(false);
   const [openRenewPopup, setOpenRenewPopup] = useState(false);
+  const [openRestructurePopup, setOpenRestructurePopup] = useState(false);
   const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState(null);
   const [loans, dispatch] = useReducer(reducer, []);
@@ -178,12 +216,28 @@ const Loan = () => {
     setSelectedLoanId(params.row.loan_header_id);
     setOpenPopup(true);
   };
-  const renewLoan = async (id) => {
-    const request = await fetch(`http://localhost:8000/loans/renew/${id}`);
-    const responseJSON = await request.json();
-    setRenewFormValue({ ...LOAN_INITIAL_VALUES, ...responseJSON });
-    setOpenRenewPopup(true);
-  };
+
+  const renewLoan = async (id) =>{
+    const request = await fetch(`http://localhost:8000/loans/renew/${id}`)
+    const responseJSON = await request.json()
+    setRenewFormValue((old) => ({...old , ...responseJSON}))
+    setOpenRenewPopup(true)
+  }
+
+  const restructureLoan = async (id) => {
+    try {
+      const request = await fetch(`http://localhost:8000/loans/recalculate/${id}`)
+      const responseJSON = await request.json()
+      console.log(responseJSON)
+      setRestructureFormValue((old) => ({...old, ...responseJSON}))
+      // console.log(resJSON)
+      setOpenRestructurePopup(true);
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+
   const handleSearch = (e) => {
     clearTimeout(timeOut);
     timeOut = setTimeout(() => {
@@ -194,7 +248,6 @@ const Loan = () => {
   };
 
   useEffect(() => {
-    console.log("effet");
     const getData = async () => {
       const urls = [
         fetch("http://localhost:8000/loans"),
@@ -219,7 +272,7 @@ const Loan = () => {
         const accountTitleData = await req[6].json();
 
         dispatch({ type: "INIT", loans: loanData });
-        console.log("173", banksData);
+        // console.log('173', banksData)
         setCollaterals(collateralData);
 
         setFacilities(facilityData);
@@ -269,20 +322,19 @@ const Loan = () => {
       >
         <DetailsModal selectedLoanId={selectedLoanId} banks={banks} />
       </Popups>
-      <Popups
-        title="Renew"
+      <Popups 
+        title='Renew Loan' 
         openPopup={openRenewPopup}
         setOpenPopup={setOpenRenewPopup}
+        >
+          <LoanRenewForm popup={setOpenRenewPopup} dispatcher={dispatch} renew={true} deductions={deductions} loanInitialValue={renewFormValue}  banks={banks} collaterals={collaterals} categories={categories} facilities={facilities} accountTitle={accountTitle}/>
+      </Popups>
+      <Popups 
+        title='Restructure Loan'
+        openPopup={openRestructurePopup}
+        setOpenPopup={setOpenRestructurePopup}
       >
-        <LoanRenewForm
-          renew={true}
-          deductions={deductions}
-          loanInitialValue={renewFormValue}
-          banks={banks}
-          collaterals={collaterals}
-          categories={categories}
-          facilities={facilities}
-        />
+        <LoanRestructureForm dispatcher={dispatch} popup={setOpenRestructurePopup} loanInitialValue={restructureFormValue} accountTitle={accountTitle}  banks={banks} collaterals={collaterals} categories={categories} facilities={facilities}/>
       </Popups>
       <Popups
         title="New Loan"
@@ -292,7 +344,6 @@ const Loan = () => {
         <LoanForm1
           loanInitialValue={LOAN_INITIAL_VALUES}
           setModalOpen={setOpenNewLoanPopup}
-          customers={customers}
           collaterals={collaterals}
           facilities={facilities}
           banks={banks}

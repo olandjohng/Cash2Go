@@ -1,22 +1,30 @@
 import { AddOutlined, RemoveCircleOutline } from '@mui/icons-material';
-import { Autocomplete, Button, Grid, IconButton, InputAdornment, TextField } from '@mui/material';
+import { Autocomplete, Box, Button, Grid, IconButton, InputAdornment, TextField } from '@mui/material';
 import React, { useContext, useState } from 'react'
 import { LoanFormContext } from './LoanForm1';
 import CurrencyInput from './fields/CurrencyInput';
 
 export default function DeductionDetailsForm({deductions, deductionsData, setDeductionsData}) {
-  const [deductionItem, setDeductionItem] = useState(null);   
+  const [deductionItem, setDeductionItem] = useState(null);
   const {formValue, setFormValue, validationError, setValidationError} = useContext(LoanFormContext)
   return (
     <>
       <Grid container>
         <Grid item xs={10}>
           <Autocomplete
-            options={deductions.map((v) => v.deductionType)}
-            value={deductionItem}
-            onInputChange={ (e,v) => {
-              setDeductionItem(v)
+            options={deductions}
+            value={deductionItem && deductionItem.label}
+            getOptionLabel={(option) => option.deductionType || "" || option}
+            onInputChange={(e,v) => {
+              console.log(v)
+              if(e)
+                setDeductionItem({id : e.target.id, label : v});
             }}
+            renderOption={(props, option) => 
+              <Box {...props} component='li' key={option.id} id={option.id}>
+                {option.deductionType}
+              </Box>  
+            }
             renderInput= { (params) => <TextField {...params}  label='Deductions'/>}
           />
         </Grid>
@@ -26,12 +34,12 @@ export default function DeductionDetailsForm({deductions, deductionsData, setDed
               if(deductionItem){
                 let contains  = false;
                 for (const d of deductionsData) {
-                  if(d.label === deductionItem){ contains = true }
+                  if(d.label === deductionItem.label){ contains = true }
                 }
 
                 if(!contains){
-                  const format = deductionItem.toLowerCase().split(' ').join('_')
-                  const d = [...deductionsData, {label : deductionItem, name : format, amount : ''}]
+                  const format = deductionItem.label.toLowerCase().split(' ').join('_')
+                  const d = [...deductionsData, {...deductionItem, name : format, amount : ''}]
                   setDeductionsData(d)
                   setFormValue({...formValue, deduction : d})
                 }
@@ -60,7 +68,6 @@ export default function DeductionDetailsForm({deductions, deductionsData, setDed
           value={d.amount}
           customInput={TextField}
           error={validationError && Boolean(validationError[d.name])}
-          // type='number'
           onValueChange= {(value) =>{
             setValidationError(null)
             const d = deductionsData.map((v, index) => {

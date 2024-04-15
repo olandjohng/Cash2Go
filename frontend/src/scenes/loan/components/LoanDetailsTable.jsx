@@ -132,8 +132,8 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
   };
 
   const columns = [
-    { field: 'id', headerName: 'Count', editable: false },
-    { field: 'dueDate', headerName: 'Due Date', editable: true, width: 180,
+    { field: 'id', headerName: 'Count', editable: false,  width: 70 },
+    { field: 'dueDate', headerName: 'Due Date', editable: true, width: 150,
       GRID_DATE_COL_DEF, 
       renderEditCell : (params) => { return <GridDatePicker {...params} />} ,
       valueFormatter : (params) => {
@@ -171,10 +171,11 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
         return {...params.row, amortization : (principal + interest)}
       }
     },
-    { field: 'bank', headerName: 'Bank', width: 150, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name),},
+    { field: 'bank', headerName: 'Bank', width: 120, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name),},
     { field: 'checkNumber', headerName: 'Check Number', width: 120, editable: true,   },
     { field: 'action', type : 'actions',
       getActions : ({id}) => {
+        if(false) {}
         return [
           <GridActionsCellItem
             icon={<DeleteOutlined/>}
