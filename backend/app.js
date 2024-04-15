@@ -19,7 +19,7 @@ const employeeRouter = require('./routes/employee')
 const paymentRouter = require('./routes/payment');
 const builder = require('./builder');
 
-const production = true;
+const production = false;
 
 const PORT = 8000
 app.use(express.static('public'))
@@ -29,12 +29,6 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 app.use(cors())
-
-// app.get('/', (req, res) => {
-//   const template = fs.readFile(indexHtml, 'utf-8', (err, html) =>{
-//     res.send(html)
-//   })
-// })
 
 app.use('/loans', loanRouter)
 app.use('/payments', paymentRouter)

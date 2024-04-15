@@ -6,6 +6,7 @@ export default function CurrencyInput(props) {
   
   return (
     <NumericFormat
+      
       {...props}
       decimalScale={2} fixedDecimalScale thousandSeparator="," 
       // customInput={TextField} 

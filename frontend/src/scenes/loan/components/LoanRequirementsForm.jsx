@@ -5,7 +5,7 @@ import { DatePicker } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
 
 
-const CustomerComboBox = ({value, setter, renew}) => {
+const CustomerComboBox = ({value, setter, disabled}) => {
   const ref = useRef()
   const [customers, setCustomers] = useState([])
   
@@ -49,7 +49,7 @@ const CustomerComboBox = ({value, setter, renew}) => {
   return(
     <Autocomplete
       fullWidth
-      disabled={renew}
+      disabled={disabled}
       options={customers}
       ref={ref}
       onInputChange={handleInputChange}
@@ -66,7 +66,7 @@ const CustomerComboBox = ({value, setter, renew}) => {
   )
 }
 
-export default function LoanRequirementsForm({banks, collaterals, categories, facilities, renew} ) {
+export default function LoanRequirementsForm({banks, collaterals, categories, facilities, isRenew = false, isRestructure = false} ) {
   const {formValue, setFormValue, validationError, setValidationError} = useContext(LoanFormContext)
   const handleTextInputChange = (e, field) => {
     setValidationError(null)
@@ -82,6 +82,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
     <Grid container spacing={2} >
       <Grid item xs={2}>
         <TextInput
+          // disabled={isRestructure}
           value={formValue.voucher_number}
           label="Voucher"
           name="voucher_number"
@@ -91,13 +92,14 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
       </Grid>
       <Grid item xs={5}>
         <CustomerComboBox
-          renew={renew}
+          disabled ={isRenew | isRestructure}
           setter = {setFormValue}
           value = {formValue.customer_name}
         /> 
       </Grid>
       <Grid item xs={5}>
         <TextInput
+          disabled={isRestructure}
           value={formValue.check_issued_name}
           label="Check Name"
           name="check_issued_name"
@@ -107,32 +109,35 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
       </Grid>
       <Grid item xs={2}>
         <ComboBox
-            label='Bank'
-            inputChange={(fields, values) => handleComboBoxChange(fields, values) } 
-            value={formValue.bank_name}
-            options={banks}
-            idfield='bank_account_id'
-            getOptionLabel={(option) => option.name || "" || option}
-            renderOption={(props, option) => 
-              <Box {...props} component='li' key={option.id} id={option.id}>
-                {option.name}
-              </Box>  
-            }
-            nameField="bank_name"
-            err={validationError}
+          disabled={isRestructure}
+          label='Bank'
+          inputChange={(fields, values) => handleComboBoxChange(fields, values) } 
+          value={formValue.bank_name}
+          options={banks}
+          idfield='bank_account_id'
+          getOptionLabel={(option) => option.name || "" || option}
+          renderOption={(props, option) => 
+            <Box {...props} component='li' key={option.id} id={option.id}>
+              {option.name}
+            </Box>  
+          }
+          nameField="bank_name"
+          err={validationError}
         />
       </Grid>
       <Grid item xs={7} >
         <TextInput
-            value={formValue.check_number}
-            label="Check Number"
-            name="check_number"
-            error={validationError}
-            change={(e, field) => handleTextInputChange(e, field)}
+          disabled={isRestructure}
+          value={formValue.check_number}
+          label="Check Number"
+          name="check_number"
+          error={validationError}
+          change={(e, field) => handleTextInputChange(e, field)}
           />
       </Grid>
       <Grid item xs={3}>
         <DatePicker
+          disabled={isRestructure}
           label='Check Date'
           name='check_date'
           value={formValue.check_date ? dayjs(formValue.check_date) : formValue.check_date}
@@ -147,6 +152,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
       </Grid>
       <Grid item xs={12}>
         <ComboBox 
+          disabled={isRestructure}
           label='Collateral'
           inputChange={(fields, values) => handleComboBoxChange(fields, values)} 
           value={formValue.collateral}
@@ -163,6 +169,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
       </Grid>
       <Grid item xs={12}>
         <ComboBox 
+          disabled={isRestructure}
           label='Category'
           inputChange={(fields, values) => handleComboBoxChange(fields, values)} 
           value={formValue.loan_category}
@@ -180,6 +187,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
       </Grid>
       <Grid item xs={12}>
         <ComboBox 
+          disabled={isRestructure}
           label='Facility'
           inputChange={(fields, values) => handleComboBoxChange(fields, values)} 
           nameField="loan_facility"

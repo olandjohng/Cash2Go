@@ -15,10 +15,11 @@ import LoanDetailsForm from './LoanDetailsForm';
 import DeductionDetailsForm from './DeductionDetailsForm';
 import SummaryForm from './SummaryForm';
 import VoucherForm from './VoucherForm';
+import VoucherPrint from './VoucherPrint';
 
 export const LoanFormContext = createContext(null)
 
-export const loanRequrementSchema = yup.object({
+export const loanRequirementSchema = yup.object({
   voucher_number : yup.string().required('voucher_number is required'),
   check_date : yup.date().required(),
   customer_name : yup.string().required(),
@@ -171,7 +172,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
 
   const handleLoanRequirement = async () => {
     try {
-      loanRequrementSchema.validateSync(formValue, 
+      loanRequirementSchema.validateSync(formValue, 
         {abortEarly : false}
       )
     } catch (err) {
@@ -239,7 +240,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
           let data = {...formValue, check_date : dayjs(formValue.check_date).format()}
           
           const mapLoanDetails = data.loan_details.map((v) => {
-            let item = {...v , dueDate : dayjs(v.dueDate).format()}
+          let item = {...v , dueDate : dayjs(v.dueDate).format()}
             
             for (const b of banks) {
               if(item.bank === b.name) {
@@ -282,7 +283,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
             stepName="Loan Requirements"
             onSubmit={handleLoanRequirement}
             values={formValue}
-            schema={loanRequrementSchema}
+            schema={loanRequirementSchema}
           >
             <LoanRequirementsForm banks={banks} collaterals={collaterals} categories={categories} facilities={facilities}/>
           </FormStep>
@@ -297,6 +298,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
             stepName="Deduction Details"
             schema={deductionSchema}
             onSubmit={() => {
+              console.log(formValue)
               try {
                 deductionSchema.validateSync(formValue, 
                   {abortEarly : false}
@@ -324,80 +326,6 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
             schema={yup.object({})}
           >
             <SummaryForm netProceeds={handlNetProceed}/>
-            {/* <Box
-              display='flex'
-              justifyContent='center'
-              gap={5}
-              mt={5}
-              mx='auto'
-              width='70%'
-            >
-              <PreviewLabel
-                label="Borrower's Name"
-                value={formValue.customer_name}
-              />
-              <PreviewLabel
-                label="Check Issued Name"
-                value={formValue.check_issued_name}
-              />
-            </Box>
-            <Box 
-              display='flex'
-              justifyContent='center'
-              gap={5}
-              mt={3}
-            >
-              <PreviewLabel label='Bank Name' value={formValue.bank_name}/>
-              <PreviewLabel label='Check Number' value={formValue.check_number} />
-              <PreviewLabel label='Check Date' value={dayjs(formValue.check_date).format('MM-DD-YYYY')}/>
-            </Box>
-            <Box 
-              display='flex'
-              justifyContent='center'
-              gap={5}
-              mt={3}
-            >
-              <PreviewLabel
-                label='Loan Category'
-                value={formValue.loan_category}
-              />
-              <PreviewLabel
-                label='Loan Facility'
-                value={formValue.loan_facility}
-              />
-              <PreviewLabel
-                label='Loan Collateral'
-                value={formValue.collateral}
-              />
-            </Box>
-            <Box 
-              display='flex'
-              justifyContent='center'
-              gap={5}
-              mt={3}
-            >
-              <PreviewLabel
-                label='Principal Amount'
-                value={numberFormat.format(formValue.principal_amount)}
-              />
-              <PreviewLabel
-                label='Interest Rate'
-                value={`${Number(formValue.interest_rate).toFixed(2)}%`}
-              />
-              
-            </Box>
-            <Box mt={3}>
-              <Grid container gap={1}>
-                <Grid item xs={9}>
-                  <LoanTablePreview 
-                    details={formValue.loan_details}
-                  />
-                </Grid>
-                <Grid item flex={1}>
-                  <LoanDeductionPreview details={formValue.deduction}/>
-                </Grid>
-              </Grid>
-            </Box> */}
           </FormStep>
           <FormStep
             stepName="Voucher Details"
@@ -408,7 +336,6 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
                 const format = names.filter((_, i) => i !== 0).join('-')
                 return { ...v, title : format.trim() }
               })
-              console.log(formValue.check_date)
               setVoucher(nameFormat)
               setFormValue({...formValue, voucher : nameFormat})
             }}
@@ -422,50 +349,37 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
               console.log(formValue)
             }}
           >
-            <Box>
-              <Typography display='flex' justifyContent='center'>
-                <CheckCircleOutlineRounded color="success" sx={{fontSize : 70}}/>
-              </Typography>
-              <Typography display='flex' justifyContent='center'  sx={{fontSize : 20}} >All Setup?</Typography>
-              <Typography display='flex' justifyContent='center' mt={2}>
-                <Button variant='outlined' color='success'sx={{fontSize : 15}}
-                onClick={() => {
-                  console.log(formValue)
-                  
-                  const templateData = {
-                    borrower : formValue.customer_name,
-                    date : dayjs(new Date()).format('MM-DD-YYYY'), 
-                    details : formValue.voucher,
-                    voucherNumber : formValue.voucher_number,
-                    logo : c2gLogo,
-                    prepared_by : formValue.prepared_by,
-                    approved_by : formValue.approved_by,
-                    checked_by : formValue.checked_by,
-                    check_details : `${formValue.bank_name}-${formValue.check_number}`,
-                    check_date : dayjs(formValue.check_date).format('MM-DD-YYYY')
-                  }
+            <VoucherPrint onClick={() => {
+               const templateData = {
+                borrower : formValue.customer_name,
+                date : dayjs(new Date()).format('MM-DD-YYYY'), 
+                details : formValue.voucher,
+                voucherNumber : formValue.voucher_number,
+                logo : c2gLogo,
+                prepared_by : formValue.prepared_by,
+                approved_by : formValue.approved_by,
+                checked_by : formValue.checked_by,
+                check_details : `${formValue.bank_name}-${formValue.check_number}`,
+                check_date : dayjs(formValue.check_date).format('MM-DD-YYYY')
+              }
 
-                  const voucherHTML = ejs.render(voucherHTMLTemplate, templateData)
+              const voucherHTML = ejs.render(voucherHTMLTemplate, templateData)
 
-                  if(voucherWindow){
-                    voucherWindow.close()
-                    const voucherTab = window.open('voucher','Print Voucher')
-                    setVoucherWindow(voucherTab)
-                    if(voucherHTML) {
-                      voucherTab.document.write(voucherHTML)
-                    }
-                  } else {
-                    const voucherTab = window.open('voucher','Print Voucher')
-                    setVoucherWindow(voucherTab)
-                    if(voucherHTML) {
-                      voucherTab.document.write(voucherHTML)
-                    }
-                  }
-
-                }}
-                >Print Voucher</Button>
-              </Typography>
-            </Box>
+              if(voucherWindow){
+                voucherWindow.close()
+                const voucherTab = window.open('voucher','Print Voucher')
+                setVoucherWindow(voucherTab)
+                if(voucherHTML) {
+                  voucherTab.document.write(voucherHTML)
+                }
+              } else {
+                const voucherTab = window.open('voucher','Print Voucher')
+                setVoucherWindow(voucherTab)
+                if(voucherHTML) {
+                  voucherTab.document.write(voucherHTML)
+                }
+              }
+            }} />
           </FormStep>
         </MultiStepForm1>
       </div>  
