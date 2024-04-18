@@ -1,9 +1,6 @@
 const express = require('express')
-const liveServer = require("live-server");
 const app = express()
 const cors = require('cors')
-const path = require('path')
-const fs = require('fs')
 const loanRouter = require('./routes/loan')
 const customerRouter = require('./routes/customer')
 const bankRouter = require('./routes/bank')
@@ -17,7 +14,6 @@ const accountCategoryRouter = require('./routes/accountCategory')
 const accountTitleRouter = require('./routes/accountTitle')
 const employeeRouter = require('./routes/employee')
 const paymentRouter = require('./routes/payment');
-const builder = require('./builder');
 
 const production = false;
 
@@ -46,18 +42,7 @@ app.use('/employee', employeeRouter)
 
 
 app.listen(PORT, () => {
-  const params = {
-    port : 8080,
-    host: "localhost",
-    root: "./public", 
-    file: "index.html", 
-    logLevel: 0,
-  };
-
-  if(production) {
-    liveServer.start(params)
-  }
   console.log(`Server running...`)
-  console.log(`Click link to open http://localhost:${params.port}`)
-  console.log('Do not close this window');
+  // console.log(`Click link to open http://localhost:${params.port}`)
+  // console.log('Do not close this window');
 })

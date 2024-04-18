@@ -31,12 +31,13 @@ const FormNavigation = (props) => {
         type="submit"
         variant="outlined"
         color="primary"
+        disabled={props.state}
         sx={{
           color: grey[500],
           borderColor: grey[500],
           "&:hover": { borderColor: "white", color: "white" },
         }}
-       
+        onClick={props.submit}
       >
         {props.isLastStep ? "Submit" : "Next"}
       </Button>

@@ -10,6 +10,7 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
   const [completedSteps, setCompletedSteps] = useState({});
   const steps = React.Children.toArray(children);
   const [snapshot, setSnapshot] = useState(initialFormValues);
+  const [submitButtonState, setSubmitButtonState] = useState(false)
   
   const step = steps[stepNumber];
   const isLastStep = stepNumber === steps.length - 1;
@@ -43,20 +44,26 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
   const submit = async () => {
     const schema = step.props.schema
     
+    // console.log('next')
     if(schema && schema.isValidSync(initialFormValues)) {
-      if(isLastStep){
-        onSubmit();
-      } else {
-        next(initialFormValues)
-      }
+      // if(isLastStep){
+      //   setSubmitButtonState(true)
+      //   onSubmit();
+      // } else {
+        
+          next(initialFormValues)
+        
+      // }
     }
 
     if(step.props.onSubmit) step.props.onSubmit();
-
-    if(!schema && !isLastStep) next(initialFormValues);
+    
     if(isLastStep) {
       onSubmit()
     }
+    
+    if(!schema && !isLastStep) next(initialFormValues);
+
   }
 
   return (
@@ -84,6 +91,7 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
               isLastStep={isLastStep}
               hasPrevious={stepNumber > 0}
               onBackClick={() => {previous(initialFormValues);}}
+              state={submitButtonState}
               submit={submit}
             />
           </>

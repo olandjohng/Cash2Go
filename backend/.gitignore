@@ -2,3 +2,4 @@
 /cash2go
 /sqlitedata
 cash2go.sqlite
+.env

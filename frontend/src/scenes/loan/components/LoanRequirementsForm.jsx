@@ -142,8 +142,11 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           name='check_date'
           value={formValue.check_date ? dayjs(formValue.check_date) : formValue.check_date}
           onChange={(val) => { 
+            console.log(val)
             setValidationError(null)
-            setFormValue((old) => ({...old , check_date : val.$d}))
+            if(val){
+              setFormValue((old) => ({...old , check_date : val.$d}))
+            }
           }}
           // slots={{
           //   // textField : (params) => <TextField {...params}  />

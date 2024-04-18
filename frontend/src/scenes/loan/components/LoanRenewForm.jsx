@@ -14,7 +14,7 @@ import VoucherForm from './VoucherForm';
 import VoucherPrint from './VoucherPrint';
 import voucherHTMLTemplate from '../../../assets/voucher.html?raw'
 import dayjs from 'dayjs';
-import { toast } from 'react-toastify';
+import { Bounce, toast } from 'react-toastify';
 
 export default function LoanRenewForm({dispatcher, popup, loanInitialValue, banks, collaterals, categories, deductions, facilities, accountTitle, renew = false, restructure = false}) {
   const [formValue, setFormValue] = useState(loanInitialValue)

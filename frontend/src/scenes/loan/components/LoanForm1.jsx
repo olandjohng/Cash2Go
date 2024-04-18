@@ -236,7 +236,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
       <div style={{width: 900, color: grey[600]}} >
         <MultiStepForm1
         initialFormValues={formValue}
-        onSubmit={() => {
+        onSubmit={ async () => {
           let data = {...formValue, check_date : dayjs(formValue.check_date).format()}
           
           const mapLoanDetails = data.loan_details.map((v) => {
@@ -251,7 +251,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
           })
           
           data = {...data , loan_details : mapLoanDetails} 
-          console.log('fetch', data)
+          // console.log('fetch', data)
           fetch('http://localhost:8000/loans', {
             method : 'POST',
             headers: {
