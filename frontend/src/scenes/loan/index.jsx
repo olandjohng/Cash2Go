@@ -204,7 +204,7 @@ const Loan = () => {
   const [categories, setCategories] = useState([]);
   const [deductions, setDeductions] = useState([]);
   const [accountTitle, setAccountTitle] = useState([]);
-
+  const [loanding, setLoading] = useState(false)
   const [openPopup, setOpenPopup] = useState(false);
   const [openRenewPopup, setOpenRenewPopup] = useState(false);
   const [openRestructurePopup, setOpenRestructurePopup] = useState(false);
@@ -249,6 +249,7 @@ const Loan = () => {
 
   useEffect(() => {
     const getData = async () => {
+      setLoading(true)
       const urls = [
         fetch(`${import.meta.env.VITE_API_URL}/loans`),
         fetch(`${import.meta.env.VITE_API_URL}/collateral`),
@@ -280,6 +281,7 @@ const Loan = () => {
         setCategories(categoryData);
         setDeductions(deductionData);
         setAccountTitle(accountTitleData);
+        setLoading(false)
       } catch (error) {
         console.log("error", error);
       }
@@ -309,6 +311,7 @@ const Loan = () => {
       </Box>
       <DataGrid
         sx={{ height: "95%" }}
+        loading={loanding}
         rows={loans}
         columns={columns}
         getRowId={(row) => row.loan_header_id}
