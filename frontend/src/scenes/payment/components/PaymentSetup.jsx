@@ -34,7 +34,7 @@ const PaymentSetup = () => {
 
   useEffect(() => {
     const getBanks = async () => {
-      const req = await fetch(`http://localhost:8000/payments/bank`);
+      const req = await fetch(`${import.meta.env.VITE_API_URL}/payments/bank`);
       const resJson = await req.json();
       setBanks(resJson);
     };

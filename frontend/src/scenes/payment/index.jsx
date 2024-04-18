@@ -24,7 +24,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import Popups from "../../components/Popups";
 import PaymentForm from "./components/PaymentForm";
 
-const SERVER_URL = "http://localhost:8000/payments";
+const SERVER_URL = `${import.meta.env.VITE_API_URL}/payments";`
 
 function LoanPayment() {
   const theme = useTheme();

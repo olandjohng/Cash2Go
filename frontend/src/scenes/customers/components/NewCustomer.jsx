@@ -38,7 +38,7 @@ export default function NewCustomer({onCustomerAdded, onClosePopup}) {
    // Start useEffect
    useEffect(() => {
     if (id) {
-        axios.get(`http://localhost:8000/customerInfo/read/${id}`)
+        axios.get(`${import.meta.env.VITE_API_URL}/customerInfo/read/${id}`)
         .then((res) => {
             console.log('API Response:', res.data);
             
@@ -88,7 +88,7 @@ const handleChange = (e) => {
 // Start handleSubmit
 const handleSubmit = async (e) => {
   e.preventDefault();
-  const apiURL = id ? `http://localhost:8000/customerInfo/edit/${id}` : 'http://localhost:8000/customerInfo/new';
+  const apiURL = id ? `${import.meta.env.VITE_API_URL}/customerInfo/edit/${id}` : `${import.meta.env.VITE_API_URL}/customerInfo/new`;
   console.log({ customer });
   const axiosMethod = id ? axios.put : axios.post;
 

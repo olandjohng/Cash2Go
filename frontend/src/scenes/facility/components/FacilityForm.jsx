@@ -32,7 +32,7 @@ export default function FacilityForm({onFacilityAdded, onClosePopup}) {
     useEffect(() => {
         if (id) {
           axios
-            .get(`http://localhost:8000/facility/read/${id}`)
+            .get(`${import.meta.env.VITE_API_URL}/facility/read/${id}`)
             .then((res) => {
               const { name, code, type } = res.data[0];
               setInitialValues({ name, code, type });
@@ -47,8 +47,8 @@ export default function FacilityForm({onFacilityAdded, onClosePopup}) {
       const handleSubmit = async (values, actions) => {
         // Here the actions object is provided by Formik which contains helpful methods.
         const apiURL = id
-          ? `http://localhost:8000/facility/edit/${id}`
-          : "http://localhost:8000/facility/new";
+          ? `${import.meta.env.VITE_API_URL}/facility/edit/${id}`
+          : `${import.meta.env.VITE_API_URL}/facility/new`;
     
         try {
           const res = await axios[id ? "put" : "post"](apiURL, values);

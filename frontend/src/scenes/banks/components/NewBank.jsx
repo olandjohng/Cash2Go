@@ -18,7 +18,7 @@ export default function NewBank({onBankAdded, onClosePopup}) {
     // Start useEffect
     useEffect(() => {
         if (id) {
-            axios.get(`http://localhost:8000/banks/read/${id}`)
+            axios.get(`${import.meta.env.VITE_API_URL}/banks/read/${id}`)
             .then((res) => {
                 console.log('API Response:', res.data);
                 
@@ -48,7 +48,7 @@ export default function NewBank({onBankAdded, onClosePopup}) {
     // Start handleSubmit
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const apiURL = id ? `http://localhost:8000/banks/edit/${id}` : 'http://localhost:8000/banks/new';
+        const apiURL = id ? `${import.meta.env.VITE_API_URL}/banks/edit/${id}` : `${import.meta.env.VITE_API_URL}/banks/new`;
         console.log({ bank });
         const axiosMethod = id ? axios.put : axios.post;
     

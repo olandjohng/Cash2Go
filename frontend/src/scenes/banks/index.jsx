@@ -23,7 +23,7 @@ export default function Banks() {
   // Start of loadBankData - use to load the x-datagrid to view the changes
   const loadBankData = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/banks');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/banks`);
       setBank(response.data);
     } catch (error) {
       console.error('Error loading bank data:', error);
@@ -82,7 +82,7 @@ export default function Banks() {
     }
 
     try {
-      const response = await axios.delete(`http://localhost:8000/banks/delete/${id}`);
+      const response = await axios.delete(`${import.meta.env.VITE_API_URL}/banks/delete/${id}`);
       console.log(response.data);
       loadBankData();
       toast.success('Bank Successfully Deleted!', {

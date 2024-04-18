@@ -30,7 +30,7 @@ export default function DeductionForm({ onDeductionAdded, onClosePopup }) {
     useEffect(() => {
         if (id) {
           axios
-            .get(`http://localhost:8000/deductions/read/${id}`)
+            .get(`${import.meta.env.VITE_API_URL}/deductions/read/${id}`)
             .then((res) => {
               const { deductionType } = res.data[0];
               setInitialValues({ deductionType });
@@ -45,8 +45,8 @@ export default function DeductionForm({ onDeductionAdded, onClosePopup }) {
       const handleSubmit = async (values, actions) => {
         // Here the actions object is provided by Formik which contains helpful methods.
         const apiURL = id
-          ? `http://localhost:8000/deductions/edit/${id}`
-          : "http://localhost:8000/deductions/new";
+          ? `${import.meta.env.VITE_API_URL}/deductions/edit/${id}`
+          : `${import.meta.env.VITE_API_URL}/deductions/new`;
     
         try {
           const res = await axios[id ? "put" : "post"](apiURL, values);

@@ -13,7 +13,7 @@ const LoanLinePaymentDetail = ({id}) => {
     useEffect(() => {
         const getDetail = async () => {
           const req = await fetch(
-            `http://localhost:8000/payments/paymentDue/${id}`
+            `${import.meta.env.VITE_API_URL}/payments/paymentDue/${id}`
           );
           const resJson = await req.json();
           setDetails(resJson);

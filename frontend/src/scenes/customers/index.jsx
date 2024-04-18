@@ -12,7 +12,7 @@ import { Bounce, toast } from "react-toastify";
 import { Link, useLocation } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 
-const SERVER_URL = 'http://localhost:8000/customerInfo';
+const SERVER_URL = `${import.meta.env.VITE_API_URL}/customerInfo`;
 
 function Customers() {
   
@@ -33,7 +33,7 @@ function Customers() {
   // Start of loadCategoryData - use to load the x-datagrid to view the changes
   // const loadCustomerData = async () => {
   //   try {
-  //     const response = await axios.get('http://localhost:8000/customerInfo');
+  //     const response = await axios.get('${import.meta.env.VITE_API_URL}/customerInfo');
   //     setCustomer(response.data);
   //   } catch (error) {
   //     console.error('Error loading category data:', error);
@@ -114,7 +114,7 @@ function Customers() {
 
     try {
       const response = await axios.delete(
-        `http://localhost:8000/customerInfo/delete/${id}`
+        `${import.meta.env.VITE_API_URL}/customerInfo/delete/${id}`
       );
       console.log(response.data);
       loadCustomerData();

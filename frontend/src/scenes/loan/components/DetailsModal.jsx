@@ -101,7 +101,7 @@ export default function DetailsModal(props) {
         bank_id : getBankId(bank_name)
       }
       
-      fetch(`http://localhost:8000/loans/details/${selectedLoanId}`, {
+      fetch(`${import.meta.env.VITE_API_URL}/loans/details/${selectedLoanId}`, {
         method : 'PUT',
         headers: { "Content-Type": "application/json" },
         body : JSON.stringify(data),
@@ -112,7 +112,7 @@ export default function DetailsModal(props) {
 
   useEffect(() => {
     const getLoanDetail = async() => {
-        const req = await fetch(`http://localhost:8000/loans/${selectedLoanId}`)
+        const req = await fetch(`${import.meta.env.VITE_API_URL}/loans/${selectedLoanId}`)
         const resJson = await req.json()
         setLoanDetails(resJson)
     }

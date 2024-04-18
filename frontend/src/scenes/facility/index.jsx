@@ -22,7 +22,7 @@ export default function Facility() {
 
   const loadFacilityData = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/facility');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/facility`);
       setFacility(response.data);
     } catch (error) {
       console.error('Error loading facility data:', error);
@@ -76,7 +76,7 @@ export default function Facility() {
     }
 
     try {
-      const response = await axios.delete(`http://localhost:8000/facility/delete/${id}`);
+      const response = await axios.delete(`${import.meta.env.VITE_API_URL}/facility/delete/${id}`);
       console.log(response.data);
       loadFacilityData();
       toast.success('Facility Successfully Deleted!', {

@@ -133,7 +133,7 @@ export default function PaymentForm(props) {
 
   useEffect(() => {
     const getLoanDetail = async () => {
-      const req = await fetch(`http://localhost:8000/payments/read/${id}`);
+      const req = await fetch(`${import.meta.env.VITE_API_URL}/payments/read/${id}`);
       const resJson = await req.json();
       setLoanDetails(resJson);
     };
