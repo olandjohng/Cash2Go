@@ -17,7 +17,7 @@ const paymentRouter = require('./routes/payment');
 
 const production = false;
 
-const PORT = 8000
+const port = process.env.PORT | 8000
 app.use(express.static('public'))
 
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -41,7 +41,7 @@ app.use('/account-title', accountTitleRouter)
 app.use('/employee', employeeRouter)
 
 
-app.listen(PORT, () => {
+app.listen(port, () => {
   console.log(`Server running...`)
   // console.log(`Click link to open http://localhost:${params.port}`)
   // console.log('Do not close this window');
