@@ -161,10 +161,10 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           value={formValue.collateral}
           options={collaterals}
           idfield='collateral_id'
-          getOptionLabel={(option) => option.name || "" || option}
+          getOptionLabel={(option) => option.description || "" || option}
           renderOption={(props, option) => 
             <Box {...props} component='li' key={option.id} id={option.id}>
-              {option.name}
+              {option.description}
             </Box>  
           }
           nameField="collateral"
