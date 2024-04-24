@@ -30,11 +30,13 @@ const formatNumber = (value) => {
 };
 
 const initialValues = {
-  name: "",
-  email: "",
-  street: "",
-  country: "",
-  donations: [{ id: 0, donationName: "", amount: 0 }],
+  principalAmount: "",
+  interestAmount: "",
+  PenaltyAmount: "",
+  paymentType: "",
+  bank: "",
+  checkNum: "",
+  remarks: "",
 };
 
 export default function PaymentForm(props) {
@@ -172,7 +174,7 @@ export default function PaymentForm(props) {
           stepName="Payment"
           onSubmit={() => console.log("Step Four")}
         >
-          <PaymentAmount />
+          <PaymentAmount id={id} />
         </FormStep>
       </MultiStepForm>
     </div>

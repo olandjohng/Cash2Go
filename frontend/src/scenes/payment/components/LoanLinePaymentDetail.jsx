@@ -103,7 +103,8 @@ const LoanLinePaymentDetail = ({id}) => {
                         <Typography variant="h4" component="div">
                           {(
                             Number(detail.Principal_Due) +
-                            Number(detail.Interest_Due)
+                            Number(detail.Interest_Due) +
+                            Number(detail.Penalty_Due)
                           ).toLocaleString("en", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
