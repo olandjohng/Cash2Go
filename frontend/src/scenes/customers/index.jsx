@@ -4,8 +4,8 @@ import { DataGrid } from "@mui/x-data-grid";
 import axios from "axios";
 import Popups from "../../components/Popups";
 import NewCustomer from "./components/NewCustomer";
-import { DeleteOutlined, EditCalendarOutlined } from "@mui/icons-material";
-import { Button, Tooltip } from "@mui/material";
+import { DeleteOutlined, EditCalendarOutlined, SearchOutlined } from "@mui/icons-material";
+import { Box, Button, IconButton, InputBase, Tooltip } from "@mui/material";
 import { useTheme } from "@emotion/react";
 import { tokens } from "../../theme";
 import { Bounce, toast } from "react-toastify";
@@ -24,11 +24,13 @@ function Customers() {
   const [isLoading, setIsLoading] = useState(false);
   const [rows, setRows] = useState([]);
   const [rowCount, setRowCount] = useState(0);
+  const [searchValue, setSearchValue] = useState("");
 
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const loc = useLocation();
   const [openPopup, setOpenPopup] = useState(false);
+
 
   // Start of loadCategoryData - use to load the x-datagrid to view the changes
   // const loadCustomerData = async () => {
@@ -151,15 +153,34 @@ function Customers() {
     setOpenPopup(false);
   };
   // End closing the popup
-  
+
+  // Start search
+  const handleSearch = async () => {
+    try {
+      const response = await axios.get(SERVER_URL, {
+        params: {
+          page: 1, // Reset page to 1 when searching
+          pageSize: paginationModel.pageSize,
+          search: searchValue.trim(),
+        },
+      });
+      setRows(response.data.data);
+      setRowCount(response.data.totalCount);
+    } catch (error) {
+      console.error("Error loading customer data:", error);
+    }
+  };
+  // End search
 
   // Start useEffect
-  // useEffect(() =>{
-  //   loadCustomerData();
-  // }, [])
   useEffect(() => {
-    loadCustomerData();
-  }, [paginationModel]);
+    if (searchValue.trim() === "") {
+      loadCustomerData();
+    } else {
+      handleSearch();
+    }
+    
+  }, [searchValue, paginationModel]);
   // End useEffect
 
   const handlePaginationModelChange = (newPaginationModel) => {
@@ -174,7 +195,24 @@ function Customers() {
         onAddButtonClick={() => setOpenPopup(true)}
         toURL={loc.pathname + "/new"}
       />
+      <Box
+        display="flex"
+        alignItems="flex-start"
+        marginBottom={2}
+        backgroundColor={colors.greenAccent[800]}
+        borderRadius="3px"
+      >
+        <InputBase
+          sx={{ ml: 2, mt: 0.5, flex: 1 }}
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+        />
+        <IconButton type="button" sx={{ p: 1 }}>
+          <SearchOutlined />
+        </IconButton>
+      </Box>
       <DataGrid
+        sx={{ height: "92%" }}
         columns={columns}
         rows={rows}
         loading={isLoading}
