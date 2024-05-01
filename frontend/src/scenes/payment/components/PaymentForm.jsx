@@ -146,7 +146,7 @@ export default function PaymentForm(props) {
 
   return (
     <div style={{ width: 900 }}>
-      <MultiStepForm initialValues={initialValues}>
+      <MultiStepForm initialValues={initialValues} >
         <FormStep
           stepName="Loan Details"
           onSubmit={() => console.log("Step One")}
