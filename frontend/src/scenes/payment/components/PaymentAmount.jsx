@@ -52,6 +52,7 @@ const PaymentAmount = ({ id }) => {
       const formattedValue = numericValue.toFixed(2);
       const updatedDetails = [...details];
       updatedDetails[index][fieldName] = formattedValue;
+      console.log(updatedDetails)
       setDetails(updatedDetails);
     } else {
       console.error(`Invalid value provided: ${value}`);

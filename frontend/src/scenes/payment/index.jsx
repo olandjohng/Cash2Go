@@ -6,6 +6,7 @@ import {
   IconButton,
   InputBase,
   TextField,
+  ToggleButton,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -23,10 +24,13 @@ import { Link, useLocation } from "react-router-dom";
 import { DataGrid } from "@mui/x-data-grid";
 import Popups from "../../components/Popups";
 import PaymentForm from "./components/PaymentForm";
+import dayjs from "dayjs";
 
 const SERVER_URL = "http://localhost:8000/payments";
 
-function LoanPayment() {
+
+
+export default function LoanPayment() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const loc = useLocation();
@@ -35,7 +39,7 @@ function LoanPayment() {
   const [rowCount, setRowCount] = useState(0);
   const [openPopup, setOpenPopup] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState(null);
-
+  const [isDeductionView, setIsDeductionView] = useState(false)
   const [searchValue, setSearchValue] = useState("");
 
   const [paginationModel, setPaginationModel] = useState({
@@ -52,8 +56,10 @@ function LoanPayment() {
           pageSize: paginationModel.pageSize,
         },
       });
+
       setRows(response.data.data);
       setRowCount(response.data.totalCount);
+      
     } catch (error) {
       console.error("Error loading customer data:", error);
     } finally {
@@ -85,7 +91,7 @@ function LoanPayment() {
         <div className="flex items-center justify-between">
           <Tooltip title="Payment" placement="top" arrow>
             <Button
-               component={Link}
+              component={Link}
               to={`/payments/${params.row.id}`}
               sx={{ color: colors.greenAccent[400], cursor: "auto" }}
               onClick={() => handlePaymentButtonClick()}
@@ -182,6 +188,46 @@ function LoanPayment() {
     },
   ];
 
+  const col = [
+    { field: "process_date", width: 150, headerName: "Process Date" },
+    { field: "pr_number", width: 150, headerName: "PR Number" },
+    { field: "customer_name", width: 200, headerName: "Borrower Name" },
+    { field: "pn_number", width: 150, headerName: "PN Number" },
+    { field: "payment_type", width: 200, headerName: "Mode of Payment" },
+    { field: "bank", width: 150, headerName: "Bank" },
+    { field: "check_number", width: 150, headerName: "Check No." },
+    { field: "principal_payment", width: 150, headerName: "Principal" },
+    { field: "interest_payment", width: 150, headerName: "Interest" },
+    { field: "total_payment", width: 150, headerName: "Total Payment" },
+    { field: "remarks", width: 200, headerName: "Remarks" },
+    // { field: "penalty", width: 150, headerName: "Hold Charge" },
+    // { field: "service_charge", width: 150, headerName: "Service Charge" },
+    // { field: "doc_stamp", width: 150, headerName: "Service Charge" },
+  ]
+
+  const rowTest = [
+    {
+      id : 1,
+      pn_number : 2000,
+      pr_number : 5000,
+      customer_name : 'Noemito John Lacanaria',
+      principal_payment : 9000,
+      interest_payment : 9000,
+      process_date : dayjs(Date()).format('MM-DD-YYYY'),
+      remarks : 'test remarks'.toUpperCase()
+    },
+    {
+      id : 2,
+      pn_number : 2000,
+      pr_number : 5000,
+      customer_name : 'Noemito John Lacanaria',
+      principal_payment : 9000,
+      interest_payment : 9000,
+      process_date : dayjs(Date()).format('MM-DD-YYYY'),
+      remarks : 'test remarks'.toUpperCase()
+    }
+  ]
+
   const handleSearch = async () => {
     try {
       const response = await axios.get(SERVER_URL, {
@@ -213,11 +259,11 @@ function LoanPayment() {
 
   return (
     <div style={{ height: "75%", padding: 20 }}>
-      <Header title="LOAN PAYMENTS"  />
+      <Header title="LOAN PAYMENTS" onAddButtonClick={() => setOpenPopup(true)} />
       <Box
         display="flex"
         alignItems="flex-start"
-        marginBottom={2}
+        marginBottom={1}
         backgroundColor={colors.greenAccent[800]}
         borderRadius="3px"
       >
@@ -230,7 +276,23 @@ function LoanPayment() {
           <SearchOutlined />
         </IconButton>
       </Box>
-      <DataGrid
+      {/*TODO Filter date UI */}
+      {/* Toggle button UI */}
+      <Box>
+        <ToggleButton 
+          size="small"
+          sx={{ paddingX : 2, marginBottom : 1}}
+          selected={isDeductionView}
+          onChange={() => {
+            setIsDeductionView((old) => !old)
+          }}
+        >
+          {isDeductionView ? (<span>View Payment</span>) : (<span>View Deduction</span>) }
+        </ToggleButton>
+        
+      </Box>
+
+      {/* <DataGrid
         sx={{ height: "93%" }}
         columns={columns}
         rows={rows}
@@ -240,7 +302,17 @@ function LoanPayment() {
         paginationMode="server"
         paginationModel={paginationModel}
         onPaginationModelChange={handlePaginationModelChange}
-      />
+      /> */}
+      {isDeductionView ? 
+      <div>Deduction</div> : 
+        (
+          // Payment Data Grid
+          <DataGrid 
+            sx={{ height: "90%" }}
+            columns={col}
+            rows={rowTest}/>
+        )
+      }
 
       <Popups
         title="Loan Payment Details"
@@ -253,5 +325,3 @@ function LoanPayment() {
     </div>
   );
 }
-
-export default LoanPayment;

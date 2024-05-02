@@ -6,11 +6,14 @@ import { DataGrid } from "@mui/x-data-grid";
 import dayjs from "dayjs";
 import { useParams } from "react-router-dom";
 import {
+  Box,
   Button,
   Card,
   CardActions,
   CardContent,
   Grid,
+  IconButton,
+  InputBase,
   Typography,
 } from "@mui/material";
 import MultiStepForm from "../../../components/MultiStepForm";
@@ -19,6 +22,8 @@ import { grey } from "@mui/material/colors";
 import LoanLinePaymentDetail from "./LoanLinePaymentDetail";
 import PaymentSetup from "./PaymentSetup";
 import PaymentAmount from "./PaymentAmount";
+import { SearchOutlined } from "@mui/icons-material";
+import PaymentSearch from "./PaymentSearch";
 
 const formatNumber = (value) => {
   const amount = value.split(".");
@@ -29,24 +34,42 @@ const formatNumber = (value) => {
   return format;
 };
 
-const initialValues = {
-  principalAmount: "",
-  interestAmount: "",
-  PenaltyAmount: "",
-  paymentType: "",
+const initialPaymentData = {
+  loan_header_id : 0,
+  loan_detail_id : 0,
+  payment_type : '',
+  principal_payment: "",
+  interest_payment: "",
+  penalty_amount: "",
+  pr_number : '',
+  or_number : '',
   bank: "",
-  checkNum: "",
+  check_number: "",
   remarks: "",
 };
+const initialCashRowData = [
+  { denomination: 1000, count: 0 },
+  { denomination: 500, count: 0 },
+  { denomination: 200, count: 0 },
+  { denomination: 100, count: 0 },
+  { denomination: 50, count: 0 },
+  { denomination: 20, count: 0 },
+  { denomination: 10, count: 0 },
+  { denomination: 5, count: 0 },
+  { denomination: 1, count: 0 },
+];
 
 export default function PaymentForm(props) {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const { id } = useParams();
+  // const { id } = useParams();
 
-  const { selectedLoanId, onClosePopup } = props;
+  // const { selectedLoanId, onClosePopup } = props;
   const [loanDetails, setLoanDetails] = useState([]);
-  
+  const [loanId, setLoanId] = useState(null)
+  const [paymentData, setPaymentData] = useState(initialPaymentData)
+  const [paymentRow, setPaymentRow] = useState([])
+  const [cashRow, setCashRow] = useState(initialCashRowData.map((v, i) => ({...v, id : i})))
 
   const columns = [
     {
@@ -135,18 +158,22 @@ export default function PaymentForm(props) {
 
   useEffect(() => {
     const getLoanDetail = async () => {
-      const req = await fetch(`http://localhost:8000/payments/read/${id}`);
-      const resJson = await req.json();
-      setLoanDetails(resJson);
+      if(loanId){
+        const req = await fetch(`http://localhost:8000/payments/read/${loanId}`);
+        const resJson = await req.json();
+        setLoanDetails(resJson);
+      }
     };
     getLoanDetail();
-  }, []);
+  }, [loanId]);
 
   
-
   return (
     <div style={{ width: 900 }}>
-      <MultiStepForm initialValues={initialValues}>
+      <MultiStepForm initialValues={paymentData} onSubmit={() => {}}>
+        <FormStep stepName="Search Payment" onSubmit={() => console.log('search payment',paymentData)}>
+          <PaymentSearch paymentDataSetter={setPaymentData} paymentRow={paymentRow} paymentRowSetter={setPaymentRow} loanIdSetter={setLoanId}/>
+        </FormStep>
         <FormStep
           stepName="Loan Details"
           onSubmit={() => console.log("Step One")}
@@ -162,19 +189,19 @@ export default function PaymentForm(props) {
           stepName="Current Due"
           onSubmit={() => console.log("Step Two")}
         >
-          <LoanLinePaymentDetail id={id} />
+          <LoanLinePaymentDetail id={loanId} paymentDataSetter={setPaymentData}/>
         </FormStep>
         <FormStep
           stepName="Payment Setup"
           onSubmit={() => console.log("Step Three")}
         >
-          <PaymentSetup />
+          <PaymentSetup cashRow={cashRow} cashRowSetter={setCashRow} paymentData={paymentData} paymentDataSetter={setPaymentData} />
         </FormStep>
         <FormStep
           stepName="Payment"
           onSubmit={() => console.log("Step Four")}
         >
-          <PaymentAmount id={id} />
+          <PaymentAmount id={loanId} />
         </FormStep>
       </MultiStepForm>
     </div>

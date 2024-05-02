@@ -4,8 +4,7 @@ import { DataGrid, GridActionsCellItem, GridRowModes, GRID_SINGLE_SELECT_COL_DEF
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import { Autocomplete, Box, TextField, } from "@mui/material"
-// import Header from "../../../components/Header"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import dayjs from "dayjs";
 
 const formatNumber = (value) => {
@@ -124,7 +123,6 @@ export default function DetailsModal(props) {
       return oldRow
     }
     const row = await update(newRow)
-    
     return row
   }
 

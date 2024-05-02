@@ -16,6 +16,7 @@ const LoanLinePaymentDetail = ({id}) => {
             `http://localhost:8000/payments/paymentDue/${id}`
           );
           const resJson = await req.json();
+          console.log('payment latest : ', resJson)
           setDetails(resJson);
         };
         getDetail();

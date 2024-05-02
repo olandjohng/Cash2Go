@@ -22,8 +22,6 @@ function NumberFormatCustom(props) {
       thousandSeparator
       isNumericString
       decimalScale={2}
-      
-      
     />
   );
 }

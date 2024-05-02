@@ -1,30 +1,37 @@
-import { Grid } from "@mui/material";
+import { Autocomplete, Box, Grid } from "@mui/material";
 import SelectWrapper from "../../../components/FormUI/Select";
 import EditableDataGrid from "./EditableDataGrid";
 import TextfieldWrapper from "../../../components/FormUI/Textfield";
 import { useEffect, useState } from "react";
+import { ComboBox } from "../../loan/components/LoanForm1";
 
-const PaymentSetup = () => {
+// const initialRowData = [
+//   { denomination: 1000, count: 0 },
+//   { denomination: 500, count: 0 },
+//   { denomination: 200, count: 0 },
+//   { denomination: 100, count: 0 },
+//   { denomination: 50, count: 0 },
+//   { denomination: 20, count: 0 },
+//   { denomination: 10, count: 0 },
+//   { denomination: 5, count: 0 },
+//   { denomination: 1, count: 0 },
+// ];
+
+const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter}) => {
+  
   const [banks, setBanks] = useState([]);
   const [paymentType, setPaymentType] = useState("");
   const [selectedBank, setSelectedBank] = useState("");
   const [showOrField, setShowOrField] = useState(false);
 
-  const initialRowData = [
-    { denomination: 1000, count: 0 },
-    { denomination: 500, count: 0 },
-    { denomination: 200, count: 0 },
-    { denomination: 100, count: 0 },
-    { denomination: 50, count: 0 },
-    { denomination: 20, count: 0 },
-    { denomination: 10, count: 0 },
-    { denomination: 5, count: 0 },
-    { denomination: 1, count: 0 },
-  ];
-
-  const handleRowEdit = (id, field, value) => {
-    // Handle row edits here, you can update state or perform other actions
-    console.log("Row edited:", id, field, value);
+  const handleRowEdit = (newRow, oldRow) => {
+    const updatedRow = cashRow.map((v) => {
+      if(v.id == newRow.id) return newRow;
+      return v
+    })
+    cashRowSetter(updatedRow)
+    paymentDataSetter((old) => ({...old , cash_count : updatedRow}))
+    return newRow
   };
   const fixedOptions = [
     { value: "CASH", label: "Cash" },
@@ -60,8 +67,12 @@ const PaymentSetup = () => {
             label="Payment Type"
             options={fixedOptions}
             variant="standard"
-            value={paymentType}
-            onChange={(e) => setPaymentType(e.target.value)}
+            value={paymentData.payment_type}
+            onChange={(e) => {
+              const type = e.target.value
+              paymentDataSetter((old) => ({...old, payment_type : type}))
+              setPaymentType(type)
+            }}
           />
         </Grid>
         <Grid item xs={12}>
@@ -69,15 +80,15 @@ const PaymentSetup = () => {
         </Grid>
       </Grid>
       <Grid item xs={8}>
-        {paymentType === "CASH" && (
+        {paymentData.payment_type === "CASH" && (
           <Grid item xs={12} marginBottom={2}>
             <EditableDataGrid
-              rowData={initialRowData}
+              rowData={cashRow}
               onRowEdit={handleRowEdit}
             />
           </Grid>
         )}
-        {paymentType === "CHECK" && (
+        {paymentData.payment_type === "CHECK" && (
           <Grid container spacing={2}>
             <Grid item xs={4} marginBottom={2}>
               <SelectWrapper
