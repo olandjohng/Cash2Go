@@ -91,7 +91,7 @@ const formatNumber = (value) => {
 const getVoucher = async (id) => {
   
   try {
-    const fetchData = await fetch(`http://localhost:8000/loans/voucher/${id}`);
+    const fetchData = await fetch(`/api/loans/voucher/${id}`);
     const voucherJSON = await fetchData.json();
     const format = {
       ...voucherJSON,
@@ -218,7 +218,7 @@ const Loan = () => {
   };
 
   const renewLoan = async (id) =>{
-    const request = await fetch(`http://localhost:8000/loans/renew/${id}`)
+    const request = await fetch(`/api/loans/renew/${id}`)
     const responseJSON = await request.json()
     setRenewFormValue((old) => ({...old , ...responseJSON}))
     setOpenRenewPopup(true)
@@ -226,7 +226,7 @@ const Loan = () => {
 
   const restructureLoan = async (id) => {
     try {
-      const request = await fetch(`http://localhost:8000/loans/recalculate/${id}`)
+      const request = await fetch(`/api/loans/recalculate/${id}`)
       const responseJSON = await request.json()
       console.log(responseJSON)
       setRestructureFormValue((old) => ({...old, ...responseJSON}))
@@ -241,7 +241,7 @@ const Loan = () => {
   const handleSearch = (e) => {
     clearTimeout(timeOut);
     timeOut = setTimeout(() => {
-      fetch(`http://localhost:8000/loans?search=${e.target.value}`)
+      fetch(`/api/loans?search=${e.target.value}`)
         .then((res) => res.json())
         .then((val) => dispatch({ type: "INIT", loans: val }));
     }, 1000);
@@ -250,13 +250,13 @@ const Loan = () => {
   useEffect(() => {
     const getData = async () => {
       const urls = [
-        fetch("http://localhost:8000/loans"),
-        fetch("http://localhost:8000/loans/collateral"),
-        fetch("http://localhost:8000/loans/facility"),
-        fetch("http://localhost:8000/banks"),
-        fetch("http://localhost:8000/loans/category"),
-        fetch("http://localhost:8000/deductions"),
-        fetch("http://localhost:8000/account-title"),
+        fetch("/api/loans"),
+        fetch("/api/loans/collateral"),
+        fetch("/api/loans/facility"),
+        fetch("/api/banks"),
+        fetch("/api/loans/category"),
+        fetch("/api/deductions"),
+        fetch("/api/account-title"),
       ];
 
       try {

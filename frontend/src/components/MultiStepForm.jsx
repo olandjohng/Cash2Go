@@ -20,8 +20,7 @@ const MultiStepForm = ({ children, initialValues, onSubmit }) => {
     setSnapshot(values);
     setStepNumber(stepNumber + 1);
     setCompletedSteps({ ...completedSteps, [step.props.stepName]: true });
-    console.log(step);
-    console.log(totalSteps);
+    // console.log(totalSteps);
   };
 
   const previous = (values) => {
@@ -30,15 +29,13 @@ const MultiStepForm = ({ children, initialValues, onSubmit }) => {
   };
 
   const handleSubmit = async (formik, actions) => {
-    console.log(formik);
-
     if (step.props.onSubmit) {
       await step.props.onSubmit(formik.values);
     }
 
     if (isLastStep) {
       await onSubmit(formik.values);
-      setIsFormSubmitted(true);
+      // setIsFormSubmitted(true);
     } else {
       actions.setTouched({});
       next(formik.values);

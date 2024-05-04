@@ -13,7 +13,7 @@ const CustomerComboBox = ({value, setter, disabled}) => {
 
   const fetchData = async (value) => {
     try {
-      const request = await fetch(`http://localhost:8000/customers/search?name=${value}`)
+      const request = await fetch(`/api/customers/search?name=${value}`)
       return await request.json()
     } catch (error) {
       console.log(error)
