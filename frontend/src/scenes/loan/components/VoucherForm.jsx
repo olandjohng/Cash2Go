@@ -13,7 +13,7 @@ export default function VoucherForm({accountTitle, voucher, setVoucher }) {
   useEffect(() => {
     const getEmployees = async () =>{
       try {
-        const request = await fetch('http://localhost:8000/employee')
+        const request = await fetch('/api/employee')
         const responseJSON = await request.json()
         setEmployees(responseJSON)
       } catch (error) {

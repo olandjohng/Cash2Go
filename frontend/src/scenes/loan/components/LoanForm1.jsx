@@ -106,7 +106,7 @@ const CustomerComboBox = ({value, setter}) => {
 
   const fetchData = async (value) => {
     try {
-      const request = await fetch(`http://localhost:8000/customers/search?name=${value}`)
+      const request = await fetch(`/api/customers/search?name=${value}`)
       return await request.json()
     } catch (error) {
       console.log(error)
@@ -195,7 +195,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
   useEffect(() => {
     const getEmployees = async () =>{
       try {
-        const request = await fetch('http://localhost:8000/employee')
+        const request = await fetch('/api/employee')
         const responseJSON = await request.json()
         setEmployees(responseJSON)
       } catch (error) {
@@ -252,7 +252,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
           
           data = {...data , loan_details : mapLoanDetails} 
           // console.log('fetch', data)
-          fetch('http://localhost:8000/loans', {
+          fetch('/api/loans', {
             method : 'POST',
             headers: {
               "Content-Type": "application/json",
