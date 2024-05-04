@@ -2,30 +2,12 @@ const express = require("express");
 const customerInfoRouter = express.Router();
 const builder = require("../builder");
 
-// customerInfoRouter.get('/', async (req, res) => {
-//     try {
-//       const customers = await builder
-//         .select({
-//           id: 'customerid',
-//           fullname: builder.raw("CONCAT_WS(', ', ??, CONCAT(??, ' ', SUBSTRING(??, 1, 1), '.'))", ['clname', 'cfname', 'cmname']),
-//           contactNo: 'contactno',
-//           address: 'address',
-//           gender: 'gender',
-//         })
-//         .from({ c: 'customertbl' });
-
-//       res.status(200).send(customers);
-//     } catch (error) {
-//       console.error(error);
-//       res.status(500).send('Internal Server Error');
-//     }
-//   });
-
 customerInfoRouter.get("/", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 10;
     const offset = (page - 1) * pageSize;
+    const search = req.query.search ? req.query.search : "";
 
     const [results, totalCount] = await Promise.all([
       builder
@@ -37,9 +19,28 @@ customerInfoRouter.get("/", async (req, res) => {
           gender: 'gender',
         })
         .from({ c: 'customertbl' })
+        .modify((queryBuilder) => {
+          if (search.trim() !== "") {
+            queryBuilder.where((qb) => {
+              qb.where("clname", "like", `%${search.trim()}%`)
+                .orWhere("cfname", "like", `%${search.trim()}%`);
+            }); // Filter by customer firstname or lastname
+          }
+        })
         .limit(pageSize)
         .offset(offset),
-      builder.count('* as count').from({ c: 'customertbl' }).first(),
+      builder
+        .count('* as count')
+        .from({ c: 'customertbl' })
+        .modify((queryBuilder) => {
+          if (search.trim() !== "") {
+            queryBuilder.where((qb) => {
+              qb.where("clname", "like", `%${search.trim()}%`)
+                .orWhere("cfname", "like", `%${search.trim()}%`);
+            }); // Filter by customer firstname or lastname
+          }
+        })
+        .first(),
     ]);
 
     res.json({
@@ -57,11 +58,11 @@ customerInfoRouter.get("/", async (req, res) => {
 
 customerInfoRouter.get("/read/:id", async (req, res) => {
   const id = req.params.id;
-  const deduction = await builder
+  const customer = await builder
     .select("*")
     .from("customertbl")
     .where("customerid", id);
-  res.status(200).json(deduction);
+  res.status(200).json(customer);
 });
 
 customerInfoRouter.post("/new", async (req, res) => {

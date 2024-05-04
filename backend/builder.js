@@ -1,6 +1,5 @@
 const knex = require('knex')
-require('dotenv').config()
-
+//require('dotenv').config()
 const HOST = 'localhost'
 const USER = 'root'
 const PASSWORD = 'root'
@@ -14,7 +13,6 @@ const builder = knex({
     user : USER,
     password : PASSWORD,
     database : DATABASE,
-
     // host: process.env.DB_HOST,
     // user: process.env.DB_USERNAME,
     // password: process.env.DB_PASSWORD,
