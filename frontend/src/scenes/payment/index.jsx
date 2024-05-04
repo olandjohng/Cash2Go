@@ -26,10 +26,6 @@ import Popups from "../../components/Popups";
 import PaymentForm from "./components/PaymentForm";
 import dayjs from "dayjs";
 
-const SERVER_URL = "http://localhost:8000/payments";
-
-
-
 export default function LoanPayment() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -50,7 +46,7 @@ export default function LoanPayment() {
   const loadPaymentHeaderData = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(SERVER_URL, {
+      const response = await axios.get(`/api/payments`, {
         params: {
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,

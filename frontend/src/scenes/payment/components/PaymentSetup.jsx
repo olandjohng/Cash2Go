@@ -1,4 +1,4 @@
-import { Autocomplete, Box, Grid } from "@mui/material";
+import { Autocomplete, Box, Grid, TextField } from "@mui/material";
 import SelectWrapper from "../../../components/FormUI/Select";
 import EditableDataGrid from "./EditableDataGrid";
 import TextfieldWrapper from "../../../components/FormUI/Textfield";
@@ -17,11 +17,11 @@ import { ComboBox } from "../../loan/components/LoanForm1";
 //   { denomination: 1, count: 0 },
 // ];
 
-const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter}) => {
+const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter, selectedBank, selectedBankSetter}) => {
   
   const [banks, setBanks] = useState([]);
   const [paymentType, setPaymentType] = useState("");
-  const [selectedBank, setSelectedBank] = useState("");
+  // const [selectedBank, setSelectedBank] = useState("");
   const [showOrField, setShowOrField] = useState(false);
 
   const handleRowEdit = (newRow, oldRow) => {
@@ -39,14 +39,22 @@ const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter})
     { value: "ONLINE", label: "Online" },
   ];
 
+  const handleTextFieldChange = (e) => {
+    paymentDataSetter((old) => ({...old, [e.target.name] : e.target.value}))
+  }
+
+
   useEffect(() => {
     const getBanks = async () => {
-      const req = await fetch(`http://localhost:8000/payments/bank`);
+      const req = await fetch(`/api/payments/bank`);
       const resJson = await req.json();
       setBanks(resJson);
     };
     getBanks();
   }, []);
+
+
+
 
   useEffect(() => {
     // Check if the selected bank ID is for BDO to determine OR number field visibility
@@ -76,7 +84,7 @@ const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter})
           />
         </Grid>
         <Grid item xs={12}>
-          <TextfieldWrapper name="myText" label="Provisional Receipt" />
+          <TextfieldWrapper value={paymentData.pr_number} onChange={(e) => paymentDataSetter((old) => ({...old, pr_number : e.target.value}))} name="myText" label="Provisional Receipt" />
         </Grid>
       </Grid>
       <Grid item xs={8}>
@@ -100,15 +108,20 @@ const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter})
                 }))}
                 variant="standard"
                 value={selectedBank}
-                onChange={(e) => setSelectedBank(e.target.value)}
+                onChange={(e) => {
+                  selectedBankSetter(e.target.value)
+                  paymentDataSetter((old) => ({...old, bank : e.target.value}))
+                }}
               />
             </Grid>
             <Grid item xs={showOrField ? 4 : 8} marginBottom={2}>
-              <TextfieldWrapper name="myCheck" label="Check No." />
+              {/* <TextfieldWrapper name="myCheck" label="Check No." /> */}
+              <TextField fullWidth label='Check No.' name="check_number" onChange={handleTextFieldChange} value={paymentData.check_number}/>
             </Grid>
             {showOrField && (
               <Grid item xs={4} marginBottom={2}>
-                <TextfieldWrapper name="myOr" label="OR Number" />
+                {/* <TextfieldWrapper name="myOr" label="OR Number" /> */}
+                <TextField fullWidth label='OR No.' name="or_number" onChange={handleTextFieldChange} value={paymentData.or_number}/>
               </Grid>
             )}
           </Grid>

@@ -2,6 +2,12 @@ const express = require("express");
 const paymentRouter = express.Router();
 const builder = require("../builder");
 
+
+
+
+
+
+
 paymentRouter.get("/", async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const pageSize = parseInt(req.query.pageSize) || 10;
@@ -55,6 +61,13 @@ paymentRouter.get("/", async (req, res) => {
     res.status(500).json({ error: error.message || "Internal Server Error" });
   }
 });
+
+paymentRouter.post('/', (req, res) => {
+  
+})
+
+
+
 
 paymentRouter.get("/customer", async (req, res) => {
   try {

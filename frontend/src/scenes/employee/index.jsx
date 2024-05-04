@@ -22,7 +22,7 @@ function Employee() {
 
   const loadEmployeeData = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/employee');
+      const response = await axios.get('/api/employee');
       setEmployee(response.data);
     } catch (error) {
       console.error('Error loading employee data:', error);
@@ -76,7 +76,7 @@ function Employee() {
     }
 
     try {
-      const response = await axios.delete(`http://localhost:8000/employee/delete/${id}`);
+      const response = await axios.delete(`/api/employee/delete/${id}`);
       console.log(response.data);
       loadEmployeeData();
       toast.success('Employee Successfully Deleted!', {

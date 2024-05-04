@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-const SERVER_URL = "http://localhost:8000/payments";
+const SERVER_URL = "/api/payments";
 
 
 const formatNumber = (value) => {
@@ -184,9 +184,9 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
             setSelectionModel(selection);
             loanId = selection[0]
           }
-          
-          loanIdSetter(loanId)
           paymentDataSetter((old) => ({...old, loan_header_id : loanId }))
+          loanIdSetter(loanId)
+
         }}/>
     </>
   )

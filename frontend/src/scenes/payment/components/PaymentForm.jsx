@@ -70,6 +70,7 @@ export default function PaymentForm(props) {
   const [paymentData, setPaymentData] = useState(initialPaymentData)
   const [paymentRow, setPaymentRow] = useState([])
   const [cashRow, setCashRow] = useState(initialCashRowData.map((v, i) => ({...v, id : i})))
+  const [selectedBank, setSelectedBank] = useState('')
 
   const columns = [
     {
@@ -159,7 +160,7 @@ export default function PaymentForm(props) {
   useEffect(() => {
     const getLoanDetail = async () => {
       if(loanId){
-        const req = await fetch(`http://localhost:8000/payments/read/${loanId}`);
+        const req = await fetch(`/api/payments/read/${loanId}`);
         const resJson = await req.json();
         setLoanDetails(resJson);
       }
@@ -167,16 +168,22 @@ export default function PaymentForm(props) {
     getLoanDetail();
   }, [loanId]);
 
+  const handleSubmit = async () => {
+    // set loading
+    
+
+    // 
+  }
   
   return (
     <div style={{ width: 900 }}>
-      <MultiStepForm initialValues={paymentData} onSubmit={() => {}}>
-        <FormStep stepName="Search Payment" onSubmit={() => console.log('search payment',paymentData)}>
+      <MultiStepForm initialValues={paymentData} onSubmit={handleSubmit}>
+        <FormStep stepName="Search Payment" onSubmit={() => {}}>
           <PaymentSearch paymentDataSetter={setPaymentData} paymentRow={paymentRow} paymentRowSetter={setPaymentRow} loanIdSetter={setLoanId}/>
         </FormStep>
         <FormStep
           stepName="Loan Details"
-          onSubmit={() => console.log("Step One")}
+          onSubmit={() =>{}}
         >
           <DataGrid
             rows={loanDetails}
@@ -187,21 +194,21 @@ export default function PaymentForm(props) {
         </FormStep>
         <FormStep
           stepName="Current Due"
-          onSubmit={() => console.log("Step Two")}
+          onSubmit={() => {}}
         >
           <LoanLinePaymentDetail id={loanId} paymentDataSetter={setPaymentData}/>
         </FormStep>
         <FormStep
           stepName="Payment Setup"
-          onSubmit={() => console.log("Step Three")}
+          onSubmit={() => {}}
         >
-          <PaymentSetup cashRow={cashRow} cashRowSetter={setCashRow} paymentData={paymentData} paymentDataSetter={setPaymentData} />
+          <PaymentSetup selectedBank={selectedBank} selectedBankSetter={setSelectedBank} cashRow={cashRow} cashRowSetter={setCashRow} paymentData={paymentData} paymentDataSetter={setPaymentData} />
         </FormStep>
         <FormStep
           stepName="Payment"
-          onSubmit={() => console.log("Step Four")}
+          onSubmit={() => {}}
         >
-          <PaymentAmount id={loanId} />
+          <PaymentAmount id={loanId} paymentDataSetter={setPaymentData} paymentData={paymentData}/>
         </FormStep>
       </MultiStepForm>
     </div>

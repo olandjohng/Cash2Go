@@ -27,6 +27,7 @@ const TextfieldWrapper = ({ name, ...otherProps }) => {
   return (
     <TextField
       {...configTextfield}
+      
       sx={{
         '& .MuiOutlinedInput-root': {
           '&.Mui-focused fieldset': {
