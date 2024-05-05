@@ -23,8 +23,10 @@ import { Bounce, toast } from "react-toastify";
 import { Link, useLocation } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 
+
 const SERVER_URL = "http://localhost:8000/customerInfo";
 const imageBaseURL = "http://localhost:8000/images/";
+
 
 function Customers() {
   const [paginationModel, setPaginationModel] = useState({
@@ -41,6 +43,7 @@ function Customers() {
   const colors = tokens(theme.palette.mode);
   const loc = useLocation();
   const [openPopup, setOpenPopup] = useState(false);
+
 
   const loadCustomerData = async () => {
     setIsLoading(true);
@@ -125,7 +128,7 @@ function Customers() {
 
     try {
       const response = await axios.delete(
-        `http://localhost:8000/customerInfo/delete/${id}`
+        `/api/customerInfo/delete/${id}`
       );
       console.log(response.data);
       loadCustomerData();

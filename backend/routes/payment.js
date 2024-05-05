@@ -2,6 +2,12 @@ const express = require("express");
 const paymentRouter = express.Router();
 const builder = require("../builder");
 
+
+
+
+
+
+
 paymentRouter.get("/", async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const pageSize = parseInt(req.query.pageSize) || 10;
@@ -56,6 +62,13 @@ paymentRouter.get("/", async (req, res) => {
   }
 });
 
+paymentRouter.post('/', (req, res) => {
+  
+})
+
+
+
+
 paymentRouter.get("/customer", async (req, res) => {
   try {
     const customers = await builder
@@ -94,7 +107,7 @@ paymentRouter.get("/read/:id", async (req, res) => {
         ,'running_balance'
         ,'running_total'
     )
-    .from("new_view_payment_detail")
+    .from("new_view_payment_detail") // 
     .where("loan_header_id", id)
 
     const updatedLoan = payment.map((item) => ({

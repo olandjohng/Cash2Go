@@ -59,8 +59,10 @@ export default function NewCustomer({ onCustomerAdded, onClosePopup }) {
   // Start useEffect
   useEffect(() => {
     if (id) {
+
       axios
         .get(`http://localhost:8000/customerInfo/read/${id}`)
+
         .then((res) => {
           console.log("API Response:", res.data);
 
@@ -162,9 +164,11 @@ export default function NewCustomer({ onCustomerAdded, onClosePopup }) {
   };
   // end handle image
 
+
   // Start HandleChange
   const handleChange = (e) => {
     const { name, value } = e.target;
+
 
     if (name === "gender") {
       setGender(value);
