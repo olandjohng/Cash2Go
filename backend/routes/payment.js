@@ -3,15 +3,11 @@ const paymentRouter = express.Router();
 const builder = require("../builder");
 
 
-
-
-
-
-
-paymentRouter.get("/", async (req, res) => {
+paymentRouter.get("/search", async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const pageSize = parseInt(req.query.pageSize) || 10;
   const offset = (page - 1) * pageSize;
+  // console.log('offset',   req.query.page)
   const search = req.query.search ? req.query.search : "";
   try {
     const [results, totalCount] = await Promise.all([
@@ -62,11 +58,268 @@ paymentRouter.get("/", async (req, res) => {
   }
 });
 
-paymentRouter.post('/', (req, res) => {
+const formatName = (item) => {
+  const lastName = item['clname'].split(',')
+  const firstName = item['cfname'] ? `, ${item['cfname']}` : ''
+  const middleName = item['cmname'] ? ` ${item['cmname']}` : ''
+  const extName = lastName[1] ? `${lastName[1]}`: ''
+
+  return lastName + firstName + middleName + extName
+}
+
+paymentRouter.get('/', async (req, res) => {
+  
+  const {date, search} = req.query
+  
+  const fields = [
+    {id : 'p_h.payment_history_id'},
+    'p.loan_detail_id',
+    'payment_principal',
+    'payment_interest',
+    'payment_penalty',
+    'p_h.payment_date',
+    'p.payment_type', 
+    'payment_receipt',
+    'p.bank',
+    {check_number : 'p.checkno'},
+    'p.payment_amount',
+    'p.remarks',
+    'p.payment_type',
+    //-- loan header details
+    'l_d.check_date', 
+    'pn_number',
+    // customer name
+    'cfname',
+    'cmname',
+    'clname',
+  ]
+
+  // let payments;
+  // if(search){
+  const payments = await builder(builder.raw('payment_historytbl as p_h'))
+    .select(
+      fields
+    )
+    .innerJoin(builder.raw('paymenttbl as p'), 'p.loan_detail_id','p_h.loan_detail_id' )
+    .innerJoin(builder.raw('loan_detail as l_d'), 'p_h.loan_detail_id', "l_d.loan_detail_id" )
+    .innerJoin(builder.raw('loan_headertbl as l_h'), 'l_h.loan_header_id', 'l_d.loan_header_id')
+    .innerJoin(builder.raw('customertbl as c'), 'c.customerid', 'l_h.customer_id')
+    .modify((q) => {
+      if(search)
+        q.whereILike('clname', `%${search}%`).orWhereILike('cfname', `%${search}%`);
+      else 
+        q.havingBetween('p_h.payment_date', [date.from , date.to])
+    })
+    
+  const result = payments.map((payment) => {
+    // if online or cash no check date
+    if(payment.payment_type == 'CASH' || payment.payment_type == 'ONLINE'){
+      return {
+        ...payment, 
+        fullName : formatName(payment),
+        check_date : null
+      }
+    }
+    return {
+      ...payment, 
+      fullName : formatName(payment)
+    }
+  })
+  
+  res.json({data : result})
+})
+
+paymentRouter.post('/', async (req, res) => {
+  // get payment status 
+  const data = req.body
+  const {principal_payment, interest_payment, penalty_amount} = data 
+  let statusId = 0;
+  
+  const formatStatus = (statusList) => {
+    const status = {}
+    for (const item of statusList) {
+      const formatDescription = item.description.toLowerCase().split(' ')
+      status[formatDescription.join('_')] = item.payment_status_id
+    }
+    return status
+  }
+
+  try {
+
+    const paymentStatus = await builder('payment_status').select('*')
+    
+    const status = formatStatus(paymentStatus)
+   
+    const {monthly_principal, monthly_interest, accumulated_penalty} = await builder('loan_detail').select('monthly_principal', 'monthly_interest').where('loan_detail_id', data.loan_detail_id).first();
+    console.log(penalty_amount)
+    const total =  principal_payment + interest_payment + penalty_amount
+    // status_id
+    if (monthly_principal == principal_payment && interest_payment == monthly_interest) 
+      statusId = status['paid'];
+    else 
+      statusId = status['partialy_paid'];
+    
+    // payment_date
+    const processDate = new Date().toISOString().split('T')[0]
+    console.log(data.penalty_amount)
+    const { count } = await builder('paymenttbl').count({ count : 'loan_detail_id'}).where('loan_detail_id', data.loan_detail_id ).first()
+
+    await builder.transaction( async (t) => {
+      // check if partial payment
+      
+      if(count > 0) {
+    
+        const partialPaymentInfo = await builder('paymenttbl').select('principal_payment', 'interest_payment', 'penalty_amount').where('loan_detail_id',  data.loan_detail_id).first()
+    
+        const totalPrincipalPayment = Number(partialPaymentInfo.principal_payment) + principal_payment
+        const totalInterestPayment = Number(partialPaymentInfo.interest_payment) + interest_payment
+
+        if(totalPrincipalPayment == monthly_principal && totalInterestPayment == monthly_interest)
+          statusId = status['paid'];
+        else 
+          statusId = status['partialy_paid'];
+
+        await t('paymenttbl').where({loan_detail_id : data.loan_detail_id}).update({
+          // loan_detail_id : data.loan_detail_id,
+          principal_payment : totalPrincipalPayment,
+          interest_payment : totalInterestPayment,
+          payment_amount : totalPrincipalPayment + totalInterestPayment + data.penalty_amount, 
+          payment_type : data.payment_type,
+          penalty_amount : Number(data.penalty_amount),
+          payment_status_id : statusId,
+          receiptno : data.pr_number,
+          OR_no : data.or_number,
+          remarks : data.remarks,
+          bank : data.bank,
+          checkno : data.check_number 
+        })
+
+      } else {
+
+        await t('paymenttbl').insert({
+          loan_detail_id : data.loan_detail_id,
+          principal_payment : Number(data.principal_payment),
+          interest_payment : Number(data.interest_payment),
+          payment_amount : total, 
+          payment_type : data.payment_type,
+          penalty_amount : Number(data.penalty_amount),
+          payment_status_id : statusId,
+          receiptno : data.pr_number,
+          OR_no : data.or_number,
+          remarks : data.remarks,
+          bank : data.bank,
+          checkno : data.check_number
+        })
+      }
+      
+      const paymentId = await t('payment_historytbl').insert({
+        loan_detail_id : data.loan_detail_id,
+        payment_principal : principal_payment,
+        payment_interest : interest_payment,
+        payment_penalty : penalty_amount,
+        payment_date : processDate,
+        payment_type : data.payment_type,
+        payment_receipt : data.pr_number
+      })
+
+      if(data.payment_type.toLowerCase() === 'check'){
+        await builder('loan_detail').where({loan_detail_id : data.loan_detail_id}).update({check_number : data.check_number});
+      }
+
+      if(data.payment_type.toLowerCase() === 'cash' && data.cash_count) {
+        const billCount = data.cash_count.map((v) => ({
+          loan_header_id : data.loan_header_id,
+          loan_detail_id : data.loan_detail_id,
+          bill_type : String(v.denomination),
+          bill_count : v.count
+        }))
+        await t('bill_counttbl').insert(billCount)
+      }
+      // select p_number and customer name
+      const loanInfo = await t(t.raw('loan_headertbl as l_h')).where('loan_header_id', data.loan_header_id).select(
+        'pn_number',
+        'cfname',
+        'cmname',
+        'clname',
+      ).innerJoin(builder.raw('customertbl as c'), 'c.customerid', 'l_h.customer_id').first()
+
+      res.status(200).json({
+        id : paymentId[0],
+        payment_date : processDate,
+        payment_receipt : data.pr_number,
+        fullName : formatName(loanInfo),
+        pn_number : loanInfo.pn_number,
+        payment_type : data.payment_type,
+        bank : data.bank,
+        check_number : data.check_number,
+        check_date : data.check_date,
+        payment_principal : data.principal_payment,
+        payment_interest : data.interest_payment,
+        payment_penalty : data.penalty_amount,
+        payment_amount : total,
+        remarks : data.remarks
+      })
+
+    })
+
+  } catch (error) {
+    console.log(error)
+  }
+
   
 })
 
+paymentRouter.get('/deductions', async (req, res) => {
+  const {date, search} = req.query
+  const fields = [
+    'd_h.loan_deduction_id',
+    'd_h.loan_header_id',
+    'amount',
+    'pr_number',
+    'd_h.process_date',
+    'deduction_type',
+    // 'l_h.customer_id',
+    'l_h.pn_number',
+    'cfname',
+    'clname',
+    'cmname'
+  ]
 
+  const deductions = await builder(builder.raw('loan_deduction_historytbl as d_h'))
+  .select(fields)
+  .innerJoin(builder.raw('loan_deductiontbl as l_d'),'d_h.loan_deduction_id', 'l_d.loan_deduction_id' )
+  .innerJoin(builder.raw('loan_headertbl as l_h'), 'l_h.loan_header_id', 'd_h.loan_header_id')
+  .innerJoin(builder.raw('customertbl as c'), 'c.customerid', 'l_h.customer_id')
+  .modify((q) => {
+    if(search) 
+      q.whereILike('clname', `%${search}%`).orWhereILike('cfname', `%${search}%`);
+    else
+      q.havingBetween('process_date', [date.from, date.to]);
+  })
+  .where('isCash', true)
+
+  const mapDeduction = new Map()
+  
+  for (const d of deductions) {
+
+    const regType = d.deduction_type.replace(/[^a-zA-Z ]/g, "");
+    
+    const type = regType.toLowerCase().split(' ').join('_')
+
+    if(!mapDeduction.has(d.loan_header_id))
+      mapDeduction.set(d.loan_header_id, { 
+        id : d.loan_header_id, 
+        [type] : d.amount,
+        full_name : formatName(d),
+        pn_number : d.pn_number,
+        process_date : d.process_date
+      });
+    else 
+      mapDeduction.set(d.loan_header_id, {...mapDeduction.get(d.loan_header_id), [type] : d.amount});
+    
+  }
+  res.send([...mapDeduction.values()])
+})
 
 
 paymentRouter.get("/customer", async (req, res) => {
@@ -90,6 +343,7 @@ paymentRouter.get("/customer", async (req, res) => {
 
 paymentRouter.get("/read/:id", async (req, res) => {
   const id = req.params.id;
+  console.log('166')
   const payment = await builder
     .select(
          'loan_detail_id'
@@ -105,24 +359,27 @@ paymentRouter.get("/read/:id", async (req, res) => {
         ,'payment_amount'
         ,'Balance'
         ,'running_balance'
-        ,'running_total'
+        ,'running_total',
+        'description'
     )
     .from("new_view_payment_detail") // 
     .where("loan_header_id", id)
-
-    const updatedLoan = payment.map((item) => ({
+    
+    const updatedLoan = payment.map((item) => {
+      return ({
       ...item,
       description: item.description || 'UNSETTLED',
-    }));
+    })});
   res.status(200).json(updatedLoan);
 });
 
 paymentRouter.get("/paymentDue/:id", async (req, res) => {
   const id = req.params.id;
-  console.log("ID:", id);
+  // console.log("ID:", id);
   
   try {
     // Define the subquery for the minimum check_date
+    // TODO: add due_date payment
     const minCheckDateSubquery = builder('view_detail_payment')
       .min('check_date')
       .whereRaw('ifnull(payment_status_id, 0) != 1')
@@ -143,12 +400,12 @@ paymentRouter.get("/paymentDue/:id", async (req, res) => {
         'check_number'
       )
       .from("view_detail_payment")
-      .whereRaw('ifnull(payment_status_id, 0) != ?', [1])
+      .whereRaw('ifnull(payment_status_id, 0) != 1')
       // Use the subquery within the main query
       .andWhere('check_date', '=', builder.raw(`(${minCheckDateSubquery})`))
       .andWhere('loan_header_id', '=', id);
 
-    console.log("Query Result:", payment); // Log the query result
+    // console.log("Query Result:", payment); // Log the query result
     res.status(200).json(payment);
   } catch (err) {
     console.error(err);

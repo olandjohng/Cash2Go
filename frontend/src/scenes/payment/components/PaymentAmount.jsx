@@ -23,15 +23,15 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
       );
       const resJson = await req.json();
       const {Principal_Due, Interest_Due, Penalty_Due, loan_detail_id } = resJson[0]
-      setPricipalAmount(Principal_Due)
-      setInterestAmount(Interest_Due)
-      setPenaltyAmount(Penalty_Due)
+      setPricipalAmount(Number(Principal_Due))
+      setInterestAmount(Number(Interest_Due))
+      setPenaltyAmount(Number(Penalty_Due))
       paymentDataSetter((old) => ({
         ...old, 
         loan_detail_id : loan_detail_id, 
-        principal_payment : Principal_Due,
-        interest_payment : Interest_Due,
-        penalty_amount : Penalty_Due
+        principal_payment : Number(Principal_Due),
+        interest_payment : Number(Interest_Due),
+        penalty_amount : Number(Penalty_Due)
       }))
       // setDetails(resJson);
     };
@@ -40,12 +40,14 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
 
   useEffect(() => {
     // cal total
+    console.log(pricipalAmount)
+    
     const total = calculateTotal()
     setTotalAmount(total)
     paymentDataSetter((old) => ({...old, 
-      principal_payment : pricipalAmount,
-      interest_payment : interestAmount,
-      penalty_amount : penaltyAmount
+      principal_payment : Number(pricipalAmount),
+      interest_payment : Number(interestAmount),
+      penalty_amount : Number(penaltyAmount)
     }))
     // set data 
   }, [pricipalAmount, interestAmount, penaltyAmount])
@@ -108,7 +110,7 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
         </Grid>
         <Grid item xs={6} width={400}>
         <NumericFormat value={interestAmount} thousandSeparator fixedDecimalScale decimalScale={2} customInput={TextField} label="Interest Amount" fullWidth 
-            onValueChange={(format) => setInterestAmount(format.value)}
+            onValueChange={(format) => setInterestAmount(Number(format.value))}
             InputProps= {{
               inputProps : {
                 style : { textAlign : 'right'}
@@ -118,7 +120,7 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
         </Grid>
         <Grid item xs={6} width={400}>
           <NumericFormat value={penaltyAmount} thousandSeparator fixedDecimalScale decimalScale={2} customInput={TextField} label="Penalty Amount" fullWidth 
-              onValueChange={(format) => setPenaltyAmount(format.value)}
+              onValueChange={(format) => setPenaltyAmount(Number(format.value))}
               InputProps= {{
                 inputProps : {
                   style : { textAlign : 'right'}

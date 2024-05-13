@@ -322,7 +322,7 @@ loanRouter.post('/recalculate', async (req, res) => {
 
 loanRouter.post('/', async (req, res)=>{
   
-  const {voucher, deduction, loan_details} = req.body
+  const {voucher, deduction, loan_details, isCash} = req.body
 
   const pnNumber = await createPnNumber(req.body)
 
@@ -376,7 +376,10 @@ loanRouter.post('/', async (req, res)=>{
     const deductionFormat = deduction.map((v) =>({
       loan_deduction_id : v.id,
       loan_header_id : id[0],
-      amount : v.amount
+      amount : v.amount,
+      process_date : new Date().toISOString().split('T')[0],
+      pr_number : Number(isCash.pr_number),
+      isCash : Number(isCash.value)
     }))
 
     if(deductionFormat.length > 0) {

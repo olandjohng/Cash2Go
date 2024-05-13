@@ -78,6 +78,11 @@ export const LOAN_INITIAL_VALUES = {
   prepared_by: "",
   approved_by: "",
   checked_by: "",
+  isCash : {
+    value : false,
+    pr_number : '',
+  },
+
 };
 
 const formatNumber = (value) => {

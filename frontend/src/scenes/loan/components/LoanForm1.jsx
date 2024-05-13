@@ -226,9 +226,12 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
   }
 
   const handlNetProceed = () => {
-      if(formValue.deduction.length > 0) {
-        return formValue.deduction.reduce((acc, curr) => acc - curr.amount, formValue.principal_amount)
-      }
+    let total = formValue.principal_amount;
+
+    if(formValue.deduction.length > 0) 
+      total = formValue.deduction.reduce((acc, curr) => acc - curr.amount, formValue.principal_amount);
+    
+    return total
   }
 
   return (
@@ -251,6 +254,8 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
           })
           
           data = {...data , loan_details : mapLoanDetails} 
+
+          // return console.log(data)
           // console.log('fetch', data)
           fetch('/api/loans', {
             method : 'POST',

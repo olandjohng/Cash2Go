@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-const SERVER_URL = "/api/payments";
+// const SERVER_URL = "/api/payments";
 
 
 const formatNumber = (value) => {
@@ -31,7 +31,7 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
   
   const [paginationModel, setPaginationModel] = useState({
     page: 0, // Initial page
-    pageSize: 5,
+    pageSize: 100,
   });
   const columns = [
     { field: "pn_number", width: 200, headerName: "PN Number" },
@@ -127,7 +127,7 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
   const handleSearch = async () => {
     setIsLoading(true)
     try {
-      const response = await axios.get(SERVER_URL, {
+      const response = await axios.get(`/api/payments/search`, {
         params: {
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
@@ -170,6 +170,14 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
         rows={rows} 
         loading={isLoading}
         rowCount={rowCount}
+        onPaginationModelChange={setPaginationModel}
+        // pageSizeOptions={[5]}
+        // pagination
+        // initialState={{
+        //   pagination: {
+        //     paginationModel: paginationModel,
+        //   },
+        // }}
         sx={{ height: 370 }}
         rowSelectionModel={selectionModel}
         checkboxSelection={true} 
