@@ -18,7 +18,7 @@ const paymentRouter = require('./routes/payment');
 const production = false;
 
 const PORT = 8000
-app.use(express.static('public'))
+app.use('/api/public', express.static('public'))
 
 app.use(bodyParser.urlencoded({ extended: false }))
 

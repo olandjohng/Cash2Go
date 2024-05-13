@@ -61,7 +61,7 @@ export default function NewCustomer({ onCustomerAdded, onClosePopup }) {
     if (id) {
 
       axios
-        .get(`http://localhost:8000/customerInfo/read/${id}`)
+        .get(`/api/customerInfo/read/${id}`)
 
         .then((res) => {
           console.log("API Response:", res.data);
@@ -191,8 +191,8 @@ export default function NewCustomer({ onCustomerAdded, onClosePopup }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const apiURL = id
-      ? `http://localhost:8000/customerInfo/edit/${id}`
-      : "http://localhost:8000/customerInfo/new";
+      ? `/api/customerInfo/edit/${id}`
+      : "/api/customerInfo/new";
     console.log({ customer });
     const axiosMethod = id ? axios.put : axios.post;
 

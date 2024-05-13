@@ -48,7 +48,7 @@ function Customers() {
   const loadCustomerData = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(SERVER_URL, {
+      const response = await axios.get(`/api/customerInfo`, {
         params: {
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
@@ -70,7 +70,7 @@ function Customers() {
       field: "",
       headerName: "Avatar",
       width: 60,
-      renderCell: (params) => <Avatar src={imageBaseURL + params.row.cimg} />,
+      renderCell: (params) => <Avatar src={'/api/public/images/' + params.row.cimg} />,
       sortable: false,
       filterable: false,
     },
@@ -169,7 +169,7 @@ function Customers() {
   // Start search
   const handleSearch = async () => {
     try {
-      const response = await axios.get(SERVER_URL, {
+      const response = await axios.get(`/api/customerInfo`, {
         params: {
           page: 1, // Reset page to 1 when searching
           pageSize: paginationModel.pageSize,
