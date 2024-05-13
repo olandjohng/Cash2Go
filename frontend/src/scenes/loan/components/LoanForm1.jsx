@@ -106,7 +106,7 @@ const CustomerComboBox = ({value, setter}) => {
 
   const fetchData = async (value) => {
     try {
-      const request = await fetch(`${import.meta.env.VITE_API_URL}/customers/search?name=${value}`)
+      const request = await fetch(`/api/customers/search?name=${value}`)
       return await request.json()
     } catch (error) {
       console.log(error)
@@ -195,7 +195,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
   useEffect(() => {
     const getEmployees = async () =>{
       try {
-        const request = await fetch(`${import.meta.env.VITE_API_URL}/employee`)
+        const request = await fetch('/api/employee')
         const responseJSON = await request.json()
         setEmployees(responseJSON)
       } catch (error) {
@@ -226,9 +226,12 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
   }
 
   const handlNetProceed = () => {
-      if(formValue.deduction.length > 0) {
-        return formValue.deduction.reduce((acc, curr) => acc - curr.amount, formValue.principal_amount)
-      }
+    let total = formValue.principal_amount;
+
+    if(formValue.deduction.length > 0) 
+      total = formValue.deduction.reduce((acc, curr) => acc - curr.amount, formValue.principal_amount);
+    
+    return total
   }
 
   return (
@@ -251,8 +254,10 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
           })
           
           data = {...data , loan_details : mapLoanDetails} 
+
+          // return console.log(data)
           // console.log('fetch', data)
-          fetch(`${import.meta.env.VITE_API_URL}/loans`, {
+          fetch('/api/loans', {
             method : 'POST',
             headers: {
               "Content-Type": "application/json",

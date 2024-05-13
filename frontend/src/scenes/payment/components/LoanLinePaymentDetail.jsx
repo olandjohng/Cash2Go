@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { tokens } from "../../../theme";
 import { useTheme } from "@emotion/react";
 
-const LoanLinePaymentDetail = ({id}) => {
+const LoanLinePaymentDetail = ({id, paymentDataSetter}) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
@@ -13,9 +13,12 @@ const LoanLinePaymentDetail = ({id}) => {
     useEffect(() => {
         const getDetail = async () => {
           const req = await fetch(
-            `${import.meta.env.VITE_API_URL}/payments/paymentDue/${id}`
+            `/api/payments/paymentDue/${id}`
           );
-          const resJson = await req.json();
+          const resJson = await req.json(); // array
+          // const { loan_detail_id, Principal_Due, Interest_Due, Penalty_Due } = resJson
+          // paymentDataSetter((old) => ({...old, loan_detail_id}))
+          console.log(resJson)
           setDetails(resJson);
         };
         getDetail();
@@ -103,7 +106,8 @@ const LoanLinePaymentDetail = ({id}) => {
                         <Typography variant="h4" component="div">
                           {(
                             Number(detail.Principal_Due) +
-                            Number(detail.Interest_Due)
+                            Number(detail.Interest_Due) +
+                            Number(detail.Penalty_Due)
                           ).toLocaleString("en", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,

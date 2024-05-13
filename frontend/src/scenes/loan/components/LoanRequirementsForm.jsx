@@ -13,7 +13,7 @@ const CustomerComboBox = ({value, setter, disabled}) => {
 
   const fetchData = async (value) => {
     try {
-      const request = await fetch(`${import.meta.env.VITE_API_URL}/customers/search?name=${value}`)
+      const request = await fetch(`/api/customers/search?name=${value}`)
       return await request.json()
     } catch (error) {
       console.log(error)

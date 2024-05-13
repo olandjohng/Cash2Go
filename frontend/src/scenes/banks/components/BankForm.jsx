@@ -31,7 +31,7 @@ export default function BankForm({ onBankAdded, onClosePopup }) {
   useEffect(() => {
     if (id) {
       axios
-        .get(`${import.meta.env.VITE_API_URL}/banks/read/${id}`)
+        .get(`/api/banks/read/${id}`)
         .then((res) => {
           const { name, check_location } = res.data[0];
           // Update INITIAL_FORM_STATE with the fetched data
@@ -49,8 +49,8 @@ export default function BankForm({ onBankAdded, onClosePopup }) {
   const handleSubmit = async (values, actions) => {
     // Here the actions object is provided by Formik which contains helpful methods.
     const apiURL = id
-      ? `${import.meta.env.VITE_API_URL}/banks/edit/${id}`
-      : `${import.meta.env.VITE_API_URL}/banks/new`;
+      ? `/api/banks/edit/${id}`
+      : "/api/banks/new";
 
     try {
       const res = await axios[id ? "put" : "post"](apiURL, values);

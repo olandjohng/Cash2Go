@@ -12,7 +12,6 @@ const SelectWrapper = ({ name, label, options, ...otherProps }) => {
   const handleChange = (evt) => {
     const { value } = evt.target;
     setFieldValue(name, value);
-
     // If you need to handle the onChange event in the parent component as well
     if (otherProps.onChange) {
       otherProps.onChange(evt);

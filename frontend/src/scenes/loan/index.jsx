@@ -78,6 +78,11 @@ export const LOAN_INITIAL_VALUES = {
   prepared_by: "",
   approved_by: "",
   checked_by: "",
+  isCash : {
+    value : false,
+    pr_number : '',
+  },
+
 };
 
 const formatNumber = (value) => {
@@ -91,7 +96,7 @@ const formatNumber = (value) => {
 const getVoucher = async (id) => {
   
   try {
-    const fetchData = await fetch(`${import.meta.env.VITE_API_URL}/loans/voucher/${id}`);
+    const fetchData = await fetch(`/api/loans/voucher/${id}`);
     const voucherJSON = await fetchData.json();
     const format = {
       ...voucherJSON,
@@ -218,7 +223,7 @@ const Loan = () => {
   };
 
   const renewLoan = async (id) =>{
-    const request = await fetch(`${import.meta.env.VITE_API_URL}/loans/renew/${id}`)
+    const request = await fetch(`/api/loans/renew/${id}`)
     const responseJSON = await request.json()
     setRenewFormValue((old) => ({...old , ...responseJSON}))
     setOpenRenewPopup(true)
@@ -226,7 +231,7 @@ const Loan = () => {
 
   const restructureLoan = async (id) => {
     try {
-      const request = await fetch(`${import.meta.env.VITE_API_URL}/loans/recalculate/${id}`)
+      const request = await fetch(`/api/loans/recalculate/${id}`)
       const responseJSON = await request.json()
       console.log(responseJSON)
       setRestructureFormValue((old) => ({...old, ...responseJSON}))
@@ -241,7 +246,7 @@ const Loan = () => {
   const handleSearch = (e) => {
     clearTimeout(timeOut);
     timeOut = setTimeout(() => {
-      fetch(`${import.meta.env.VITE_API_URL}/loans?search=${e.target.value}`)
+      fetch(`/api/loans?search=${e.target.value}`)
         .then((res) => res.json())
         .then((val) => dispatch({ type: "INIT", loans: val }));
     }, 1000);
@@ -251,13 +256,13 @@ const Loan = () => {
     const getData = async () => {
       setLoading(true)
       const urls = [
-        fetch(`${import.meta.env.VITE_API_URL}/loans`),
-        fetch(`${import.meta.env.VITE_API_URL}/collateral`),
-        fetch(`${import.meta.env.VITE_API_URL}/loans/facility`),
-        fetch(`${import.meta.env.VITE_API_URL}/banks`),
-        fetch(`${import.meta.env.VITE_API_URL}/loans/category`),
-        fetch(`${import.meta.env.VITE_API_URL}/deductions`),
-        fetch(`${import.meta.env.VITE_API_URL}/account-title`),
+        fetch("/api/loans"),
+        fetch("/api/loans/collateral"),
+        fetch("/api/loans/facility"),
+        fetch("/api/banks"),
+        fetch("/api/loans/category"),
+        fetch("/api/deductions"),
+        fetch("/api/account-title"),
       ];
 
       try {

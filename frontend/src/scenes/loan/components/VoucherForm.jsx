@@ -13,7 +13,7 @@ export default function VoucherForm({accountTitle, voucher, setVoucher }) {
   useEffect(() => {
     const getEmployees = async () =>{
       try {
-        const request = await fetch(`${import.meta.env.VITE_API_URL}/employee`)
+        const request = await fetch('/api/employee')
         const responseJSON = await request.json()
         setEmployees(responseJSON)
       } catch (error) {

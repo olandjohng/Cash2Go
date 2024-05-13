@@ -23,7 +23,7 @@ function AccountTitle() {
 
     const loadAccountTitleData = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/account-title`);
+        const response = await axios.get('/api/account-title');
         setAccountTitle(response.data);
       } catch (error) {
         console.error('Error loading account title data:', error);
@@ -78,7 +78,7 @@ function AccountTitle() {
       }
   
       try {
-        const response = await axios.delete(`${import.meta.env.VITE_API_URL}/account-title/delete/${id}`);
+        const response = await axios.delete(`/api/account-title/delete/${id}`);
         console.log(response.data);
         loadAccountTitleData();
         toast.success('Account title Successfully Deleted!', {
