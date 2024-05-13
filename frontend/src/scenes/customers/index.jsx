@@ -4,18 +4,31 @@ import { DataGrid } from "@mui/x-data-grid";
 import axios from "axios";
 import Popups from "../../components/Popups";
 import NewCustomer from "./components/NewCustomer";
-import { DeleteOutlined, EditCalendarOutlined, SearchOutlined } from "@mui/icons-material";
-import { Box, Button, IconButton, InputBase, Tooltip } from "@mui/material";
+import {
+  DeleteOutlined,
+  EditCalendarOutlined,
+  SearchOutlined,
+} from "@mui/icons-material";
+import {
+  Avatar,
+  Box,
+  Button,
+  IconButton,
+  InputBase,
+  Tooltip,
+} from "@mui/material";
 import { useTheme } from "@emotion/react";
 import { tokens } from "../../theme";
 import { Bounce, toast } from "react-toastify";
 import { Link, useLocation } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 
-const SERVER_URL = '/api/customerInfo';
+
+const SERVER_URL = "http://localhost:8000/customerInfo";
+const imageBaseURL = "http://localhost:8000/images/";
+
 
 function Customers() {
-  
   const [paginationModel, setPaginationModel] = useState({
     page: 0, // Initial page
     pageSize: 5,
@@ -32,19 +45,10 @@ function Customers() {
   const [openPopup, setOpenPopup] = useState(false);
 
 
-  // Start of loadCategoryData - use to load the x-datagrid to view the changes
-  // const loadCustomerData = async () => {
-  //   try {
-  //     const response = await axios.get('/api/customerInfo');
-  //     setCustomer(response.data);
-  //   } catch (error) {
-  //     console.error('Error loading category data:', error);
-  //   }
-  // };
   const loadCustomerData = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(SERVER_URL, {
+      const response = await axios.get(`/api/customerInfo`, {
         params: {
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
@@ -54,19 +58,27 @@ function Customers() {
       setRowCount(response.data.totalCount);
     } catch (error) {
       console.error("Error loading customer data:", error);
-    }finally {
+    } finally {
       setIsLoading(false);
-
     }
   };
   // End of loadCategoryData - use to load the x-datagrid to view the changes
 
   // Start columns - this is for the x-datagrid
   const columns = [
-    { field: "fullname", flex: 1, headerName: "Fullname" },
-    { field: "contactNo", flex: 1, headerName: "Contact" },
+    {
+      field: "",
+      headerName: "Avatar",
+      width: 60,
+      renderCell: (params) => <Avatar src={'/api/public/images/' + params.row.cimg} />,
+      sortable: false,
+      filterable: false,
+    },
+    { field: "fullname", width: 280, headerName: "Fullname" },
+    { field: "contactNo", width: 100, headerName: "Contact" },
     { field: "address", flex: 1, headerName: "Address" },
-    { field: "gender", flex: 1, headerName: "Gender" },
+    { field: "gender", width: 100, headerName: "Gender" },
+    { field: "tin", width: 120, headerName: "TIN" },
     {
       field: "actions",
       headerName: "",
@@ -157,7 +169,7 @@ function Customers() {
   // Start search
   const handleSearch = async () => {
     try {
-      const response = await axios.get(SERVER_URL, {
+      const response = await axios.get(`/api/customerInfo`, {
         params: {
           page: 1, // Reset page to 1 when searching
           pageSize: paginationModel.pageSize,
@@ -179,7 +191,6 @@ function Customers() {
     } else {
       handleSearch();
     }
-    
   }, [searchValue, paginationModel]);
   // End useEffect
 
@@ -220,7 +231,6 @@ function Customers() {
         pageSizeOptions={[5, 10, 20]}
         paginationMode="server"
         paginationModel={paginationModel}
-        
         onPaginationModelChange={handlePaginationModelChange}
       />
 
