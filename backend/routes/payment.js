@@ -85,8 +85,8 @@ paymentRouter.get('/', async (req, res) => {
     'p.payment_amount',
     'p.remarks',
     'p.payment_type',
+    builder.raw('p_h.check_date as check_date'),
     //-- loan header details
-    'l_d.check_date', 
     'pn_number',
     // customer name
     'cfname',
@@ -125,7 +125,7 @@ paymentRouter.get('/', async (req, res) => {
       fullName : formatName(payment)
     }
   })
-  
+  console.log(result)
   res.json({data : result})
 })
 
@@ -151,7 +151,7 @@ paymentRouter.post('/', async (req, res) => {
     const status = formatStatus(paymentStatus)
    
     const {monthly_principal, monthly_interest, accumulated_penalty} = await builder('loan_detail').select('monthly_principal', 'monthly_interest').where('loan_detail_id', data.loan_detail_id).first();
-    console.log(penalty_amount)
+    
     const total =  principal_payment + interest_payment + penalty_amount
     // status_id
     if (monthly_principal == principal_payment && interest_payment == monthly_interest) 
@@ -161,7 +161,7 @@ paymentRouter.post('/', async (req, res) => {
     
     // payment_date
     const processDate = new Date().toISOString().split('T')[0]
-    console.log(data.penalty_amount)
+  
     const { count } = await builder('paymenttbl').count({ count : 'loan_detail_id'}).where('loan_detail_id', data.loan_detail_id ).first()
 
     await builder.transaction( async (t) => {
@@ -183,6 +183,7 @@ paymentRouter.post('/', async (req, res) => {
           // loan_detail_id : data.loan_detail_id,
           principal_payment : totalPrincipalPayment,
           interest_payment : totalInterestPayment,
+          // payment_amount : totalPrincipalPayment + totalInterestPayment + data.penalty_amount, 
           payment_amount : totalPrincipalPayment + totalInterestPayment + data.penalty_amount, 
           payment_type : data.payment_type,
           penalty_amount : Number(data.penalty_amount),
@@ -211,16 +212,28 @@ paymentRouter.post('/', async (req, res) => {
           checkno : data.check_number
         })
       }
-      
-      const paymentId = await t('payment_historytbl').insert({
-        loan_detail_id : data.loan_detail_id,
-        payment_principal : principal_payment,
-        payment_interest : interest_payment,
-        payment_penalty : penalty_amount,
-        payment_date : processDate,
-        payment_type : data.payment_type,
-        payment_receipt : data.pr_number
-      })
+
+      const payment_data = () => {
+         payment_info = {
+          loan_detail_id : data.loan_detail_id,
+          payment_principal : principal_payment,
+          payment_interest : interest_payment,
+          payment_penalty : penalty_amount,
+          payment_date : processDate,
+          payment_type : data.payment_type,
+          payment_receipt : data.pr_number,
+          // check_date : data.check_date
+        }
+        if(data.payment_type.toLowerCase() === 'bank') {
+          return {
+            ...payment_info,
+            check_date : data.check_date
+          }
+        }
+        return payment_info
+      }
+
+      const paymentId = await t('payment_historytbl').insert(payment_data())
 
       if(data.payment_type.toLowerCase() === 'check'){
         await builder('loan_detail').where({loan_detail_id : data.loan_detail_id}).update({check_number : data.check_number});
@@ -252,11 +265,10 @@ paymentRouter.post('/', async (req, res) => {
         payment_type : data.payment_type,
         bank : data.bank,
         check_number : data.check_number,
-        check_date : data.check_date,
+        check_date : data.check_date ? data.check_date : null,
         payment_principal : data.principal_payment,
         payment_interest : data.interest_payment,
         payment_penalty : data.penalty_amount,
-        payment_amount : total,
         remarks : data.remarks
       })
 

@@ -172,7 +172,7 @@ export default function PaymentForm({paymentDispacher, popup}) {
 
   const handleSubmit = async () => {
     // set loading
-    const formatData = {...paymentData , check_date : dayjs(paymentData.check_date).format('YYYY-MM-DD')}
+    const formatData = {...paymentData , check_date : paymentData.check_date ? dayjs(paymentData.check_date).format('YYYY-MM-DD') : null}
     // return console.log(formatData)
     try {
       const req = await fetch('/api/payments', {
@@ -185,7 +185,7 @@ export default function PaymentForm({paymentDispacher, popup}) {
 
       if(req.ok) {
         const paymentsJSON = await req.json()
-        console.log(paymentsJSON)
+        console.log('POST payment_data', paymentsJSON)
         paymentDispacher({type : 'ADD', payment : paymentsJSON})
         popup(false)
         
@@ -200,7 +200,6 @@ export default function PaymentForm({paymentDispacher, popup}) {
           theme: "colored",
           transition: Bounce,
         });
-
       }
     } catch (error) {
       throw new Error(error)

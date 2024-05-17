@@ -30,15 +30,16 @@ import { DatePicker } from "@mui/x-date-pickers";
 function paymentReducer(state, action) {
   switch(action.type){
     case 'INIT' :
+      console.log('payment state', state)
       return action.payments
+      // return []
     case 'ADD' :
-      console.log(action.payment)
+      console.log('ADD', state, action.payment)
       return [
         ...state, {...action.payment}
       ]
   }
 }
-
 
 
 export default function LoanPayment() {
@@ -165,8 +166,9 @@ export default function LoanPayment() {
     { field: "check_number", width: 150, headerName: "Check Number." },
     { field: "check_date", width: 150, headerName: "Check Date.",
       valueFormatter : (params) => {
-        if(params.value) return dayjs(params.value).format('MM-DD-YYYY');
-        return ''
+        console.log(typeof params.value, params.value)
+        if(params.value && params.value != '') 
+          return dayjs(params.value).format('MM-DD-YYYY');
       }
     },
     { field: "payment_principal", width: 150, headerName: "Principal",
@@ -179,7 +181,11 @@ export default function LoanPayment() {
       valueFormatter : (params) => formatNumber(params.value)
     },
     { field: "payment_amount", width: 150, headerName: "Total Payment",
-      valueFormatter : (params) => formatNumber(params.value)
+      // valueFormatter : (params) => formatNumber(params.value)
+      valueGetter: (params) => {
+        const total = Number(params.row.payment_principal) + Number(params.row.payment_interest) + Number(params.row.payment_penalty)
+        return formatNumber(total)
+      },
     },
     { field: "remarks", width: 200, headerName: "Remarks" },
   ]
