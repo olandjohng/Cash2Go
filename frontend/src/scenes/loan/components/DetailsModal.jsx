@@ -126,10 +126,9 @@ export default function DetailsModal(props) {
     return row
   }
 
-
   const columns = [
     // {field: "loan_detail_id", headerName: "ID" },
-    {field: "check_date", headerName: "Check Date", width: 150,
+    {field: "check_date", headerName: "Due Date", width: 150,
     valueFormatter : (params) => {
       return dayjs(params.value).format('MM-DD-YYYY');
     }

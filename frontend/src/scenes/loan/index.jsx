@@ -213,7 +213,7 @@ const Loan = () => {
   const [openPopup, setOpenPopup] = useState(false);
   const [openRenewPopup, setOpenRenewPopup] = useState(false);
   const [openRestructurePopup, setOpenRestructurePopup] = useState(false);
-  const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
+  const [openNewLoanPopup, setOpenNewLoanPopup] = useState(true);
   const [selectedLoanId, setSelectedLoanId] = useState(null);
   const [loans, dispatch] = useReducer(reducer, []);
 
@@ -235,7 +235,7 @@ const Loan = () => {
       const responseJSON = await request.json()
       console.log(responseJSON)
       setRestructureFormValue((old) => ({...old, ...responseJSON}))
-      // console.log(resJSON)
+      
       setOpenRestructurePopup(true);
     } catch (error) {
       console.log(error)

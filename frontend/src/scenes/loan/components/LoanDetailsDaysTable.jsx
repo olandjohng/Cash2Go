@@ -178,8 +178,8 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
   }, [rows])
 
   const columns = [
-    { field: 'id', headerName: 'Count', editable: false,  width: 70 },
-    { field: 'dueDate', headerName: 'Due Date', editable: true, width: 150,
+    // { field: 'id', headerName: 'Count', editable: false,  width: 70 },
+    { field: 'dueDate', headerName: 'Cleared Date', editable: true, width: 150,
       GRID_DATE_COL_DEF, 
       renderEditCell : (params) => { return <GridDatePicker {...params} />} ,
       valueFormatter : (params) => {
@@ -188,9 +188,8 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
         }
         return ''
       }
-      
-    },
-    { field: 'principal', headerName: 'Principal', width: 150, editable: true,
+    },  
+    { field: 'principal', headerName: 'Check Amount', width: 150, editable: true,
       
       valueFormatter : (params) => {
         return formatNumber(params)
@@ -198,14 +197,18 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
       preProcessEditCellProps :  handleAmountValidation,
       renderEditCell : GridCurrency
     },
-    { field: 'interest', headerName: 'Interest', width: 150, editable: true, 
+    { field: 'bank', headerName: 'Bank', width: 120, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name),},
+    { field: 'checkNumber', headerName: 'Check Number', width: 120, editable: true,},
+    { field: 'interest', headerName: 'Interest', width: 150, 
       valueFormatter : (params) => {
         return formatNumber(params)
       },
+      
       preProcessEditCellProps :  handleAmountValidation,
       renderEditCell : GridCurrency
     },
-    { field: 'amortization', headerName: 'Amortization', editable: true, width: 150,
+    {field : 'numberDays', headerName : 'NO. of Days', width : 120}, 
+    { field: 'amortization', headerName: 'Net Proceeds', editable: true, width: 150,
       renderEditCell : GridCurrency,
       valueFormatter : (params) => {
         return formatNumber(params)
@@ -217,8 +220,8 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
         return {...params.row, amortization : (principal + interest)}
       }
     },
-    { field: 'bank', headerName: 'Bank', width: 120, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name),},
-    { field: 'checkNumber', headerName: 'Check Number', width: 120, editable: true,   },
+    
+   
     { field: 'action', type : 'actions',
       getActions : ({id}) => {
         if(false) {}
