@@ -26,7 +26,7 @@ const getIPv4 = (port) => {
 }
 
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 8000
 app.use('/api/public', express.static('public'))
 
 app.use(express.static('dist'))
