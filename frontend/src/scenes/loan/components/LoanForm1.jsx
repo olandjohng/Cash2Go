@@ -269,7 +269,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
           })
           .then((d) => d.json())
           .then((res) => {
-            // setModalOpen(false)
+            setModalOpen(false)
             dispatcher({type : 'ADD', loans : res })
             toast.success('Save Successfully!', {
               position: "top-right",
