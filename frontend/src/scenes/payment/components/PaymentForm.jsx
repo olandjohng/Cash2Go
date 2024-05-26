@@ -27,8 +27,7 @@ import PaymentSearch from "./PaymentSearch";
 import { Bounce, toast } from "react-toastify";
 
 const formatNumber = (value) => {
-  const amount = value.split(".");
-  const format = Number(amount[0]).toLocaleString("en", {
+  const format = Number(value).toLocaleString("en", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -76,7 +75,7 @@ export default function PaymentForm({paymentDispacher, popup}) {
 
   const columns = [
     {
-      field: "check_date",
+      field: "due_date",
       headerName: "Due Date",
       width: 150,
       valueFormatter: (params) => {

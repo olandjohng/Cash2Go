@@ -13,7 +13,7 @@ function EditToolbar(props) {
   
   const handleClick = () =>{
     const id = rows.length + 1
-    setRows((oldRows) => [...oldRows, {id , dueDate: null,  principal : '', interest : '', amortization : '', bank : null, checkNumber: '', isNew : true}])
+    setRows((oldRows) => [...oldRows, { id , dueDate: null,  principal : '', interest : '', numberDays : '',  bank : null, checkNumber: '', check_date : null, net_proceeds : '', isNew : true}])
     setRowModesModel((oldModel) => ({
       ...oldModel,
       [id] : { mode: GridRowModes.Edit, fieldToFocus: 'dueDate' }
@@ -113,9 +113,9 @@ const CustomFooter  = (props) => {
         </Box>
         <Box flex={1}>
           <Box mx={1} display='flex' alignItems='center'>
-            <Typography flex={1}>Principal</Typography>
+            <Typography flex={1}>Check Amount</Typography>
             <Typography flex={1}>Interest</Typography>
-            <Typography flex={1}>Amortization</Typography>
+            <Typography flex={1}>Net Proceeds</Typography>
           </Box>
           <Box mx={1} display='flex' alignItems='center'>
             <CurrencyInput displayType='text' value={props.principal_total} 
@@ -139,14 +139,14 @@ const CustomFooter  = (props) => {
 }
 
 
-export default function LoanDetailsTable({banks, rows, setRows}) {
+export default function LoanDetailsTable({banks, rows, setRows, formValue}) {
 
   const theme = useTheme()
   const colors =  tokens(theme.palette.mode)
   const [rowModesModel, setRowModesModel] = useState({})
   const [pricipalTotal, setPricipalTotal] = useState(0)
   const [interestTotal, setInterestTotal] = useState(0)
-  const [amortizationTotal, setAmortizationTotal] = useState(0)
+  const [netProceeds, setNetProceeds] = useState(0)
   
   const handleDelete = (id) => {
     const filterRows = rows.filter((row) => row.id !== id).map((r,i) =>  ({...r, id : i + 1}) )
@@ -173,7 +173,7 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
     
       setPricipalTotal(rows.reduce((acc, cur) => acc + cur.principal, 0))
       setInterestTotal(rows.reduce((acc, cur) => acc + cur.interest, 0))
-      setAmortizationTotal(rows.reduce((acc, cur) => acc + cur.amortization, 0))
+      setNetProceeds(rows.reduce((acc, cur) => acc + cur.net_proceeds, 0))
     
   }, [rows])
 
@@ -188,36 +188,65 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
         }
         return ''
       }
-    },  
+    },
+    { field: 'check_date', headerName: 'Check Date', editable: true, width: 150,
+      GRID_DATE_COL_DEF, 
+      renderEditCell : (params) => { return <GridDatePicker {...params} />} ,
+      valueFormatter : (params) => {
+        if(params.value){
+          return dayjs(params.value).format('MM/DD/YYYY')
+        }
+        return ''
+      }
+    },
     { field: 'principal', headerName: 'Check Amount', width: 150, editable: true,
-      
       valueFormatter : (params) => {
         return formatNumber(params)
       },
       preProcessEditCellProps :  handleAmountValidation,
       renderEditCell : GridCurrency
     },
+     
     { field: 'bank', headerName: 'Bank', width: 120, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name),},
     { field: 'checkNumber', headerName: 'Check Number', width: 120, editable: true,},
-    { field: 'interest', headerName: 'Interest', width: 150, 
+    { field : 'numberDays', headerName : 'NO. of Days', width : 120,  editable: true,
+      valueSetter : (params) => {
+        if(params.row.dueDate){
+          const now = dayjs()
+          const dif = Math.abs(now.diff(params.row.dueDate, 'day')) + 1
+          return {...params.row, numberDays: dif}
+        }
+        return {...params.row}
+      }
+    }, 
+    { field: 'interest', headerName: 'Interest', width: 150, editable : true,
+    valueSetter : (params) => {
+        if(params.row.dueDate && params.row.principal && formValue.interest_rate && params.row.numberDays){
+          const cal = (+params.row.principal * (+formValue.interest_rate / 100) * (+params.row.numberDays / 30))
+          return {...params.row, interest : cal}
+        }
+        return {...params.row}
+      },
       valueFormatter : (params) => {
         return formatNumber(params)
       },
-      
+
       preProcessEditCellProps :  handleAmountValidation,
       renderEditCell : GridCurrency
     },
-    {field : 'numberDays', headerName : 'NO. of Days', width : 120}, 
-    { field: 'amortization', headerName: 'Net Proceeds', editable: true, width: 150,
+   
+    { field: 'net_proceeds', headerName: 'Net Proceeds', editable: true, width: 150,
       renderEditCell : GridCurrency,
       valueFormatter : (params) => {
         return formatNumber(params)
       },
       valueSetter : (params) => {
-        // console.log(params)
-        const principal = Number(params.row.principal)
-        const interest = Number(params.row.interest)
-        return {...params.row, amortization : (principal + interest)}
+
+        if(params.row.principal && params.row.interest){
+          const dif = +params.row.principal - +params.row.interest 
+          return {...params.row , net_proceeds : dif}
+        }
+        return {...params.row}
       }
     },
     
@@ -256,7 +285,7 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
         footer : {
           principal_total : pricipalTotal,
           interest_total : interestTotal,
-          amortization_total : amortizationTotal
+          amortization_total : netProceeds
         }
       }}
     />

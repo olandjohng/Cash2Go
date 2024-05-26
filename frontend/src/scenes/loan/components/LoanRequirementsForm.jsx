@@ -142,7 +142,6 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           name='check_date'
           value={formValue.check_date ? dayjs(formValue.check_date) : formValue.check_date}
           onChange={(val) => { 
-            console.log(val)
             setValidationError(null)
             if(val){
               setFormValue((old) => ({...old , check_date : val.$d}))
@@ -161,7 +160,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           value={formValue.collateral}
           options={collaterals}
           idfield='collateral_id'
-          getOptionLabel={(option) => option.description || "" || option}
+          getOptionLabel={(option) => option.name || "" || option}
           renderOption={(props, option) => 
             <Box {...props} component='li' key={option.id} id={option.id}>
               {option.name}

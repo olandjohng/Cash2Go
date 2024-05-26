@@ -30,11 +30,9 @@ import { DatePicker } from "@mui/x-date-pickers";
 function paymentReducer(state, action) {
   switch(action.type){
     case 'INIT' :
-      console.log('payment state', state)
       return action.payments
       // return []
     case 'ADD' :
-      console.log('ADD', state, action.payment)
       return [
         ...state, {...action.payment}
       ]
@@ -82,7 +80,6 @@ export default function LoanPayment() {
 
       // setPaymentRows(response.data.data);
       paymentRowDispatch({type : 'INIT', payments : response.data.data})
-      console.log(response.data.data)
       
       
     } catch (error) {
@@ -105,7 +102,6 @@ export default function LoanPayment() {
           }
         },
       })
-      console.log(deductions.data)
       setDeductionRows(deductions.data)
       // paymentDispatch({type : 'INIT'})
     } catch (error) {
@@ -151,6 +147,9 @@ export default function LoanPayment() {
     { field: "doc_stamp_bir", width: 150, headerName: "Doc. Stamp (BIR)",
       valueFormatter : (params) => params.value ? formatNumber(params.value) : ''
     },
+    { field: "hold_charge", width: 150, headerName: "Hold Charge",
+      valueFormatter : (params) => params.value ? formatNumber(params.value) : ''
+    },
   ];
 
   const payment_col = [
@@ -166,7 +165,7 @@ export default function LoanPayment() {
     { field: "check_number", width: 150, headerName: "Check Number." },
     { field: "check_date", width: 150, headerName: "Check Date.",
       valueFormatter : (params) => {
-        console.log(typeof params.value, params.value)
+        // console.log(typeof params.value, params.value)
         if(params.value && params.value != '') 
           return dayjs(params.value).format('MM-DD-YYYY');
       }
@@ -204,7 +203,6 @@ export default function LoanPayment() {
           }
         },
       });
-      console.log(response.data)
       // setPaymentRows(response.data.data);
       paymentRowDispatch({type : 'INIT', payments : response.data.data})
 

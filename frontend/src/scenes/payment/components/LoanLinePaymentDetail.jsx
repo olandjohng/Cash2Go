@@ -26,7 +26,7 @@ const LoanLinePaymentDetail = ({id, paymentDataSetter}) => {
   return (
     <main>
         {details.map((detail) => (
-            <Grid container spacing={2} key={detail.loan_detail_id}>
+            <Grid container spacing={2} my={1.5} key={detail.loan_detail_id}>
               <Grid item xs={12}>
                 <Card
                   variant="outlined"
@@ -71,7 +71,7 @@ const LoanLinePaymentDetail = ({id, paymentDataSetter}) => {
                     <Grid container spacing={2}>
                       <Grid item xs={6}>
                         <Typography variant="h4" component="div">
-                          {dayjs(detail.check_date).format("MMMM DD, YYYY")}
+                          {dayjs(detail.due_date).format("MMMM DD, YYYY")}
                         </Typography>
                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                           Due Date

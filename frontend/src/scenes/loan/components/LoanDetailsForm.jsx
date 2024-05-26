@@ -58,7 +58,6 @@ export default function LoanDetailsForm({banks, rows, setRows}) {
                   header : true,
                   skipEmptyLines : true,
                   complete : (result, file) => {
-                    console.log(result)
                     const data = result.data.map((v, i) => ({
                       ...v, id : i + 1
                     }))
@@ -96,16 +95,16 @@ export default function LoanDetailsForm({banks, rows, setRows}) {
 
         </Box>
       </Grid>
-      {/* {formValue.term_type == 'months' && ( */}
+      { formValue.term_type == 'months' && (
         <Grid item xs={12}>
           <LoanDetailsTable banks={banks} rows={rows} setRows={setRows}/>
         </Grid>
-      {/* )} */}
-      {/* {formValue.term_type == 'days' && (
+      )} 
+      { formValue.term_type == 'days' && (
         <Grid item xs={12}>
-          <LoanDetailsDaysTable banks={banks} rows={rows} setRows={setRows} />
+          <LoanDetailsDaysTable banks={banks} rows={rows} setRows={setRows} formValue={formValue} />
         </Grid>
-      )} */}
+      )}
     </Grid>
   )
 }

@@ -125,7 +125,6 @@ paymentRouter.get('/', async (req, res) => {
       fullName : formatName(payment)
     }
   })
-  console.log(result)
   res.json({data : result})
 })
 
@@ -212,7 +211,7 @@ paymentRouter.post('/', async (req, res) => {
           checkno : data.check_number
         })
       }
-
+      console.log(data.payment_type)
       const payment_data = () => {
          payment_info = {
           loan_detail_id : data.loan_detail_id,
@@ -224,7 +223,8 @@ paymentRouter.post('/', async (req, res) => {
           payment_receipt : data.pr_number,
           // check_date : data.check_date
         }
-        if(data.payment_type.toLowerCase() === 'bank') {
+        if(data.payment_type.toLowerCase() === 'check') {
+          
           return {
             ...payment_info,
             check_date : data.check_date
@@ -355,12 +355,12 @@ paymentRouter.get("/customer", async (req, res) => {
 
 paymentRouter.get("/read/:id", async (req, res) => {
   const id = req.params.id;
-  console.log('166')
   const payment = await builder
     .select(
          'loan_detail_id'
 		    ,'loan_header_id'
         ,'check_date'
+        ,'due_date'
         ,'monthly_principal'
         ,'monthly_interest'
         ,'monthly_amortization'
@@ -393,7 +393,7 @@ paymentRouter.get("/paymentDue/:id", async (req, res) => {
     // Define the subquery for the minimum check_date
     // TODO: add due_date payment
     const minCheckDateSubquery = builder('view_detail_payment')
-      .min('check_date')
+      .min('due_date')
       .whereRaw('ifnull(payment_status_id, 0) != 1')
       .andWhere('loan_header_id', id)
       .as('min_check_date'); // This names the subquery result for clarity
@@ -407,14 +407,14 @@ paymentRouter.get("/paymentDue/:id", async (req, res) => {
         builder.raw('accumulated_penalty - penalty_amount as Penalty_Due'),
         'customer_fullname',
         'pn_number',
-        'check_date',
+        'due_date',
         'bank_name',
         'check_number'
       )
       .from("view_detail_payment")
       .whereRaw('ifnull(payment_status_id, 0) != 1')
       // Use the subquery within the main query
-      .andWhere('check_date', '=', builder.raw(`(${minCheckDateSubquery})`))
+      .andWhere('due_date', '=', builder.raw(`(${minCheckDateSubquery})`))
       .andWhere('loan_header_id', '=', id);
 
     // console.log("Query Result:", payment); // Log the query result
