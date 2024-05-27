@@ -62,6 +62,7 @@ customerInfoRouter.get("/", async (req, res) => {
       totalCount: totalCount.count,
     });
   } catch (err) {
+    console.log(err)
     res.status(500).send({
       message: "Error fetching customers",
       error: err,

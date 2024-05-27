@@ -71,18 +71,31 @@ export default function SummaryForm({netProceeds}) {
           label='Interest Rate'
           value={`${Number(formValue.interest_rate).toFixed(2)}%`}
         />
-        <PreviewLabel
-          label='Net Proceeds'
-          value={numberFormat.format(netProceeds && netProceeds() || 0)}
-        />
+
+        {formValue.term_type === 'months' &&
+          (
+            <PreviewLabel
+              label='Net Proceeds'
+              value={numberFormat.format(netProceeds && netProceeds() || 0)}
+            />
+          )
+        }
         
       </Box>
       <Box mt={3}>
         <Grid container gap={1}>
           <Grid item xs={9}>
-            <LoanTablePreview
-              details={formValue.loan_details}
-            />
+            {formValue.term_type === 'months' &&
+              (
+                // <PreviewLabel
+                //   label='Net Proceeds'
+                //   value={numberFormat.format(netProceeds && netProceeds() || 0)}
+                //   />
+                  <LoanTablePreview
+                    details={formValue.loan_details}
+                  />
+              )
+            }
           </Grid>
           <Grid item flex={1}>
             <LoanDeductionPreview details={formValue.deduction}/>

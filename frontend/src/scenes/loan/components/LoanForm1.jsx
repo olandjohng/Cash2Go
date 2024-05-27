@@ -207,6 +207,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
   },[])
 
   const handleLoanDetails = async () => {
+    console.log(210, formValue)
     try {
       loanDetailsSchema.validateSync(formValue,
         {abortEarly : false}
@@ -226,9 +227,11 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
   }
 
   const handlNetProceed = () => {
-      if(formValue.deduction.length > 0) {
-        return formValue.deduction.reduce((acc, curr) => acc - curr.amount, formValue.principal_amount)
-      }
+    let total = formValue.principal_amount;
+    if(formValue.deduction.length > 0) 
+      total = formValue.deduction.reduce((acc, curr) => acc - curr.amount, formValue.principal_amount);
+    
+    return total
   }
 
   return (
@@ -240,18 +243,23 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
           let data = {...formValue, check_date : dayjs(formValue.check_date).format()}
           
           const mapLoanDetails = data.loan_details.map((v) => {
-          let item = {...v , dueDate : dayjs(v.dueDate).format()}
+            let item = {...v , dueDate : v.dueDate.format()}
             
             for (const b of banks) {
               if(item.bank === b.name) {
                 item = {...item, bank_account_id : b.id }
               }
             }
-            return item
+            
+            return {...item, check_date : item.check_date.format()};
+           
           })
           
           data = {...data , loan_details : mapLoanDetails} 
+
+          // return console.log(data)
           // console.log('fetch', data)
+          
           fetch('/api/loans', {
             method : 'POST',
             headers: {
@@ -261,7 +269,6 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
           })
           .then((d) => d.json())
           .then((res) => {
-            console.log('response', res)
             setModalOpen(false)
             dispatcher({type : 'ADD', loans : res })
             toast.success('Save Successfully!', {

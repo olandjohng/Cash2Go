@@ -1,6 +1,7 @@
 const express = require('express')
 const loanRouter = express.Router()
 const builder = require('../builder')
+const dayjs = require('dayjs')
 const {getLoanList, getLoan, saveLoan} = require('../controller/loanController')
 
 const LoanStatus = {
@@ -127,6 +128,8 @@ loanRouter.post('/renew', async (req, res) => {
       // update old loan 
       await t('loan_headertbl').where({ loan_header_id : req.body.loan_header_id}).update({status_code : LoanStatus.RENEWED}, ['loan_header_id'])
       // insert new loan
+      const term = term_type === 'months' ? loan_details.length : dayjs(loan_details[0].dueDate).diff(dayjs(), 'day') + 1
+      
       const loanHeaderId = await t('loan_headertbl').insert({
         pn_number : pnNumber,
         check_number :  req.body.check_number,
@@ -147,7 +150,7 @@ loanRouter.post('/renew', async (req, res) => {
         check_issued_name : req.body.check_issued_name,
         voucher_number : req.body.voucher_number,
         total_interest : totalInterest,
-        term : loan_details.length, 
+        term : term, 
         status_code : LoanStatus.ONGOING,
         renewal_id : req.body.loan_header_id,
         renewal_amount : req.body.Balance
@@ -274,16 +277,33 @@ loanRouter.post('/recalculate', async (req, res) => {
         renewal_amount : req.body.Balance
       }, ['loan_header_id'] )
       
-      const loanDetailsMap = loan_details.map(v => ({ 
-        loan_header_id : loanHeaderId[0],
-        check_date : v.dueDate.split('T')[0],
-        check_number : Number(v.checkNumber),
-        bank_account_id : Number(v.bank_account_id),
-        monthly_amortization : Number(v.amortization),
-        monthly_interest : Number(v.interest),
-        monthly_principal : Number(v.principal),
-        accumulated_penalty : 0
-      }))
+      const loanDetailsMap = loan_details.map(v => { 
+        if(term_type === 'days') {
+          return {
+            loan_header_id : id[0],
+            due_date : v.dueDate.split('T')[0],
+            check_date : v.check_date,
+            due_date : v.dueDate,
+            check_number : Number(v.checkNumber),
+            bank_account_id : Number(v.bank_account_id),
+            // monthly_amortization : Number(v.amortization),
+            monthly_interest : Number(v.interest),
+            monthly_principal : Number(v.principal),
+            net_proceeds : Number(v.net_proceeds),
+            accumulated_penalty : 0
+          }
+        }
+        return {
+          loan_header_id : loanHeaderId[0],
+          check_date : v.dueDate.split('T')[0],
+          check_number : Number(v.checkNumber),
+          bank_account_id : Number(v.bank_account_id),
+          monthly_amortization : Number(v.amortization),
+          monthly_interest : Number(v.interest),
+          monthly_principal : Number(v.principal),
+          accumulated_penalty : 0
+        }
+      })
 
       await t('loan_detail').insert(loanDetailsMap)
       
@@ -295,7 +315,6 @@ loanRouter.post('/recalculate', async (req, res) => {
           loan_header_id : loanHeaderId[0]
         })
       ))
-      console.log('update')
       const response = {
         renewal_id : req.body.loan_header_id,
         loan : {
@@ -319,16 +338,17 @@ loanRouter.post('/recalculate', async (req, res) => {
   }
 })
 
-
 loanRouter.post('/', async (req, res)=>{
   
-  const {voucher, deduction, loan_details} = req.body
+  const {voucher, deduction, loan_details, isCash, term_type} = req.body
 
   const pnNumber = await createPnNumber(req.body)
 
   const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest), 0)
+  
+  const term = term_type === 'months' ? loan_details.length : dayjs(loan_details[0].dueDate).diff(dayjs(), 'day') + 1
 
-  await builder.transaction(async t =>{
+  await builder.transaction(async t => {
     
     const id = await builder('loan_headertbl').insert({
       pn_number : pnNumber,
@@ -350,17 +370,34 @@ loanRouter.post('/', async (req, res)=>{
       check_issued_name : req.body.check_issued_name,
       voucher_number : req.body.voucher_number,
       total_interest : totalInterest,
-      term : loan_details.length, 
+      term : term, 
       status_code : LoanStatus.ONGOING,
       renewal_id : 0,
       renewal_amount : 0
     }, '*').transacting(t)
 
-    
+
     const loanDetailsMap = loan_details.map(v => { 
+      if(term_type === 'days') {
+        return {
+          loan_header_id : id[0],
+          due_date : v.dueDate.split('T')[0],
+          check_date : v.check_date,
+          due_date : v.dueDate,
+          check_number : Number(v.checkNumber),
+          bank_account_id : Number(v.bank_account_id),
+          // monthly_amortization : Number(v.amortization),
+          monthly_interest : Number(v.interest),
+          monthly_principal : Number(v.principal),
+          net_proceeds : Number(v.net_proceeds),
+          accumulated_penalty : 0
+        }
+      }
+
       return{
         loan_header_id : id[0],
-        check_date : v.dueDate.split('T')[0],
+        due_date : v.dueDate.split('T')[0],
+        check_date : v.check_date,
         check_number : Number(v.checkNumber),
         bank_account_id : Number(v.bank_account_id),
         monthly_amortization : Number(v.amortization),
@@ -376,7 +413,10 @@ loanRouter.post('/', async (req, res)=>{
     const deductionFormat = deduction.map((v) =>({
       loan_deduction_id : v.id,
       loan_header_id : id[0],
-      amount : v.amount
+      amount : v.amount,
+      process_date : new Date().toISOString().split('T')[0],
+      pr_number : Number(isCash.pr_number),
+      isCash : Number(isCash.value)
     }))
 
     if(deductionFormat.length > 0) {
@@ -404,7 +444,7 @@ loanRouter.post('/', async (req, res)=>{
       bank_name : req.body.bank_name ,
       loancategory : req.body.loan_category,
       loanfacility : req.body.loan_facility,
-      loan_term : `${loan_details.length} ${req.body.term_type}`,
+      loan_term : `${term} ${req.body.term_type}`,
       status_code : LoanStatus.ONGOING,
     })   
 })
@@ -450,9 +490,6 @@ loanRouter.get('/penalty', async (req, res) =>{
   const penalty = await builder.select({id : 'penalty_id', penaltyType : 'penalty_type'}).from('penaltytbl')
   res.status(200).json(penalty)
 })
-
-
-
 
 
 loanRouter.get('/:id', getLoan)

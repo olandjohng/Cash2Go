@@ -24,10 +24,10 @@ import PaymentSetup from "./PaymentSetup";
 import PaymentAmount from "./PaymentAmount";
 import { SearchOutlined } from "@mui/icons-material";
 import PaymentSearch from "./PaymentSearch";
+import { Bounce, toast } from "react-toastify";
 
 const formatNumber = (value) => {
-  const amount = value.split(".");
-  const format = Number(amount[0]).toLocaleString("en", {
+  const format = Number(value).toLocaleString("en", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -40,7 +40,8 @@ const initialPaymentData = {
   payment_type : '',
   principal_payment: "",
   interest_payment: "",
-  penalty_amount: "",
+  check_date : null,
+  penalty_amount: 0,
   pr_number : '',
   or_number : '',
   bank: "",
@@ -59,7 +60,7 @@ const initialCashRowData = [
   { denomination: 1, count: 0 },
 ];
 
-export default function PaymentForm(props) {
+export default function PaymentForm({paymentDispacher, popup}) {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   // const { id } = useParams();
@@ -74,7 +75,7 @@ export default function PaymentForm(props) {
 
   const columns = [
     {
-      field: "check_date",
+      field: "due_date",
       headerName: "Due Date",
       width: 150,
       valueFormatter: (params) => {
@@ -138,22 +139,22 @@ export default function PaymentForm(props) {
         return formatNumber(params.value);
       },
     },
-    {
-      field: "running_balance",
-      headerName: "Running Balance",
-      width: 150,
-      valueFormatter: (params) => {
-        return formatNumber(params.value);
-      },
-    },
-    {
-      field: "running_total",
-      headerName: "Running Total Payment",
-      width: 150,
-      valueFormatter: (params) => {
-        return formatNumber(params.value);
-      },
-    },
+    // {
+    //   field: "running_balance",
+    //   headerName: "Running Balance",
+    //   width: 150,
+    //   valueFormatter: (params) => {
+    //     return formatNumber(params.value);
+    //   },
+    // },
+    // {
+    //   field: "running_total",
+    //   headerName: "Running Total Payment",
+    //   width: 150,
+    //   valueFormatter: (params) => {
+    //     return formatNumber(params.value);
+    //   },
+    // },
     { field: "description", headerName: "Status", width: 150 },
   ];
 
@@ -170,7 +171,38 @@ export default function PaymentForm(props) {
 
   const handleSubmit = async () => {
     // set loading
-    
+    const formatData = {...paymentData , check_date : paymentData.check_date ? dayjs(paymentData.check_date).format('YYYY-MM-DD') : null}
+    // return console.log(formatData)
+    try {
+      const req = await fetch('/api/payments', {
+        method : 'post',
+        body : JSON.stringify(formatData),
+        headers : {
+          "Content-Type": "application/json",
+        }
+      })
+
+      if(req.ok) {
+        const paymentsJSON = await req.json()
+        console.log('POST payment_data', paymentsJSON)
+        paymentDispacher({type : 'ADD', payment : paymentsJSON})
+        popup(false)
+        
+        toast.success('Save Successfully!', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+          transition: Bounce,
+        });
+      }
+    } catch (error) {
+      throw new Error(error)
+    }
 
     // 
   }
@@ -208,7 +240,7 @@ export default function PaymentForm(props) {
           stepName="Payment"
           onSubmit={() => {}}
         >
-          <PaymentAmount id={loanId} paymentDataSetter={setPaymentData} paymentData={paymentData}/>
+          <PaymentAmount  id={loanId} paymentDataSetter={setPaymentData} paymentData={paymentData}/>
         </FormStep>
       </MultiStepForm>
     </div>

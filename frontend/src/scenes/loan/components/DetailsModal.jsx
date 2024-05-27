@@ -8,8 +8,7 @@ import { useEffect, useState } from "react"
 import dayjs from "dayjs";
 
 const formatNumber = (value) => {
-  const amount = value.split('.');
-  const format = Number(amount[0]).toLocaleString('en', {
+  const format = Number(value).toLocaleString('en', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2 
   });
@@ -126,10 +125,9 @@ export default function DetailsModal(props) {
     return row
   }
 
-
   const columns = [
     // {field: "loan_detail_id", headerName: "ID" },
-    {field: "check_date", headerName: "Check Date", width: 150,
+    {field: "due_date", headerName: "Due Date", width: 150,
     valueFormatter : (params) => {
       return dayjs(params.value).format('MM-DD-YYYY');
     }

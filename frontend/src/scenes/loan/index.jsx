@@ -78,6 +78,11 @@ export const LOAN_INITIAL_VALUES = {
   prepared_by: "",
   approved_by: "",
   checked_by: "",
+  isCash : {
+    value : false,
+    pr_number : '',
+  },
+
 };
 
 const formatNumber = (value) => {
@@ -204,7 +209,7 @@ const Loan = () => {
   const [categories, setCategories] = useState([]);
   const [deductions, setDeductions] = useState([]);
   const [accountTitle, setAccountTitle] = useState([]);
-
+  const [loanding, setLoading] = useState(false)
   const [openPopup, setOpenPopup] = useState(false);
   const [openRenewPopup, setOpenRenewPopup] = useState(false);
   const [openRestructurePopup, setOpenRestructurePopup] = useState(false);
@@ -230,7 +235,7 @@ const Loan = () => {
       const responseJSON = await request.json()
       console.log(responseJSON)
       setRestructureFormValue((old) => ({...old, ...responseJSON}))
-      // console.log(resJSON)
+      
       setOpenRestructurePopup(true);
     } catch (error) {
       console.log(error)
@@ -249,6 +254,7 @@ const Loan = () => {
 
   useEffect(() => {
     const getData = async () => {
+      setLoading(true)
       const urls = [
         fetch("/api/loans"),
         fetch("/api/loans/collateral"),
@@ -280,6 +286,7 @@ const Loan = () => {
         setCategories(categoryData);
         setDeductions(deductionData);
         setAccountTitle(accountTitleData);
+        setLoading(false)
       } catch (error) {
         console.log("error", error);
       }
@@ -309,6 +316,7 @@ const Loan = () => {
       </Box>
       <DataGrid
         sx={{ height: "95%" }}
+        loading={loanding}
         rows={loans}
         columns={columns}
         getRowId={(row) => row.loan_header_id}

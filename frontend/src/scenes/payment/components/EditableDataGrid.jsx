@@ -1,8 +1,22 @@
+import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Typography } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import React from 'react'
+import { NumericFormat } from 'react-number-format';
+
+const CustomFooter = (props) => {
+  
+  return(
+    <Box display='flex' >
+      <Typography padding={1} width={150}></Typography>
+      <Typography padding={1} align='right' width={150}>Total:</Typography>
+      <NumericFormat decimalScale={2} fixedDecimalScale thousandSeparator=","  value={props.total} displayType="text" renderText={(value) => <Typography width={150} padding={1} align='right'>{value}</Typography>}/>
+      {/* <Typography padding={1} width={150} align='right'>{props.total}</Typography> */}
+    </Box>
+  )
+}
 
 
-const EditableDataGrid = ({ rowData, onRowEdit }) => {
+const EditableDataGrid = ({ rowData, onRowEdit, total }) => {
     const handleEdit = (newRow, oldRow) => {
         return onRowEdit(newRow, oldRow);
       };
@@ -16,6 +30,11 @@ const EditableDataGrid = ({ rowData, onRowEdit }) => {
           width: 150,
           editable: true,
           type: 'number',
+          valueGetter: (params) => {
+            if(params.value < 0 || !params.value)
+              return 0;
+            return params.value
+          }, 
         },
         {
           field: 'total',
@@ -38,18 +57,15 @@ const EditableDataGrid = ({ rowData, onRowEdit }) => {
         checkboxSelection={false}
         disableSelectionOnClick
         processRowUpdate={handleEdit}
-        // onRowEditStop={(params, event) => {
-        //   event.defaultMuiPrevented = true
-        // }}
-        // onRowEditStart={(params, event) => {
-        //   event.defaultMuiPrevented = true
-        // }}
+        slots={{
+          footer : CustomFooter
+        }}
+        slotProps={{
+          footer: { 
+            total : total
+           },
+        }}
         
-        // onEditCellChangeCommitted={(params) => {
-        //   const { id, field, value } = params;
-        //   console.log()
-        //   handleEdit(id, field, value);
-        // }}
       />
     </div>
   )
