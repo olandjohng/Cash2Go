@@ -211,7 +211,7 @@ paymentRouter.post('/', async (req, res) => {
           checkno : data.check_number
         })
       }
-      console.log(data.payment_type)
+      
       const payment_data = () => {
          payment_info = {
           loan_detail_id : data.loan_detail_id,

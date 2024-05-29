@@ -53,7 +53,7 @@ export default function LoanDetailsForm({banks, rows, setRows}) {
             onChange={ async (file) => { setFile(file) }}/>
           <Button color='success' variant='outlined' 
             onClick={ async () => {
-              if(file){
+              if(file) {
                 Papa.parse(file, {
                   header : true,
                   skipEmptyLines : true,
@@ -61,10 +61,14 @@ export default function LoanDetailsForm({banks, rows, setRows}) {
                     const data = result.data.map((v, i) => ({
                       ...v, id : i + 1
                     }))
+                    console.log(64, result)
                     setRows(data)
                   },
                   transform : (value, field) => {
                     if(field === 'dueDate') {
+                      return dayjs(value)
+                    }
+                    if(field === 'check_date'){
                       return dayjs(value)
                     }
 
