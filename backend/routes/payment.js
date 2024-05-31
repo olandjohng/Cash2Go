@@ -376,6 +376,7 @@ paymentRouter.get("/read/:id", async (req, res) => {
     )
     .from("new_view_payment_detail") // 
     .where("loan_header_id", id)
+    .orderBy('due_date', 'asc')
     
     const updatedLoan = payment.map((item) => {
       return ({

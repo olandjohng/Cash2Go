@@ -240,13 +240,18 @@ loanRouter.get('/recalculate/:id', async (req, res) => {
 
 loanRouter.post('/recalculate', async (req, res) => {
   // console.log(pnNumber)
-  const {loan_details, voucher, deduction } = req.body
+  const {loan_details, voucher, deduction,  } = req.body
 
   const pnNumber =  await createPnNumber(req.body)
 
   const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest), 0)
 
+  
+  // console.log(req.body.loan_facility_id)
   try {
+    
+    const isRediscounting = await builder('loan_facilitytbl').select('is_rediscount').first()
+    
     await builder.transaction(async (t) => { 
       
       await t('loan_headertbl').where({ loan_header_id : req.body.loan_header_id}).update({status_code : LoanStatus.RESTRUCTURED}, ['loan_header_id'])
@@ -287,7 +292,7 @@ loanRouter.post('/recalculate', async (req, res) => {
             check_number : Number(v.checkNumber),
             bank_account_id : Number(v.bank_account_id),
             // monthly_amortization : Number(v.amortization),
-            monthly_interest : Number(v.interest),
+            monthly_interest : isRediscounting ? 0 : Number(v.interest),
             monthly_principal : Number(v.principal),
             net_proceeds : Number(v.net_proceeds),
             accumulated_penalty : 0
@@ -299,7 +304,7 @@ loanRouter.post('/recalculate', async (req, res) => {
           check_number : Number(v.checkNumber),
           bank_account_id : Number(v.bank_account_id),
           monthly_amortization : Number(v.amortization),
-          monthly_interest : Number(v.interest),
+          monthly_interest : isRediscounting ? 0 : Number(v.interest),
           monthly_principal : Number(v.principal),
           accumulated_penalty : 0
         }
@@ -315,6 +320,7 @@ loanRouter.post('/recalculate', async (req, res) => {
           loan_header_id : loanHeaderId[0]
         })
       ))
+
       const response = {
         renewal_id : req.body.loan_header_id,
         loan : {
@@ -338,117 +344,135 @@ loanRouter.post('/recalculate', async (req, res) => {
   }
 })
 
-loanRouter.post('/', async (req, res)=>{
+loanRouter.post('/', async (req, res) => {
   
+  function getMaxDueDate (details) {
+    let max = 0
+    for (const detail of details) {
+      const due = dayjs(detail.dueDate).diff(dayjs(), 'day')
+      if(due > max ) {
+        max = due
+      }
+    }
+    return max + 1
+  }
+
   const {voucher, deduction, loan_details, isCash, term_type} = req.body
+  
 
   const pnNumber = await createPnNumber(req.body)
 
   const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest), 0)
   
-  const term = term_type === 'months' ? loan_details.length : dayjs(loan_details[0].dueDate).diff(dayjs(), 'day') + 1
-
-  await builder.transaction(async t => {
+  const term = term_type === 'months' ? loan_details.length : getMaxDueDate(loan_details)
+  
+  try {
+    const isRediscounting = await builder('loan_facilitytbl').select('is_rediscount').first()
     
-    const id = await builder('loan_headertbl').insert({
-      pn_number : pnNumber,
-      check_number :  req.body.check_number,
-      term_type : req.body.term_type,
-      check_date : req.body.check_date,
-      prepared_by : req.body.prepared_by,
-      approved_by : req.body.approved_by,
-      checked_by : req.body.checked_by,
-      customer_id : req.body.customer_id,
-      transaction_date : req.body.transaction_date,
-      bank_account_id : Number(req.body.bank_account_id),
-      collateral_id : req.body.collateral_id,
-      loan_category_id : req.body.loan_category_id,
-      loan_facility_id : req.body.loan_facility_id,
-      principal_amount : Number(req.body.principal_amount),
-      interest_rate : Number(req.body.interest_rate),
-      date_granted : req.body.date_granted,
-      check_issued_name : req.body.check_issued_name,
-      voucher_number : req.body.voucher_number,
-      total_interest : totalInterest,
-      term : term, 
-      status_code : LoanStatus.ONGOING,
-      renewal_id : 0,
-      renewal_amount : 0
-    }, '*').transacting(t)
-
-
-    const loanDetailsMap = loan_details.map(v => { 
-      if(term_type === 'days') {
-        return {
+    await builder.transaction(async t => {
+      
+      const id = await builder('loan_headertbl').insert({
+        pn_number : pnNumber,
+        check_number :  req.body.check_number,
+        term_type : req.body.term_type,
+        check_date : req.body.check_date,
+        prepared_by : req.body.prepared_by,
+        approved_by : req.body.approved_by,
+        checked_by : req.body.checked_by,
+        customer_id : req.body.customer_id,
+        transaction_date : req.body.transaction_date,
+        bank_account_id : Number(req.body.bank_account_id),
+        collateral_id : req.body.collateral_id,
+        loan_category_id : req.body.loan_category_id,
+        loan_facility_id : req.body.loan_facility_id,
+        principal_amount : Number(req.body.principal_amount),
+        interest_rate : Number(req.body.interest_rate),
+        date_granted : req.body.date_granted,
+        check_issued_name : req.body.check_issued_name,
+        voucher_number : req.body.voucher_number,
+        total_interest : totalInterest,
+        term : term, 
+        status_code : LoanStatus.ONGOING,
+        renewal_id : 0,
+        renewal_amount : 0
+      }, '*').transacting(t)
+  
+  
+      const loanDetailsMap = loan_details.map(v => { 
+        if(term_type === 'days') {
+          return {
+            loan_header_id : id[0],
+            due_date : v.dueDate.split('T')[0],
+            check_date : v.check_date,
+            due_date : v.dueDate,
+            check_number : Number(v.checkNumber),
+            bank_account_id : Number(v.bank_account_id),
+            // monthly_amortization : Number(v.amortization),
+            monthly_interest : isRediscounting ? 0 : Number(v.interest),
+            monthly_principal : Number(v.principal),
+            net_proceeds : Number(v.net_proceeds),
+            accumulated_penalty : 0
+          }
+        }
+  
+        return{
           loan_header_id : id[0],
           due_date : v.dueDate.split('T')[0],
           check_date : v.check_date,
-          due_date : v.dueDate,
           check_number : Number(v.checkNumber),
           bank_account_id : Number(v.bank_account_id),
-          // monthly_amortization : Number(v.amortization),
-          monthly_interest : Number(v.interest),
+          monthly_amortization : Number(v.amortization),
+          monthly_interest : isRediscounting ? 0 : Number(v.interest),
           monthly_principal : Number(v.principal),
-          net_proceeds : Number(v.net_proceeds),
           accumulated_penalty : 0
         }
-      }
-
-      return{
+      })
+  
+      await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
+      //TODO : refactor 
+      //TODO handle deduction id in client
+      const deductionFormat = deduction.map((v) =>({
+        loan_deduction_id : v.id,
         loan_header_id : id[0],
-        due_date : v.dueDate.split('T')[0],
-        check_date : v.check_date,
-        check_number : Number(v.checkNumber),
-        bank_account_id : Number(v.bank_account_id),
-        monthly_amortization : Number(v.amortization),
-        monthly_interest : Number(v.interest),
-        monthly_principal : Number(v.principal),
-        accumulated_penalty : 0
+        amount : v.amount,
+        process_date : new Date().toISOString().split('T')[0],
+        pr_number : Number(isCash.pr_number),
+        isCash : Number(isCash.value)
+      }))
+  
+      if(deductionFormat.length > 0) {
+        await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
       }
-    })
-
-    await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
-    //TODO : refactor 
-    //TODO handle deduction id in client
-    const deductionFormat = deduction.map((v) =>({
-      loan_deduction_id : v.id,
-      loan_header_id : id[0],
-      amount : v.amount,
-      process_date : new Date().toISOString().split('T')[0],
-      pr_number : Number(isCash.pr_number),
-      isCash : Number(isCash.value)
-    }))
-
-    if(deductionFormat.length > 0) {
-      await builder.insert(deductionFormat).into('loan_deduction_historytbl').transacting(t)
-    }
-
-    const mapVoucher = voucher.map((v) => {
-      return {
-        account_title_id : Number(v.id),
-        debit_amount : Number(v.debit),
-        credit_amount : Number(v.credit),
+  
+      const mapVoucher = voucher.map((v) => {
+        return {
+          account_title_id : Number(v.id),
+          debit_amount : Number(v.debit),
+          credit_amount : Number(v.credit),
+          loan_header_id : id[0],
+        }
+      })
+  
+      const voucherId = await builder.insert(mapVoucher).into('vouchertbl').transacting(t)
+      
+      res.status(200).json({
         loan_header_id : id[0],
-      }
-    })
-
-    const voucherId = await builder.insert(mapVoucher).into('vouchertbl').transacting(t)
-    
-    res.status(200).json({
-      loan_header_id : id[0],
-      date_granted : req.body.date_granted,
-      name : req.body.customer_name,
-      pn_number : pnNumber,
-      principal_amount : Number(req.body.principal_amount),
-      total_interest : totalInterest,
-      bank_name : req.body.bank_name ,
-      loancategory : req.body.loan_category,
-      loanfacility : req.body.loan_facility,
-      loan_term : `${term} ${req.body.term_type}`,
-      status_code : LoanStatus.ONGOING,
-    })   
-})
-
+        date_granted : req.body.date_granted,
+        name : req.body.customer_name,
+        pn_number : pnNumber,
+        principal_amount : Number(req.body.principal_amount),
+        total_interest : totalInterest,
+        bank_name : req.body.bank_name ,
+        loancategory : req.body.loan_category,
+        loanfacility : req.body.loan_facility,
+        loan_term : `${term} ${req.body.term_type}`,
+        status_code : LoanStatus.ONGOING,
+      })   
+  })
+  } catch (error) {
+    console.log(error)
+  }
+  
 })
 
 

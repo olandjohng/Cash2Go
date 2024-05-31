@@ -20,7 +20,7 @@ const StyledInput = styled("input")({
   display: "none", // Hide the default file input
 });
 
-const imageBaseURL = "http://localhost:8000/images/";
+const imageBaseURL = "/api/public/images/";
 const dummyImageURL = "https://via.placeholder.com/350";
 
 export default function NewCustomer({ onCustomerAdded, onClosePopup }) {
