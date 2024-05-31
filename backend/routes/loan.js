@@ -387,7 +387,7 @@ loanRouter.post('/', async (req, res) => {
         loan_facility_id : req.body.loan_facility_id,
         principal_amount : Number(req.body.principal_amount),
         interest_rate : Number(req.body.interest_rate),
-        date_granted : req.body.date_granted,
+        date_granted : dayjs(req.body.date_granted).format('YYYY-MM-DD'),
         check_issued_name : req.body.check_issued_name,
         voucher_number : req.body.voucher_number,
         total_interest : totalInterest,

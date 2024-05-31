@@ -67,7 +67,7 @@ export const LOAN_INITIAL_VALUES = {
   interest_rate: "",
   total_interest: 0,
   term_month: 0,
-  date_granted: new Date().toISOString().split("T")[0],
+  date_granted: null,
   check_issued_name: "",
   voucher_number: "",
   renewal_id: 0,

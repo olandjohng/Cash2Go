@@ -125,7 +125,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           err={validationError}
         />
       </Grid>
-      <Grid item xs={7} >
+      <Grid item xs={4} >
         <TextInput
           disabled={isRestructure}
           value={formValue.check_number}
@@ -145,6 +145,23 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
             setValidationError(null)
             if(val){
               setFormValue((old) => ({...old , check_date : val.$d}))
+            }
+          }}
+          // slots={{
+          //   // textField : (params) => <TextField {...params}  />
+          // }}
+          />
+      </Grid>
+      <Grid item xs={3}>
+        <DatePicker
+          disabled={isRestructure}
+          label='Release Date'
+          name='date_granted'
+          value={formValue.date_granted ? dayjs(formValue.date_granted) : formValue.check_date}
+          onChange={(val) => { 
+            setValidationError(null)
+            if(val){
+              setFormValue((old) => ({...old , date_granted : val.$d}))
             }
           }}
           // slots={{
