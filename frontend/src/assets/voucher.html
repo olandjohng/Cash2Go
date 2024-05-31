@@ -53,12 +53,13 @@
             <% details.forEach(function(v) { %>
               <div class="flex justify-around">
                 <div class="flex-1 text-sm text-center">
-                  <% if(Number(v.credit) > 0) { %>
+                  <% if(Number(v.debit) > 0) { %>
+                    
                       <%= Intl.NumberFormat(undefined,  {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(Number(v.credit))  %>
                     <% } else { %> - <% } %>
                 </div>
                 <div class="flex-1 text-sm text-center">
-                  <% if(Number(v.debit) > 0) { %>
+                  <% if(Number(v.credit) > 0) { %>
                       <%= Intl.NumberFormat(undefined,  {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(Number(v.debit))  %>
                     <% } else { %> - <% } %>
                 </div>

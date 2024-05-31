@@ -18,6 +18,7 @@ import AccountCategory from "./scenes/accountCategory";
 import AccountTitle from "./scenes/accountTitle";
 import Employee from "./scenes/employee";
 import LoanPayment from "./scenes/payment";
+import Report from "./scenes/report";
 
 function App() {
 
@@ -34,7 +35,9 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/loans" element={<Loan />} />
-
+              
+              <Route path="/report" element={<Report />} />
+              
               <Route path="/payments" element={<LoanPayment />} />
               <Route path="/payments/:id" element={<LoanPayment />} />
               {/* <Route path="/borrowers" element={<Borrowers />}/> */}

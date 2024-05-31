@@ -117,13 +117,13 @@ export default function VoucherForm({accountTitle, voucher, setVoucher }) {
             </Grid>
             <Grid item>
               <CurrencyInput
-                label="Credit"
+                label="Debit"
                 sx={{width : 150}}
-                value={v.credit}
+                value={v.debit}
                 customInput={TextField}
                 onValueChange={(value) => {
                   const newValue = voucher.map((val, index) => {
-                    return i === index ? {...val, credit : value.value} : val
+                    return i === index ? {...val, debit : value.value} : val
                   })
                   setVoucher(newValue)
                   setFormValue({...formValue, voucher : newValue })
@@ -132,14 +132,13 @@ export default function VoucherForm({accountTitle, voucher, setVoucher }) {
             </Grid>
             <Grid item >
               <CurrencyInput 
-                label="Debit"
+                label="Credit"
                 sx={{width : 150}}
-                value={v.debit}
+                value={v.credit}
                 customInput={TextField}
                 onValueChange={(value)=>{
                   const newValue = voucher.map((val, index) => {
-                    console.log(index)
-                    return i === index ? {...val, debit : value.value} : val
+                    return i === index ? {...val, credit : value.value} : val
                   })
                   setVoucher(newValue)
                   setFormValue({...formValue, voucher : newValue})

@@ -1,14 +1,8 @@
 import {
-  Autocomplete,
   Box,
-  Button,
-  Grid,
   IconButton,
   InputBase,
-  TextField,
   ToggleButton,
-  Tooltip,
-  Typography,
 } from "@mui/material";
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
@@ -16,8 +10,6 @@ import { useTheme } from "@emotion/react";
 import { useEffect, useReducer, useRef, useState } from "react";
 import axios from "axios";
 import {
-  EditCalendarOutlined,
-  PointOfSaleOutlined,
   SearchOutlined,
 } from "@mui/icons-material";
 import { Link, useLocation } from "react-router-dom";
@@ -26,6 +18,7 @@ import Popups from "../../components/Popups";
 import PaymentForm from "./components/PaymentForm";
 import dayjs from "dayjs";
 import { DatePicker } from "@mui/x-date-pickers";
+import PaymentDataGrid from "./components/PaymentDataGrid";
 
 function paymentReducer(state, action) {
   switch(action.type){
@@ -244,6 +237,7 @@ export default function LoanPayment() {
         <InputBase
           sx={{ ml: 2, mt: 0.5, flex: 1 }}
           value={searchValue}
+          
           onChange={(e) => setSearchValue(e.target.value)}
         />
         <IconButton type="button" sx={{ p: 1 }} onClick={handleSearch}>
@@ -283,18 +277,6 @@ export default function LoanPayment() {
 
         </Box>
       </Box>
-
-      {/* <DataGrid
-        sx={{ height: "93%" }}
-        columns={columns}
-        rows={rows}
-        loading={isLoading}
-        rowCount={rowCount}
-        pageSizeOptions={[5, 10, 20]}
-        paginationMode="server"
-        paginationModel={paginationModel}
-        onPaginationModelChange={handlePaginationModelChange}
-      /> */}
       { isDeductionView ? 
         (
           // Deduction DataGrid
@@ -308,11 +290,11 @@ export default function LoanPayment() {
       : 
         (
           // Payment DataGrid
-          <DataGrid 
-            sx={{ height: "90%" }}
+          <PaymentDataGrid 
+            sx={{ height: "89%" }}
             columns={payment_col}
             rows={paymentRows}
-            />
+          />
         )
       }
 
