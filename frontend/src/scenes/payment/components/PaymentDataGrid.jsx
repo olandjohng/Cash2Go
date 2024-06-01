@@ -57,11 +57,14 @@ export default function PaymentDataGrid({rows, ...props}) {
     downloadFile(`(${dayjs().format('MM-DD-YYYY')})-payment`, content)
   } 
   const handlePrint = () => {
-    console.log(rows)
     const data = rows.map(v => ({
       ...v,
       check_date : v.check_date ? dayjs(v.check_date).format('MM-DD-YYYY') : '-',
       bank : v.bank.trim() === '' ? '-' : v.bank,
+      payment_principal : formatCurrency.format(v.payment_principal),
+      payment_interest : formatCurrency.format(v.payment_interest),
+      payment_penalty : formatCurrency.format(v.payment_penalty),
+      payment_amount : formatCurrency.format(v.payment_amount),
       payment_date : dayjs(v.payment_date).format('MM-DD-YYYY'),
       check_number : v.check_number.trim() === '' ? '-' : v.check_number
       
