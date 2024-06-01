@@ -353,7 +353,6 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
             stepName='Print Voucher'
             schema={yup.object({})}
             onSubmit = {() => {
-              console.log(formValue)
             }}
           >
             <VoucherPrint onClick={() => {
@@ -369,7 +368,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
                 check_details : `${formValue.bank_name}-${formValue.check_number}`,
                 check_date : dayjs(formValue.check_date).format('MM-DD-YYYY')
               }
-
+              
               const voucherHTML = ejs.render(voucherHTMLTemplate, templateData)
 
               if(voucherWindow){
