@@ -3,7 +3,6 @@ const builder = require('../builder')
 async function getLoanList (req, res) {
   
   const search = req.query.search ? req.query.search : ''
-
   const loans = await builder.select(
     'loan_header_id',
     'pn_number',
@@ -20,8 +19,17 @@ async function getLoanList (req, res) {
     'status_code',
     'term_type',
     'term'
-  )
-  .from('view_loan_header').whereILike('customername', `%${search}%`).orWhereILike('pn_number', `%${search}%`)
+  ).modify((sub) => {
+    if(req.query['customer_name']) {
+      sub.whereILike('customername', `%${req.query['customer_name']}%`)
+    }
+    if(req.query['pn_number']) {
+      sub.whereILike('pn_number', `%${req.query['pn_number']}%`)
+    }
+  }).orderBy('date_granted', 'desc')
+  .from('view_loan_header')
+  
+  // .whereILike('customername', `%${search}%`).orWhereILike('pn_number', `%${search}%`)
   
   const loanMap = loans.map((v) =>{
     const item = v

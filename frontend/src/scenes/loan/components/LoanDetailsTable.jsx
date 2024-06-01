@@ -1,6 +1,6 @@
 import { useTheme } from '@emotion/react';
 import { DeleteOutlined } from '@mui/icons-material';
-import { Box, Button, InputBase, TextField, Grid, Tooltip, Typography, styled, tooltipClasses } from '@mui/material';
+import { Box, Button, InputBase, TextField, Grid, Tooltip, Typography, styled, tooltipClasses, Autocomplete } from '@mui/material';
 import { DataGrid, GridActionsCellItem, GridEditInputCell, GridRowEditStopReasons, GridRowModes, GridToolbarContainer, GRID_DATE_COL_DEF, useGridApiContext } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react'
 import { tokens } from '../../../theme';
@@ -170,7 +170,6 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
   };
   
   useEffect(() => {
-    
       setPricipalTotal(rows.reduce((acc, cur) => acc + cur.principal, 0))
       setInterestTotal(rows.reduce((acc, cur) => acc + cur.interest, 0))
       setAmortizationTotal(rows.reduce((acc, cur) => acc + cur.amortization, 0))
@@ -228,7 +227,10 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
         return {...params.row, amortization : (principal + interest)}
       }
     },
-    { field: 'bank', headerName: 'Bank', width: 120, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name),},
+    { field: 'bank', headerName: 'Bank', width: 120, editable: true, type: 'singleSelect', valueOptions : banks,
+      getOptionValue: (value) => value.name,
+      getOptionLabel: (value) => value.name,
+    },
     { field: 'checkNumber', headerName: 'Check Number', width: 120, editable: true,   },
     { field: 'action', type : 'actions',
       getActions : ({id}) => {

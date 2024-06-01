@@ -58,6 +58,8 @@ const initialCashRowData = [
   { denomination: 10, count: 0 },
   { denomination: 5, count: 0 },
   { denomination: 1, count: 0 },
+  { denomination: .50, count: 0 },
+  { denomination: .25, count: 0 },
 ];
 
 export default function PaymentForm({paymentDispacher, popup}) {

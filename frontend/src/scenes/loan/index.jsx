@@ -2,31 +2,32 @@ import {
   DataGrid,
   GridActionsCell,
   GridActionsCellItem,
+  GridToolbarContainer,
 } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import { mockDataTeam } from "../../data/mockData";
 import { useTheme } from "@emotion/react";
-import { Box, IconButton, InputBase, TextField } from "@mui/material";
+import { Box, Button, IconButton, InputBase, TextField } from "@mui/material";
 import Header from "../../components/Header";
 import { useEffect, useReducer, useState } from "react";
 import Popups from "../../components/Popups";
 import DetailsModal from "./components/DetailsModal";
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import LoanForm1 from "./components/LoanForm1";
-import { AccountTreeOutlined, AutorenewOutlined, PrintOutlined } from "@mui/icons-material";
+import { AccountTreeOutlined, AutorenewOutlined, PrintOutlined, RefreshOutlined } from "@mui/icons-material";
 import voucherTemplateHTML from "../../assets/voucher.html?raw";
 import c2gImage from "../../assets/c2g_logo_nb.png";
 import * as ejs from "ejs";
 import dayjs from "dayjs";
 import LoanRenewForm from "./components/LoanRenewForm";
 import LoanRestructureForm from "./components/LoanRestructureForm";
+import SearchInputForm from "../report/component/SearchInputForm";
 
 function reducer(state, action) {
   switch (action.type) {
     case "INIT":
       return action.loans;
     case "ADD":
-      return [...state, action.loans];
+      return [action.loans, ...state];
     case "RENEW":
       const updateLoan = state.map((v) => {
         console.log(action)
@@ -53,7 +54,7 @@ export const LOAN_INITIAL_VALUES = {
   customer_name: "",
   transaction_date: new Date().toISOString().split("T")[0],
   bank_account_id: "",
-  term_type: "days",
+  term_type: "months",
   bank_name: "",
   collateral_id: "",
   check_date: null,
@@ -112,6 +113,15 @@ const getVoucher = async (id) => {
   }
 
 };
+
+const RefreshToolBar = ({refresh}) =>{
+  return (
+      <Box display='flex' justifyContent='end' onClick={refresh} >
+        <Button color='success' size="large" sx={{py : 0.5}} endIcon={<RefreshOutlined />}> Refresh</Button>
+      </Box>
+  )
+}
+
 
 const Loan = () => {
   const theme = useTheme();
@@ -243,54 +253,57 @@ const Loan = () => {
   }
 
 
-  const handleSearch = (e) => {
-    clearTimeout(timeOut);
-    timeOut = setTimeout(() => {
-      fetch(`/api/loans?search=${e.target.value}`)
-        .then((res) => res.json())
-        .then((val) => dispatch({ type: "INIT", loans: val }));
-    }, 1000);
+  const handleSearch = async (value, field) => {
+    const params = new URLSearchParams({ [field] : value}).toString()
+    try {
+      const request = await fetch('/api/loans?' + params)
+      const loanSearchJSON = await request.json()
+     
+      dispatch({ type: "INIT", loans: loanSearchJSON })
+    } catch (error) {
+      console.log(error)
+    }
   };
+  const getData = async () => {
+    setLoading(true)
+    const urls = [
+      fetch("/api/loans"),
+      fetch("/api/loans/collateral"),
+      fetch("/api/loans/facility"),
+      fetch("/api/banks"),
+      fetch("/api/loans/category"),
+      fetch("/api/deductions"),
+      fetch("/api/account-title"),
+    ];
 
+    try {
+      const req = await Promise.all(urls);
+
+      const loanData = await req[0].json();
+      // const customerData = await req[1].json()
+      const collateralData = await req[1].json();
+      const facilityData = await req[2].json();
+      const banksData = await req[3].json();
+      const categoryData = await req[4].json();
+      const deductionData = await req[5].json();
+      const accountTitleData = await req[6].json();
+
+      dispatch({ type: "INIT", loans: loanData });
+      // console.log('173', banksData)
+      setCollaterals(collateralData);
+
+      setFacilities(facilityData);
+      setBanks(banksData);
+      setCategories(categoryData);
+      setDeductions(deductionData);
+      setAccountTitle(accountTitleData);
+      setLoading(false)
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
   useEffect(() => {
-    const getData = async () => {
-      setLoading(true)
-      const urls = [
-        fetch("/api/loans"),
-        fetch("/api/loans/collateral"),
-        fetch("/api/loans/facility"),
-        fetch("/api/banks"),
-        fetch("/api/loans/category"),
-        fetch("/api/deductions"),
-        fetch("/api/account-title"),
-      ];
-
-      try {
-        const req = await Promise.all(urls);
-
-        const loanData = await req[0].json();
-        // const customerData = await req[1].json()
-        const collateralData = await req[1].json();
-        const facilityData = await req[2].json();
-        const banksData = await req[3].json();
-        const categoryData = await req[4].json();
-        const deductionData = await req[5].json();
-        const accountTitleData = await req[6].json();
-
-        dispatch({ type: "INIT", loans: loanData });
-        // console.log('173', banksData)
-        setCollaterals(collateralData);
-
-        setFacilities(facilityData);
-        setBanks(banksData);
-        setCategories(categoryData);
-        setDeductions(deductionData);
-        setAccountTitle(accountTitleData);
-        setLoading(false)
-      } catch (error) {
-        console.log("error", error);
-      }
-    };
+    
     getData();
   }, []);
 
@@ -302,7 +315,7 @@ const Loan = () => {
         onAddButtonClick={() => setOpenNewLoanPopup(true)}
       />
 
-      <Box
+      {/* <Box
         display="flex"
         alignItems="flex-start"
         marginBottom={2}
@@ -313,6 +326,10 @@ const Loan = () => {
         <IconButton type="button" sx={{ p: 1 }}>
           <SearchOutlinedIcon />
         </IconButton>
+      </Box> */}
+      <Box display='flex' justifyContent='end' mb={1} gap={2}>
+        <SearchInputForm name='customer_name' placeholder='Search Customer Name' submit={handleSearch} />
+        <SearchInputForm name='pn_number' placeholder='Search PN Number' submit={handleSearch} />
       </Box>
       <DataGrid
         sx={{ height: "95%" }}
@@ -320,6 +337,14 @@ const Loan = () => {
         rows={loans}
         columns={columns}
         getRowId={(row) => row.loan_header_id}
+        slots={{
+          toolbar : RefreshToolBar
+        }}
+        slotProps = {{
+          toolbar : {
+            refresh : getData
+          }
+        }}
         onRowDoubleClick={handleRowDoubleClick}
       />
 

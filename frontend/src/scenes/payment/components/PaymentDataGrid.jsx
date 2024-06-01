@@ -3,6 +3,8 @@ import { DataGrid } from '@mui/x-data-grid'
 import React from 'react'
 import Papa from 'papaparse';
 import dayjs from 'dayjs';
+import paymentTemplate from '../../../assets/payment.html?raw'
+import * as ejs from 'ejs'
 
 const CustomFooter = ({csvClick, printClick}) => {
   return (
@@ -35,7 +37,6 @@ const downloadFile = (file, content) => {
 
 export default function PaymentDataGrid({rows, ...props}) {
   const handleCsvClick = () => {
-    
     const payments = rows.map(v => {
       return {
         payment_date : v.payment_date ? dayjs(v.payment_date).format('MM-DD-YYYY') : '',
@@ -52,12 +53,23 @@ export default function PaymentDataGrid({rows, ...props}) {
         check_number : v.check_number ? v.check_number : '',
       }  
     })
-
     const content = Papa.unparse(payments)
-    
     downloadFile(`(${dayjs().format('MM-DD-YYYY')})-payment`, content)
   } 
-
+  const handlePrint = () => {
+    console.log(rows)
+    const data = rows.map(v => ({
+      ...v,
+      check_date : v.check_date ? dayjs(v.check_date).format('MM-DD-YYYY') : '-',
+      bank : v.bank.trim() === '' ? '-' : v.bank,
+      payment_date : dayjs(v.payment_date).format('MM-DD-YYYY'),
+      check_number : v.check_number.trim() === '' ? '-' : v.check_number
+      
+    }))
+    const html = ejs.render(paymentTemplate, { payments : data }) 
+    const paymentWindow = window.open("", "Print");
+    paymentWindow.document.write(html);
+  }
 
   return (
     <DataGrid 
@@ -67,7 +79,10 @@ export default function PaymentDataGrid({rows, ...props}) {
         footer : CustomFooter
       }}
       slotProps={{
-        footer: { csvClick : handleCsvClick },
+        footer: { 
+          csvClick : handleCsvClick,
+          printClick : handlePrint
+        },
       }}
     />
   )

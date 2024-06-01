@@ -116,10 +116,13 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           options={banks}
           idfield='bank_account_id'
           getOptionLabel={(option) => option.name || "" || option}
-          renderOption={(props, option) => 
-            <Box {...props} component='li' key={option.id} id={option.id}>
-              {option.name}
-            </Box>  
+          renderOption={(props, option) => {
+            if(option.owner) {
+              return <Box {...props} component='li' key={option.id} id={option.id}>
+                {option.name}
+              </Box>  
+            }
+          }
           }
           nameField="bank_name"
           err={validationError}
@@ -144,7 +147,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           onChange={(val) => { 
             setValidationError(null)
             if(val){
-              setFormValue((old) => ({...old , check_date : val.$d}))
+              setFormValue((old) => ({...old , check_date : val}))
             }
           }}
           // slots={{
@@ -157,11 +160,11 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           disabled={isRestructure}
           label='Release Date'
           name='date_granted'
-          value={formValue.date_granted ? dayjs(formValue.date_granted) : formValue.check_date}
+          value={formValue.date_granted ? dayjs(formValue.date_granted) : formValue.date_granted}
           onChange={(val) => { 
             setValidationError(null)
             if(val){
-              setFormValue((old) => ({...old , date_granted : val.$d}))
+              setFormValue((old) => ({...old , date_granted : val}))
             }
           }}
           // slots={{

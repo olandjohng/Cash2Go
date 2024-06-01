@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useTheme } from "@emotion/react";
-import { Formik, Form } from "formik";
+import { Formik, Form, useField } from "formik";
 import * as Yup from "yup";
-import { Button, Grid, Tooltip } from "@mui/material";
+import { Button, Checkbox, FormControlLabel, Grid, Tooltip } from "@mui/material";
 import Textfield from "../../../components/FormUI/Textfield";
 import axios from "axios";
 import { tokens } from "../../../theme";
@@ -13,12 +13,21 @@ import "react-toastify/dist/ReactToastify.css";
 const INITIAL_FORM_STATE = {
   name: "",
   check_location: "",
+  owner : false
 };
 
 const FORM_VALIDATION = Yup.object().shape({
   name: Yup.string().required("Required"),
   check_location: Yup.string().required("Required"),
 });
+
+const Cash2GoCheckBox = ({name}) =>{
+  const [field, meta] = useField(name);
+  return (
+    <FormControlLabel sx={{color : 'white'}} label='Cash 2 Go Bank'control={<Checkbox {...field} checked={field.value} />} />
+  )
+}
+
 
 export default function BankForm({ onBankAdded, onClosePopup }) {
   const { id } = useParams();
@@ -33,11 +42,11 @@ export default function BankForm({ onBankAdded, onClosePopup }) {
       axios
         .get(`/api/banks/read/${id}`)
         .then((res) => {
-          const { name, check_location } = res.data[0];
+          const { name, check_location, owner } = res.data[0];
           // Update INITIAL_FORM_STATE with the fetched data
           // INITIAL_FORM_STATE.name = name;
           // INITIAL_FORM_STATE.check_location = check_location;
-          setInitialValues({ name, check_location });
+          setInitialValues({ name, check_location, owner : Boolean(owner) });
           
         })
         .catch((err) => {
@@ -101,6 +110,9 @@ export default function BankForm({ onBankAdded, onClosePopup }) {
             </Grid>
             <Grid item xs={12}>
               <Textfield name="check_location" label="Location" />
+            </Grid>
+            <Grid item xs={12}>
+              <Cash2GoCheckBox name='owner'/>
             </Grid>
           </Grid>
           <Grid container justifyContent="flex-end" spacing={1} mt={2}>

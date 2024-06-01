@@ -32,7 +32,6 @@ function paymentReducer(state, action) {
   }
 }
 
-
 export default function LoanPayment() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -146,33 +145,33 @@ export default function LoanPayment() {
   ];
 
   const payment_col = [
-    { field: "payment_date", width: 150, headerName: "Process Date", 
+    { field: "payment_date", width: 100, headerName: "Process Date", 
       valueFormatter : (params) => {
         return dayjs(params.value).format('MM-DD-YYYY')}
     },
-    { field: "payment_receipt", width: 150, headerName: "PR Number" },
+    { field: "payment_receipt", width: 100, headerName: "PR Number" },
     { field: "fullName", width: 200, headerName: "Borrower Name" },
     { field: "pn_number", width: 200, headerName: "PN Number" },
-    { field: "payment_type", width: 200, headerName: "Mode of Payment" },
-    { field: "bank", width: 150, headerName: "Bank" },
-    { field: "check_number", width: 150, headerName: "Check Number." },
-    { field: "check_date", width: 150, headerName: "Check Date.",
+    { field: "payment_type", width: 125, headerName: "Mode of Payment" },
+    { field: "bank", width: 100, headerName: "Bank" },
+    { field: "check_number", width: 150, headerName: "Check Number" },
+    { field: "check_date", width: 100, headerName: "Check Date",
       valueFormatter : (params) => {
         // console.log(typeof params.value, params.value)
         if(params.value && params.value != '') 
           return dayjs(params.value).format('MM-DD-YYYY');
       }
     },
-    { field: "payment_principal", width: 150, headerName: "Principal",
+    { field: "payment_principal", width: 120, headerName: "Principal",
       valueFormatter : (params) => formatNumber(params.value)
     },
-    { field: "payment_interest", width: 150, headerName: "Interest",
+    { field: "payment_interest", width: 120, headerName: "Interest",
       valueFormatter : (params) => formatNumber(params.value)
     },
-    { field: "payment_penalty", width: 150, headerName: "Penalty",
+    { field: "payment_penalty", width: 120  , headerName: "Penalty",
       valueFormatter : (params) => formatNumber(params.value)
     },
-    { field: "payment_amount", width: 150, headerName: "Total Payment",
+    { field: "payment_amount", width: 120, headerName: "Total Payment",
       // valueFormatter : (params) => formatNumber(params.value)
       valueGetter: (params) => {
         const total = Number(params.row.payment_principal) + Number(params.row.payment_interest) + Number(params.row.payment_penalty)

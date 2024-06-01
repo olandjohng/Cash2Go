@@ -25,7 +25,7 @@ const RedisCountingCheckBox = ({name}) => {
   const [field, meta] = useField(name);
   
   return (
-    <FormControlLabel label='Rediscounting'control={<Checkbox {...field} checked={field.value} />} />
+    <FormControlLabel sx={{color : 'white'}} label='Rediscounting'control={<Checkbox {...field} checked={field.value} />} />
   )
 }
 

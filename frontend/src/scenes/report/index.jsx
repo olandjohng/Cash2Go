@@ -30,7 +30,7 @@ export default function Report() {
           <SearchInputForm colors={colors} submit={handlePnNumberSearch} name='pn_number' placeholder="Search PN Number"/>
         </Box>
         <Box height='98%' my={1}>
-          <DataGrid columns={column} rows={[]} />
+          {/* <DataGrid columns={column} rows={[]} /> */}
         </Box>
     </div>
   )

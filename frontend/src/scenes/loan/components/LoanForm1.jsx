@@ -398,12 +398,13 @@ export function PreviewLabel({label, value}){
   return(
     
   <Box>
-    <StyledLabel>{value}</StyledLabel>
+    <StyledLabel sx={{color : 'ghostwhite'}}>{value}</StyledLabel>
     <Typography style={{
       letterSpacing : '1px',
       textAlign : 'center',
       fontSize : 'smaller',
-      fontStyle : 'italic'
+      fontStyle : 'italic',
+      color : 'ghostwhite'
     }}>
     {label}
     </Typography>
