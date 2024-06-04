@@ -1,5 +1,5 @@
 import { Autocomplete, Box, Grid, TextField } from '@mui/material'
-import { useContext, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { ComboBox, LoanFormContext, TextInput } from './LoanForm1'
 import { DatePicker } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
@@ -14,11 +14,15 @@ const CustomerComboBox = ({value, setter, disabled}) => {
   const fetchData = async (value) => {
     try {
       const request = await fetch(`/api/customers/search?name=${value}`)
-      return await request.json()
+      const customerData = await request.json()
+      setCustomers(customerData)
     } catch (error) {
       console.log(error)
     }
   }
+  useEffect(()=> {
+    const customerData = fetchData('')
+  }, [])
 
   const handleInputChange = async (event, value) => {
     if(event && event.type === 'change'){
@@ -27,8 +31,10 @@ const CustomerComboBox = ({value, setter, disabled}) => {
         searchTimeOut = setTimeout(() => {
           const req = async () => {
             try {
-              const customerData = await fetchData(value)
-              setCustomers(customerData)              
+              // const customerData = await fetchData(value)
+              fetchData(value)
+              // setCustomers(customerData)
+              clearTimeout(searchTimeOut)          
             } catch (error) {
               console.log(error)
             }
@@ -49,6 +55,7 @@ const CustomerComboBox = ({value, setter, disabled}) => {
   return(
     <Autocomplete
       fullWidth
+      // onOpen={(e) => console.log(e)}
       disabled={disabled}
       options={customers}
       ref={ref}

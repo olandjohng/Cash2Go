@@ -1,4 +1,4 @@
-import { Autocomplete, Box, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import { Autocomplete, Box, Grid, MenuItem, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
 import SelectWrapper from "../../../components/FormUI/Select";
 import EditableDataGrid from "./EditableDataGrid";
 import TextfieldWrapper from "../../../components/FormUI/Textfield";
@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { ComboBox } from "../../loan/components/LoanForm1";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
+import { tokens } from "../../../theme";
+import { useTheme } from "@emotion/react";
 
 const fixedOptions = [
   { value: "CASH", label: "Cash" },
@@ -13,8 +15,72 @@ const fixedOptions = [
   { value: "ONLINE", label: "Online" },
 ];
 
+const OptionSelect = ({options, onValueChange, ...props}) => {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
+  return(
+    <TextField 
+      {...props}
+      select={true} 
+      onChange={(e) => onValueChange(e.target.value , e)}
+      sx={{
+        "& .MuiOutlinedInput-root": {
+          "&.Mui-focused fieldset": {
+            borderColor: colors.greenAccent[600], // Change border color when focused
+          },
+          "&:hover fieldset": {
+            borderColor: colors.greenAccent[500], // Change border color on hover
+          },
+        },
+        "& .MuiInputLabel-root.Mui-focused": {
+          color: "white", // Change label color when focused
+        },
+      }}
+    >
+      {options.map((option) => (
+        <MenuItem key={option.value} value={option.value}
+          sx={{
+            backgroundColor: colors.greenAccent[800],
+            "&:hover": { backgroundColor: colors.greenAccent[700] },
+          }}
+        >
+          {option.label}
+        </MenuItem>
+      ))}
+    </TextField>
+  )
+
+}
+
+const TextInput = ({name, onValueChange, ...props }) => {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
+  const handleChange = (e) => {
+    console.log(e.target.value, name )
+    onValueChange(e.target.value, name, e)
+  }
+  return(
+    <TextField {...props} 
+    sx={{
+      '& .MuiOutlinedInput-root': {
+        '&.Mui-focused fieldset': {
+          borderColor: colors.greenAccent[600], // Change border color when focused
+        },
+        '&:hover fieldset': {
+          borderColor: colors.greenAccent[500], // Change border color on hover
+        },
+      },
+      '& .MuiInputLabel-root.Mui-focused': {
+        color: 'white', // Change label color when focused
+      },
+    }}
+      onChange={handleChange}
+    />
+  )
+}
 const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter, selectedBank, selectedBankSetter}) => {
-  
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
   const [banks, setBanks] = useState([]);
   const [showOrField, setShowOrField] = useState(false);
   const [total, setTotal] = useState(0)
@@ -62,25 +128,13 @@ const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter, 
     <Grid container spacing={2}>
       <Grid item xs={4}>
         <Grid item xs={12} marginBottom={2}>
-          <SelectWrapper
-            name="myFieldName"
-            label="Payment Type"
-            options={fixedOptions}
-            variant="standard"
-            value={paymentData.payment_type}
-            onChange={(e) => {
-              const type = e.target.value
-              // reset 
-              
-              //
-              paymentDataSetter((old) => ({...old, payment_type : type, or_number : '', check_number : '', bank : ''}))
-              // selectedBankSetter('')
-              // setPaymentType(type)
-            }}
+          <OptionSelect value={paymentData.payment_type} fullWidth label='Mode of Payment' options={fixedOptions} 
+            onValueChange={(value) => paymentDataSetter((old) => ({...old, payment_type : value, or_number : '', check_number : '', bank : ''}))} 
           />
         </Grid>
         <Grid item xs={12}>
-          <TextfieldWrapper value={paymentData.pr_number} onChange={(e) => paymentDataSetter((old) => ({...old, pr_number : e.target.value}))} name="myText" label="Provisional Receipt" />
+          <TextInput fullWidth label='Provisional Receipt' name='pr_number' value={paymentData.pr_number} onValueChange={(value, field) => paymentDataSetter((old) => ({...old , [field] : value }))} />
+          {/* <TextfieldWrapper value={paymentData.pr_number} onChange={(e) => paymentDataSetter((old) => ({...old, pr_number : e.target.value}))} name="myText" label="Provisional Receipt" /> */}
         </Grid>
       </Grid>
       <Grid item xs={8}>
@@ -91,26 +145,11 @@ const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter, 
               onRowEdit={handleRowEdit}
               total={total}
             />
-            
           </Grid>
         )}
         {paymentData.payment_type === "CHECK" && (
           <Grid container columnSpacing={1}  >
             <Grid item xs={4} marginBottom={2}>
-              {/* <SelectWrapper
-                name="myBank"
-                label="Bank"
-                options={banks.map((bank) => ({
-                  value: bank.id,
-                  label: bank.name,
-                }))}
-                variant="standard"
-                value={selectedBank}
-                onChange={(e) => {
-                  selectedBankSetter(e.target.value)
-                  paymentDataSetter((old) => ({...old, bank : e.target.value}))
-                }}
-              /> */}
               <Autocomplete options={banks}
                 getOptionLabel={(option) => option.name || "" || option}
                 value={paymentData.bank}

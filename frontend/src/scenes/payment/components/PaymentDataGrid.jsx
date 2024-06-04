@@ -17,7 +17,7 @@ const CustomFooter = ({csvClick, printClick}) => {
 
 const formatCurrency = Intl.NumberFormat(undefined,  {minimumFractionDigits: 2, maximumFractionDigits: 2})
 
-const downloadFile = (file, content) => {
+export const downloadFile = (file, content) => {
   
   const link = document.createElement('a')
 

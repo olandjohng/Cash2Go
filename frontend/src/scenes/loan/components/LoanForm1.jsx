@@ -203,7 +203,16 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
       }
     }
     getEmployees()
-
+    // toast.error('Something went wrong!', {
+    //   position: "top-right",
+    //   autoClose: 3000,
+    //   hideProgressBar: false,
+    //   closeOnClick: true,
+    //   pauseOnHover: true,
+    //   draggable: true,
+    //   progress: undefined,
+    //   theme: "colored"
+    // })
   },[])
 
   const handleLoanDetails = async () => {
@@ -269,7 +278,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
           })
           .then((d) => d.json())
           .then((res) => {
-            // setModalOpen(false)
+            setModalOpen(false)
             dispatcher({type : 'ADD', loans : res })
             toast.success('Save Successfully!', {
               position: "top-right",

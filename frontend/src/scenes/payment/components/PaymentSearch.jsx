@@ -124,7 +124,9 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
     paymentRowSetter(rows)
   },[rows])
   
-  const handleSearch = async () => {
+  const handleSearch = async (e) => {
+    e.preventDefault()
+    console.log(e)
     setIsLoading(true)
     try {
       const response = await axios.get(`/api/payments/search`, {
@@ -137,6 +139,7 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
 
       setRows(response.data.data);
       setRowCount(response.data.totalCount);
+      setSearchInput('')
       
     } catch (error) {
       console.error("Error loading customer data:", error);
@@ -148,6 +151,7 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
 
   return (
     <>
+      <form onSubmit={handleSearch}>
       <Box
         display="flex"
         alignItems="flex-start"
@@ -161,23 +165,17 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
           placeholder="Search"
           onChange={(e) => setSearchInput(e.target.value)}
         />
-        <IconButton type="button" sx={{ px: 1.5 }} onClick={handleSearch} >
+        <IconButton type="submit" sx={{ px: 1.5 }} >
           <SearchOutlined/>
         </IconButton>
       </Box>
+      </form>
       <DataGrid 
         columns={columns} 
         rows={rows} 
         loading={isLoading}
         rowCount={rowCount}
         onPaginationModelChange={setPaginationModel}
-        // pageSizeOptions={[5]}
-        // pagination
-        // initialState={{
-        //   pagination: {
-        //     paginationModel: paginationModel,
-        //   },
-        // }}
         sx={{ height: 370 }}
         rowSelectionModel={selectionModel}
         checkboxSelection={true} 
@@ -195,7 +193,16 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
           paymentDataSetter((old) => ({...old, loan_header_id : loanId }))
           loanIdSetter(loanId)
 
-        }}/>
+        }}
+        // pageSizeOptions={[5]}
+        // pagination
+        // initialState={{
+        //   pagination: {
+        //     paginationModel: paginationModel,
+        //   },
+        // }}
+        
+        />
     </>
   )
 }

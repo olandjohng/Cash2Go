@@ -141,22 +141,6 @@ export default function PaymentForm({paymentDispacher, popup}) {
         return formatNumber(params.value);
       },
     },
-    // {
-    //   field: "running_balance",
-    //   headerName: "Running Balance",
-    //   width: 150,
-    //   valueFormatter: (params) => {
-    //     return formatNumber(params.value);
-    //   },
-    // },
-    // {
-    //   field: "running_total",
-    //   headerName: "Running Total Payment",
-    //   width: 150,
-    //   valueFormatter: (params) => {
-    //     return formatNumber(params.value);
-    //   },
-    // },
     { field: "description", headerName: "Status", width: 150 },
   ];
 
@@ -211,7 +195,7 @@ export default function PaymentForm({paymentDispacher, popup}) {
   
   return (
     <div style={{ width: 900 }}>
-      <MultiStepForm initialValues={paymentData} onSubmit={handleSubmit}>
+      <MultiStepForm1 initialValues={paymentData} onSubmit={handleSubmit}>
         <FormStep stepName="Search Payment" onSubmit={() => {}}>
           <PaymentSearch paymentDataSetter={setPaymentData} paymentRow={paymentRow} paymentRowSetter={setPaymentRow} loanIdSetter={setLoanId}/>
         </FormStep>
@@ -244,7 +228,7 @@ export default function PaymentForm({paymentDispacher, popup}) {
         >
           <PaymentAmount  id={loanId} paymentDataSetter={setPaymentData} paymentData={paymentData}/>
         </FormStep>
-      </MultiStepForm>
+      </MultiStepForm1>
     </div>
   );
 }

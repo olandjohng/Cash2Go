@@ -70,7 +70,6 @@ const formatName = (item) => {
 paymentRouter.get('/', async (req, res) => {
   
   const {date, search} = req.query
-  
   const fields = [
     {id : 'p_h.payment_history_id'},
     'p.loan_detail_id',
@@ -104,11 +103,16 @@ paymentRouter.get('/', async (req, res) => {
     .innerJoin(builder.raw('loan_detail as l_d'), 'p_h.loan_detail_id', "l_d.loan_detail_id" )
     .innerJoin(builder.raw('loan_headertbl as l_h'), 'l_h.loan_header_id', 'l_d.loan_header_id')
     .innerJoin(builder.raw('customertbl as c'), 'c.customerid', 'l_h.customer_id')
-    .modify((q) => {
-      if(search)
-        q.whereILike('clname', `%${search}%`).orWhereILike('cfname', `%${search}%`);
+    .modify((sub) => {
+      if(req.query['customer_name'])
+        sub.whereILike('clname', `%${req.query['customer_name']}%`)
+         .orWhereILike('cfname', `%${req.query['customer_name']}%`);
+      else if (req.query['pn_number'])
+        sub.whereILike('pn_number', `%${req.query['pn_number']}%`)
+      else if (req.query['pr_number'])
+        sub.whereILike('payment_receipt', `%${req.query['pr_number']}%`)
       else 
-        q.havingBetween('p_h.payment_date', [date.from , date.to])
+        sub.havingBetween('p_h.payment_date', [date.from , date.to])
     })
     
   const result = payments.map((payment) => {
@@ -125,6 +129,7 @@ paymentRouter.get('/', async (req, res) => {
       fullName : formatName(payment)
     }
   })
+  // console.log(result)
   res.json({data : result})
 })
 
@@ -302,11 +307,16 @@ paymentRouter.get('/deductions', async (req, res) => {
   .innerJoin(builder.raw('loan_deductiontbl as l_d'),'d_h.loan_deduction_id', 'l_d.loan_deduction_id' )
   .innerJoin(builder.raw('loan_headertbl as l_h'), 'l_h.loan_header_id', 'd_h.loan_header_id')
   .innerJoin(builder.raw('customertbl as c'), 'c.customerid', 'l_h.customer_id')
-  .modify((q) => {
-    if(search) 
-      q.whereILike('clname', `%${search}%`).orWhereILike('cfname', `%${search}%`);
-    else
-      q.havingBetween('process_date', [date.from, date.to]);
+  .modify((sub) => {
+    if(req.query['customer_name'])
+      sub.whereILike('clname', `%${req.query['customer_name']}%`)
+       .orWhereILike('cfname', `%${req.query['customer_name']}%`);
+    else if (req.query['pn_number'])
+      sub.whereILike('pn_number', `%${req.query['pn_number']}%`)
+    else if (req.query['pr_number'])
+      sub.whereILike('pr_number', `%${req.query['pr_number']}%`)
+    else 
+      sub.havingBetween('process_date', [date.from , date.to])
   })
   .where('isCash', true)
 
@@ -321,6 +331,7 @@ paymentRouter.get('/deductions', async (req, res) => {
     if(!mapDeduction.has(d.loan_header_id))
       mapDeduction.set(d.loan_header_id, { 
         id : d.loan_header_id, 
+        pr_number : d.pr_number,
         [type] : d.amount,
         full_name : formatName(d),
         pn_number : d.pn_number,

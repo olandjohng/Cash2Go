@@ -12,14 +12,18 @@ import axios from "axios";
 import {
   SearchOutlined,
 } from "@mui/icons-material";
+
 import { Link, useLocation } from "react-router-dom";
 import { DataGrid } from "@mui/x-data-grid";
 import Popups from "../../components/Popups";
 import PaymentForm from "./components/PaymentForm";
 import dayjs from "dayjs";
 import { DatePicker } from "@mui/x-date-pickers";
-import PaymentDataGrid from "./components/PaymentDataGrid";
-
+import PaymentDataGrid, { downloadFile } from "./components/PaymentDataGrid";
+import DeductionDataGrid from "./components/DeductionDataGrid";
+import deductionTemplate from "../../assets/deduction.html?raw"
+import { toastErr, toastSucc } from "../../utils";
+import SearchInputForm from "../report/component/SearchInputForm";
 function paymentReducer(state, action) {
   switch(action.type){
     case 'INIT' :
@@ -40,7 +44,6 @@ export default function LoanPayment() {
   // const [paymentRows, setPaymentRows] = useState([]);
   const [paymentRows, paymentRowDispatch] = useReducer(paymentReducer, []);
   const [deductionRows, setDeductionRows] = useState([]);
-  const [rowCount, setRowCount] = useState(0);
   const [openPopup, setOpenPopup] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState(null);
   const [isDeductionView, setIsDeductionView] = useState(false)
@@ -72,10 +75,9 @@ export default function LoanPayment() {
 
       // setPaymentRows(response.data.data);
       paymentRowDispatch({type : 'INIT', payments : response.data.data})
-      
-      
     } catch (error) {
-      console.error("Error loading customer data:", error);
+      // console.error("Error loading customer data:", error);
+      toastErr('Something went Wrong!', 5)
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +89,7 @@ export default function LoanPayment() {
         params: {
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
-          search : searchValue,
+          // search : searchValue,
           date : {
             from : dateView.from.format('YYYY-MM-DD'),
             to : dateView.to.format('YYYY-MM-DD')
@@ -97,9 +99,10 @@ export default function LoanPayment() {
       setDeductionRows(deductions.data)
       // paymentDispatch({type : 'INIT'})
     } catch (error) {
-      
+      toastErr('Something went Wrong!', 5)
     }
   }
+
 
   const formatNumber = (value) => {
     // const amount = value.split(".");
@@ -109,41 +112,7 @@ export default function LoanPayment() {
     });
     return format;
   };
-
-  const handlePaymentButtonClick = () => {
-    //setSelectedLoanId(params.row.id);
-     setOpenPopup(true);
-  };
-
-  const deduction_col = [
-    { field: "process_date", width: 150, headerName: "Process Date", 
-      valueFormatter : (params) => {
-        return dayjs(params.value).format('MM-DD-YYYY')
-      }
-    },
-    { field: "pn_number", width: 200, headerName: "PN Number" },
-    { field: "full_name", width: 150, headerName: "Borrower Name"},
-    { field: "service_charge", width: 150, headerName: "Service Charge",
-      valueFormatter : (params) => 
-        params.value ? formatNumber(params.value) : ''
-    },
-    { field: "appraisal_fee", width: 150, headerName: "Appraisal Fee",
-      valueFormatter : (params) => params.value ? formatNumber(params.value) : ''
-    },
-    { field: "notarial_fee", width: 150, headerName: "Notarial Fee",
-      valueFormatter : (params) => params.value ? formatNumber(params.value) : ''
-    },
-    { field: "documentary_stamp", width: 150, headerName: "Doc. Stamp",
-      valueFormatter : (params) => params.value ? formatNumber(params.value) : ''
-    },
-    { field: "doc_stamp_bir", width: 150, headerName: "Doc. Stamp (BIR)",
-      valueFormatter : (params) => params.value ? formatNumber(params.value) : ''
-    },
-    { field: "hold_charge", width: 150, headerName: "Hold Charge",
-      valueFormatter : (params) => params.value ? formatNumber(params.value) : ''
-    },
-  ];
-
+  
   const payment_col = [
     { field: "payment_date", width: 100, headerName: "Process Date", 
       valueFormatter : (params) => {
@@ -181,36 +150,32 @@ export default function LoanPayment() {
     { field: "remarks", width: 200, headerName: "Remarks" },
   ]
 
-  const handleSearch = async () => {
-    
-    try {
-      const response = await axios.get(`/api/payments`, {
-        params: {
-          page: 1, // Reset page to 1 when searching
-          pageSize: paginationModel.pageSize,
-          search: searchValue.trim(),
-          date : {
-            from : dateView.from.format('YYYY-MM-DD'),
-            to : dateView.to.format('YYYY-MM-DD')
-          }
-        },
-      });
-      // setPaymentRows(response.data.data);
-      paymentRowDispatch({type : 'INIT', payments : response.data.data})
+  const handleSearch = async (value, field) => {
+    const params = new URLSearchParams({[field] : value , date : {
+      from : dateView.from.format('YYYY-MM-DD'),
+      to : dateView.to.format('YYYY-MM-DD')
+    }}).toString()
 
+    const req = !isDeductionView ? 
+      axios.get(`/api/payments?${params}`, 
+      ) : 
+      axios.get(`/api/payments/deductions?${params}`);
+    try {
+      const response = await req
+      // setPaymentRows(response.data.data);
+      if(!isDeductionView)
+        paymentRowDispatch({type : 'INIT', payments : response.data.data});
+      else
+        setDeductionRows(response.data)
       
       // setRowCount(response.data.totalCount);
     } catch (error) {
-      console.error("Error loading customer data:", error);
+      // console.error("Error loading customer data:", error);
+      toastErr('Something went Wrong', 5)
     }
   };
 
   useEffect(() => {
-    // if (searchValue.trim() === "") {
-      // loadPaymentHeaderData();
-      // } else {
-      //   handleSearch();
-      // }
       if(!isDeductionView)
         loadPaymentHeaderData();
       else
@@ -228,20 +193,27 @@ export default function LoanPayment() {
       <Header title="LOAN PAYMENTS" onAddButtonClick={() => setOpenPopup(true)} />
       <Box
         display="flex"
-        alignItems="flex-start"
-        marginBottom={1}
-        backgroundColor={colors.greenAccent[800]}
-        borderRadius="3px"
+        justifyContent='space-between'
+        gap={2}
+        mb={1.2}
       >
-        <InputBase
-          sx={{ ml: 2, mt: 0.5, flex: 1 }}
-          value={searchValue}
-          
-          onChange={(e) => setSearchValue(e.target.value)}
-        />
-        <IconButton type="button" sx={{ p: 1 }} onClick={handleSearch}>
-          <SearchOutlined />
-        </IconButton>
+        <Box display='flex' gap={1}>
+          <SearchInputForm name='customer_name' placeholder='Search Customer Name' submit={handleSearch} />
+          <SearchInputForm name='pn_number' placeholder='Search PN Number' submit={handleSearch} />
+          <SearchInputForm name='pr_number' placeholder='Search PR Number' submit={handleSearch} />
+        </Box>
+        <Box display='flex' gap={1}>
+          <DatePicker label='from' sx={{width : 150}} value={dateView.from} slotProps={{textField : {size : 'small'}}} 
+            onChange={(val) => 
+              setDateView((old) => ({...old, from : val}))
+            } 
+          />
+          <DatePicker label='to' sx={{width : 150}} value={dateView.to} slotProps={{textField : {size : 'small'}}}
+            onChange={(val) => 
+              setDateView((old) => ({...old, to : val}))
+            } 
+          />
+        </Box>
       </Box>
       {/*TODO Filter date UI */}
       {/* Toggle button UI */}
@@ -258,37 +230,27 @@ export default function LoanPayment() {
         </ToggleButton>
         <Box display='flex' gap={2.5}>
           <Box display='flex' gap={1}>
-            {/* <Typography margin='auto'>From:</Typography> */}
-            <DatePicker label='from' value={dateView.from} slotProps={{textField : {size : 'small'}}} 
-              onChange={(val) => 
-                setDateView((old) => ({...old, from : val}))
-              } 
-            />
+            
           </Box>
           <Box display='flex' gap={1}>
             {/* <Typography margin='auto' >To:</Typography> */}
-            <DatePicker label='to' value={dateView.to} slotProps={{textField : {size : 'small'}}}
-              onChange={(val) => 
-                setDateView((old) => ({...old, to : val}))
-              } 
-            />
+            
           </Box>
 
         </Box>
       </Box>
       { isDeductionView ? 
         (
-          // Deduction DataGrid
-          <DataGrid 
-            sx={{ height: "90%" }}
-            columns={deduction_col}
+          <DeductionDataGrid 
+            sx={{ height: "89%" }}
+            // columns={deduction_col}
             rows={deductionRows}
+            // handleCsv={handleCsvDeduction}
+            // handlePrint={handlePrintDeduction}
           />
-          // <div>test</div>
         )
       : 
         (
-          // Payment DataGrid
           <PaymentDataGrid 
             sx={{ height: "89%" }}
             columns={payment_col}

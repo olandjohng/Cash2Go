@@ -315,18 +315,6 @@ const Loan = () => {
         onAddButtonClick={() => setOpenNewLoanPopup(true)}
       />
 
-      {/* <Box
-        display="flex"
-        alignItems="flex-start"
-        marginBottom={2}
-        backgroundColor={colors.greenAccent[800]}
-        borderRadius="3px"
-      >
-        <InputBase sx={{ ml: 2, mt: 0.5, flex: 1 }} onChange={handleSearch} />
-        <IconButton type="button" sx={{ p: 1 }}>
-          <SearchOutlinedIcon />
-        </IconButton>
-      </Box> */}
       <Box display='flex' justifyContent='end' mb={1} gap={2}>
         <SearchInputForm name='customer_name' placeholder='Search Customer Name' submit={handleSearch} />
         <SearchInputForm name='pn_number' placeholder='Search PN Number' submit={handleSearch} />
