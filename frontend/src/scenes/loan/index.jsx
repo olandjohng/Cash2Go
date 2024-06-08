@@ -264,16 +264,16 @@ const Loan = () => {
       console.log(error)
     }
   };
-  const getData = async () => {
+  const getData = async (signal) => {
     setLoading(true)
     const urls = [
-      fetch("/api/loans"),
-      fetch("/api/loans/collateral"),
-      fetch("/api/loans/facility"),
-      fetch("/api/banks"),
-      fetch("/api/loans/category"),
-      fetch("/api/deductions"),
-      fetch("/api/account-title"),
+      fetch("/api/loans", {signal : signal}),
+      fetch("/api/loans/collateral" , {signal : signal}),
+      fetch("/api/loans/facility", {signal : signal}),
+      fetch("/api/banks", {signal : signal}),
+      fetch("/api/loans/category", {signal : signal}),
+      fetch("/api/deductions", {signal : signal}),
+      fetch("/api/account-title", {signal : signal}),
     ];
 
     try {
@@ -303,8 +303,15 @@ const Loan = () => {
     }
   };
   useEffect(() => {
-    
-    getData();
+    const abortController = new AbortController();
+    try {
+      getData(abortController.signal);
+    } catch (error) {
+      // console.dir(error)
+    }
+    return () => {
+      abortController.abort()
+    }
   }, []);
 
   return (

@@ -73,13 +73,26 @@ export default function PaymentDataGrid({rows, ...props}) {
     const paymentWindow = window.open("", "Print");
     paymentWindow.document.write(html);
   }
-
+  const NoPaymentOverLay = () =>{
+    return (
+      <Box
+        display='flex'
+        flexDirection='column'
+        alignItems='center'
+        justifyContent='center'
+        height='100%'
+      >
+        No payment
+      </Box>
+    )
+  }
   return (
     <DataGrid 
       rows={rows}
       {...props}
       slots={{
-        footer : CustomFooter
+        footer : CustomFooter,
+        noRowsOverlay : NoPaymentOverLay
       }}
       slotProps={{
         footer: { 

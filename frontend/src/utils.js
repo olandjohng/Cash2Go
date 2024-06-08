@@ -27,3 +27,6 @@ export const toastErr = (message, sec = 1) => {
     transition: Bounce,
   });
 }
+
+
+export const formatNumber = Intl.NumberFormat(undefined,  {minimumFractionDigits: 2, maximumFractionDigits: 2})
