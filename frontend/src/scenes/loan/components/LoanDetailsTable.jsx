@@ -13,7 +13,7 @@ function EditToolbar(props) {
   
   const handleClick = () =>{
     const id = rows.length + 1
-    setRows((oldRows) => [...oldRows, {id , dueDate: null,  principal : '', interest : '', amortization : '', bank : null, checkNumber: '', check_number : null, check_date : null, isNew : true}])
+    setRows((oldRows) => [...oldRows, {id , dueDate: null,  principal : '', interest : '', amortization : '', bank : null, checkNumber: '', check_number : null, isNew : true}])
     setRowModesModel((oldModel) => ({
       ...oldModel,
       [id] : { mode: GridRowModes.Edit, fieldToFocus: 'dueDate' }
@@ -189,17 +189,17 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
       }
       
     },
-    { field: 'check_date', headerName: 'Check Date', editable: true, width: 150,
-      GRID_DATE_COL_DEF, 
-      renderEditCell : (params) => { return <GridDatePicker {...params} />} ,
-      valueFormatter : (params) => {
-        if(params.value){
-          return dayjs(params.value).format('MM/DD/YYYY')
-        }
-        return ''
-      }
+    // { field: 'check_date', headerName: 'Check Date', editable: true, width: 150,
+    //   GRID_DATE_COL_DEF, 
+    //   renderEditCell : (params) => { return <GridDatePicker {...params} />} ,
+    //   valueFormatter : (params) => {
+    //     if(params.value){
+    //       return dayjs(params.value).format('MM/DD/YYYY')
+    //     }
+    //     return ''
+    //   }
       
-    },
+    // },
     { field: 'principal', headerName: 'Principal', width: 150, editable: true,
       
       valueFormatter : (params) => {

@@ -260,8 +260,10 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
               }
             }
             
-            return {...item, check_date : item.check_date.format()};
-           
+            if(item.check_date)
+              return {...item, check_date : item.check_date.format()};
+            
+            return {...item};
           })
           
           data = {...data , loan_details : mapLoanDetails} 

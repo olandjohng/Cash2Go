@@ -420,7 +420,7 @@ loanRouter.post('/', async (req, res) => {
         return{
           loan_header_id : id[0],
           due_date : v.dueDate.split('T')[0],
-          check_date : v.check_date,
+          // check_date : v.check_date,
           check_number : Number(v.checkNumber),
           bank_account_id : Number(v.bank_account_id),
           monthly_amortization : Number(v.amortization),

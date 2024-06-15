@@ -58,6 +58,7 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
     
     if(isLastStep) {
       onSubmit()
+      setIsFormSubmitted(true)
     }
     
     if(!schema && !isLastStep) next(initialFormValues);
@@ -97,7 +98,7 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
             })}
           </Stepper>
         </div>
-        {!isFormSubmitted && (
+        {!isFormSubmitted ? (
         // ? (
           // <SuccessComponent />
         // ) : (
@@ -111,6 +112,8 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
               submit={submit}
             />
           </>
+        ) : (
+          <SuccessComponent/>
         )}           
     
     </div>
