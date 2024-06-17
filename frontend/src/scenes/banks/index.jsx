@@ -3,7 +3,7 @@ import Header from '../../components/Header'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@emotion/react'
 import { tokens } from '../../theme'
-import { useLocation, Link } from 'react-router-dom'
+import { useLocation, Link, useParams } from 'react-router-dom'
 import axios from 'axios'
 import NewBank from './components/NewBank'
 import Popups from '../../components/Popups'
@@ -14,27 +14,32 @@ import 'react-toastify/dist/ReactToastify.css';
 import BankForm from './components/BankForm'
 
 export default function Banks() {
+
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const loc = useLocation(); //to get the current location ex. http://localhost:5173/category
+  const [bankId, setBankId] = useState()
   const [openPopup, setOpenPopup] = useState(false); //This state variable is used to control the visibility of a popup in the component.
   const [bank, setBank] = useState([])
-
   // Start of loadBankData - use to load the x-datagrid to view the changes
   const loadBankData = async () => {
     try {
-      const response = await axios.get('/api/banks');
+      const response = await axios.get(`/api/${loc.pathname}`);
       setBank(response.data);
     } catch (error) {
       console.error('Error loading bank data:', error);
     }
   };
   // End of loadBankData - use to load the x-datagrid to view the changes
-
+  const handleOnEditClick = ({id}) => {
+    setBankId(id)
+    setOpenPopup(true)
+  }
   // Start columns - this is for the x-datagrid
   const columns = [
     { field: 'name', flex : 1, headerName : 'Bank Name'},
     { field: 'check_location', flex : 1, headerName : 'Bank Location'},
+    { field: 'bank_branch', flex : 1, headerName : 'Bank/Branch'},
     {
       field: 'actions',
       headerName: '',
@@ -45,9 +50,9 @@ export default function Banks() {
           <Tooltip title="Edit" placement="top" arrow>
               <Button
                 component={Link}
-                to={`/banks/${params.row.id}`}
+                // to={`/banks/${params.row.id}`}
                 sx={{color: colors.greenAccent[400], cursor: 'auto'}}
-                onClick={() => setOpenPopup(true)} 
+                onClick={(e) => handleOnEditClick(params)} 
               >
                 <EditCalendarOutlined sx={{cursor: 'pointer'}} />
               </Button>
@@ -121,15 +126,17 @@ export default function Banks() {
 
   useEffect(()=>{
     loadBankData();
-  }, []);
+  }, [loc]);
 
   return (
     <div style={{height : '75%', padding : 20}}>
       <Header 
-        title={'Banks'} 
+        title={'Bank'} 
         showButton= {true}
-        onAddButtonClick={()=> setOpenPopup(true)} 
-        toURL={loc.pathname + '/new'}
+        onAddButtonClick={()=> {
+          setBankId(null)
+          setOpenPopup(true)
+        }} 
       />
     
         <DataGrid 
@@ -141,9 +148,10 @@ export default function Banks() {
             title="Bank"
             openPopup={openPopup}
             setOpenPopup={setOpenPopup}
-            toURL={'/banks'}
+            // toURL={`/banks${loc.search}`}
         >
             <BankForm
+              bankId={bankId}
               onBankAdded={handleBankAdded} 
               onClosePopup={handleClosePopup}
             />

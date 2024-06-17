@@ -196,8 +196,15 @@ const LeftSidebar = () => {
               setSelected={setSelected}
             />
             <Item
-              title="Banks"
-              to="/banks"
+              title="Banks Cash 2 Go"
+              to="/banks/cash2go"
+              icon={<AccountBalanceOutlined />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Banks Customer"
+              to="/banks/customers"
               icon={<AccountBalanceOutlined />}
               selected={selected}
               setSelected={setSelected}

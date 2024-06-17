@@ -7,14 +7,13 @@ import Textfield from "../../../components/FormUI/Textfield";
 import axios from "axios";
 import { tokens } from "../../../theme";
 import { toast, Bounce } from "react-toastify";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 
 const INITIAL_FORM_STATE = {
   name: "",
   check_location: "",
-  owner : false,
-  bank_branch : '',
+  owner : false
 };
 
 const FORM_VALIDATION = Yup.object().shape({
@@ -30,25 +29,25 @@ const Cash2GoCheckBox = ({name}) =>{
 }
 
 
-export default function BankForm({ onBankAdded, onClosePopup, bankId : id }) {
-  // const { id } = useParams();
+export default function BankForm({ onBankAdded, onClosePopup }) {
+  const { id } = useParams();
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
-  const location = useLocation()
 
   const [initialValues, setInitialValues] = useState(INITIAL_FORM_STATE);
 
   useEffect(() => {
+    console.log(`/api/banks/read/${id}`)
     if (id) {
       axios
         .get(`/api/banks/read/${id}`)
         .then((res) => {
-          const { name, check_location, owner, bank_branch } = res.data[0];
+          const { name, check_location, owner } = res.data[0];
           // Update INITIAL_FORM_STATE with the fetched data
           // INITIAL_FORM_STATE.name = name;
           // INITIAL_FORM_STATE.check_location = check_location;
-          setInitialValues({ name, check_location, owner : Boolean(owner), bank_branch : bank_branch });
+          setInitialValues({ name, check_location, owner : Boolean(owner) });
           
         })
         .catch((err) => {
@@ -62,11 +61,12 @@ export default function BankForm({ onBankAdded, onClosePopup, bankId : id }) {
     const apiURL = id
       ? `/api/banks/edit/${id}`
       : "/api/banks/new";
-    const param = location.pathname.split('/')[2]
+
     try {
-      const res = await axios[id ? "put" : "post"](apiURL, {...values, param : param});
+      const res = await axios[id ? "put" : "post"](apiURL, values);
       onBankAdded();
       onClosePopup();
+      navigate("/banks");
 
       toast.success(res.data.message, {
         position: "top-right",
@@ -93,6 +93,7 @@ export default function BankForm({ onBankAdded, onClosePopup, bankId : id }) {
 
   const handleCancel = () => {
     onClosePopup();
+    navigate("/banks");
   };
 
   return (
@@ -112,8 +113,7 @@ export default function BankForm({ onBankAdded, onClosePopup, bankId : id }) {
               <Textfield name="check_location" label="Location" />
             </Grid>
             <Grid item xs={12}>
-              {/* <Cash2GoCheckBox name='owner'/> */}
-              <Textfield name="bank_branch" label="Bank/Branch" />
+              <Cash2GoCheckBox name='owner'/>
             </Grid>
           </Grid>
           <Grid container justifyContent="flex-end" spacing={1} mt={2}>

@@ -46,9 +46,10 @@ function App() {
               <Route path="/customers/new" element={<Customers />}/>
               <Route path="/customers/:id" element={<Customers />}/>
 
-              <Route path="/banks" element={<Banks />} />
-              <Route path="/banks/new" element={<Banks />} />
-              <Route path="/banks/:id" element={<Banks />} />
+              <Route path="/banks/cash2go" element={<Banks />} />
+              <Route path="/banks/customers" element={<Banks />} />
+              {/* <Route path="/banks/new" element={<Banks />} /> */}
+              {/* <Route path="/banks/:id" element={<Banks />} /> */}
 
               <Route path="/category" element={<Category />} />
               <Route path="/category/new" element={<Category />} />
