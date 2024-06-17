@@ -24,7 +24,7 @@ export default function Banks() {
   // Start of loadBankData - use to load the x-datagrid to view the changes
   const loadBankData = async () => {
     try {
-      const response = await axios.get(`/api/${loc.pathname}`);
+      const response = await axios.get(`/api${loc.pathname}`);
       setBank(response.data);
     } catch (error) {
       console.error('Error loading bank data:', error);
