@@ -13,7 +13,7 @@ function EditToolbar(props) {
   
   const handleClick = () =>{
     const id = rows.length + 1
-    setRows((oldRows) => [...oldRows, {id , dueDate: null,  principal : '', interest : '', amortization : '', bank : null, checkNumber: '', check_number : null, isNew : true}])
+    setRows((oldRows) => [...oldRows, {id , dueDate: null,  principal : '', interest : '', amortization : '', bank_name : '', checkNumber: '',  isNew : true}])
     setRowModesModel((oldModel) => ({
       ...oldModel,
       [id] : { mode: GridRowModes.Edit, fieldToFocus: 'dueDate' }
@@ -158,7 +158,7 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
   };
 
   const handleRowInputChange = (newRow) => {
-    const updatedRow = { ...newRow, isNew : false}
+    const updatedRow = { ...newRow,  isNew : false}
     setRows(rows.map((row)=> (row.id === newRow.id ? updatedRow : row)))
     return updatedRow
   }
@@ -227,9 +227,9 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
         return {...params.row, amortization : (principal + interest)}
       }
     },
-    { field: 'bank', headerName: 'Bank', width: 120, editable: true, type: 'singleSelect', valueOptions : banks,
-      getOptionValue: (value) => value.name,
-      getOptionLabel: (value) => value.name,
+    { field: 'bank_name', headerName: 'Bank', width: 120, editable: true, type: 'singleSelect', valueOptions : banks.filter(b => +b.owner == 0),
+      getOptionValue: (value) => value.bank_branch,
+      getOptionLabel: (value) => value.bank_branch,
     },
     { field: 'checkNumber', headerName: 'Check Number', width: 120, editable: true,   },
     { field: 'action', type : 'actions',

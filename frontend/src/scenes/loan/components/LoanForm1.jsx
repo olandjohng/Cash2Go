@@ -37,7 +37,7 @@ export const loanDetailsSchema = yup.object({
   loan_details : yup.array(
     yup.object({
       dueDate : yup.date().required(),
-      bank : yup.string().required(),
+      bank_name : yup.string().required(),
       interest : yup.number().positive().moreThan(0),
       amortization : yup.number().positive().moreThan(0)
     })
@@ -231,6 +231,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
         }
         return {...acc}
       }, {})
+      console.dir(err)
       setValidationError(error)
     }
   }
@@ -249,13 +250,13 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
         <MultiStepForm1
         initialFormValues={formValue}
         onSubmit={ async () => {
-          let data = {...formValue, check_date : dayjs(formValue.check_date).format()}
+          let data = {...formValue, check_date : dayjs(formValue.check_date).format(), date_granted : formValue.date_granted.format()}
           
           const mapLoanDetails = data.loan_details.map((v) => {
             let item = {...v , dueDate : v.dueDate.format()}
             
             for (const b of banks) {
-              if(item.bank === b.name) {
+              if(item.bank_name === b.bank_branch) {
                 item = {...item, bank_account_id : b.id }
               }
             }
@@ -270,7 +271,6 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
 
           // return console.log(data)
           // console.log('fetch', data)
-          
           fetch('/api/loans', {
             method : 'POST',
             headers: {

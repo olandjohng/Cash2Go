@@ -120,10 +120,11 @@ loanRouter.post('/renew', async (req, res) => {
 
   const pnNumber = await createPnNumber(req.body)
 
-  const {loan_details, voucher, deduction } = req.body
+  const {loan_details, voucher, deduction, loan_facility } = req.body
   
   const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest), 0)
-
+  
+  const {is_rediscount} = await builder('loan_facilitytbl').select('is_rediscount').where('description', loan_facility).first()
   try {
 
     await builder.transaction(async (t) => {
@@ -158,16 +159,39 @@ loanRouter.post('/renew', async (req, res) => {
         renewal_amount : req.body.Balance
       }, ['loan_header_id'] )
 
-      const loanDetailsMap = loan_details.map(v => ({ 
-          loan_header_id : loanHeaderId[0],
-          check_date : v.dueDate.split('T')[0],
+      const loanDetailsMap = loan_details.map(v => {
+        if(term_type === 'days') {
+          return {
+            loan_header_id : id[0],
+            due_date : v.dueDate.split('T')[0],
+            check_date : v.check_date,
+            due_date : v.dueDate,
+            check_number : Number(v.checkNumber),
+            bank_account_id : Number(v.bank_account_id),
+            // monthly_amortization : Number(v.amortization),
+            monthly_interest : is_rediscount ? 0 : Number(v.interest),
+            monthly_principal : Number(v.principal),
+            net_proceeds : Number(v.net_proceeds),
+            accumulated_penalty : 0
+          }
+        }
+  
+        return{
+          loan_header_id : id[0],
+          due_date : v.dueDate.split('T')[0],
+          // check_date : v.check_date,
           check_number : Number(v.checkNumber),
           bank_account_id : Number(v.bank_account_id),
           monthly_amortization : Number(v.amortization),
-          monthly_interest : Number(v.interest),
+          monthly_interest : is_rediscount ? 0 : Number(v.interest),
           monthly_principal : Number(v.principal),
           accumulated_penalty : 0
-      }))
+        }
+      })
+
+      
+
+
 
       await t('loan_detail').insert(loanDetailsMap)
 
@@ -347,7 +371,9 @@ loanRouter.post('/recalculate', async (req, res) => {
 })
 
 loanRouter.post('/', async (req, res) => {
-  
+
+  const {voucher, deduction, loan_details, isCash, term_type, loan_facility} = req.body
+
   function getMaxDueDate (details) {
     let max = 0
     for (const detail of details) {
@@ -358,10 +384,11 @@ loanRouter.post('/', async (req, res) => {
     }
     return max + 1
   }
-
-  const {voucher, deduction, loan_details, isCash, term_type} = req.body
   
 
+
+  const {is_rediscount} = await builder('loan_facilitytbl').select('is_rediscount').where('description', loan_facility).first()
+  
   const pnNumber = await createPnNumber(req.body)
 
   const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest), 0)
@@ -369,8 +396,6 @@ loanRouter.post('/', async (req, res) => {
   const term = term_type === 'months' ? loan_details.length : getMaxDueDate(loan_details)
   
   try {
-    const isRediscounting = await builder('loan_facilitytbl').select('is_rediscount').first()
-    
     await builder.transaction(async t => {
       
       const id = await builder('loan_headertbl').insert({
@@ -389,7 +414,8 @@ loanRouter.post('/', async (req, res) => {
         loan_facility_id : req.body.loan_facility_id,
         principal_amount : Number(req.body.principal_amount),
         interest_rate : Number(req.body.interest_rate),
-        date_granted : dayjs(req.body.date_granted).format('YYYY-MM-DD'),
+        // date_granted : dayjs(req.body.date_granted).format('YYYY-MM-DD'),
+        date_granted : req.body.date_granted,
         check_issued_name : req.body.check_issued_name,
         voucher_number : req.body.voucher_number,
         total_interest : totalInterest,
@@ -410,7 +436,7 @@ loanRouter.post('/', async (req, res) => {
             check_number : Number(v.checkNumber),
             bank_account_id : Number(v.bank_account_id),
             // monthly_amortization : Number(v.amortization),
-            monthly_interest : isRediscounting ? 0 : Number(v.interest),
+            monthly_interest : is_rediscount ? 0 : Number(v.interest),
             monthly_principal : Number(v.principal),
             net_proceeds : Number(v.net_proceeds),
             accumulated_penalty : 0
@@ -424,7 +450,7 @@ loanRouter.post('/', async (req, res) => {
           check_number : Number(v.checkNumber),
           bank_account_id : Number(v.bank_account_id),
           monthly_amortization : Number(v.amortization),
-          monthly_interest : isRediscounting ? 0 : Number(v.interest),
+          monthly_interest : is_rediscount ? 0 : Number(v.interest),
           monthly_principal : Number(v.principal),
           accumulated_penalty : 0
         }

@@ -13,7 +13,7 @@ function EditToolbar(props) {
   
   const handleClick = () =>{
     const id = rows.length + 1
-    setRows((oldRows) => [...oldRows, { id , dueDate: null,  principal : '', interest : '', numberDays : '',  bank : null, checkNumber: '', check_date : null, net_proceeds : '', isNew : true}])
+    setRows((oldRows) => [...oldRows, { id , dueDate: null,  principal : '', interest : '', numberDays : '',  bank_name : null, checkNumber: '', check_date : null, net_proceeds : '', isNew : true}])
     setRowModesModel((oldModel) => ({
       ...oldModel,
       [id] : { mode: GridRowModes.Edit, fieldToFocus: 'dueDate' }
@@ -207,7 +207,10 @@ export default function LoanDetailsTable({banks, rows, setRows, formValue}) {
       renderEditCell : GridCurrency
     },
      
-    { field: 'bank', headerName: 'Bank', width: 120, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name),},
+    { field: 'bank_name', headerName: 'Bank', width: 120, editable: true, type : 'singleSelect', valueOptions : banks.filter((b) => +b.owner == 0),
+      getOptionValue: (value) => value.bank_branch,
+      getOptionLabel: (value) => value.bank_branch,
+    },
     { field: 'checkNumber', headerName: 'Check Number', width: 120, editable: true,},
     { field : 'numberDays', headerName : 'NO. of Days', width : 120,  editable: true,
       valueSetter : (params) => {

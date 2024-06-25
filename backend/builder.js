@@ -2,8 +2,10 @@ const knex = require('knex')
 require('dotenv').config()
 const HOST = 'localhost'
 const USER = 'root'
-const PASSWORD = 'root'
-const DATABASE = 'backupc2g'
+const PASSWORD = ''
+const DATABASE = 'u787404562_loandb'
+
+console.log(process.env.DB_HOST)
 
 const builder = knex({
   client: 'mysql2',

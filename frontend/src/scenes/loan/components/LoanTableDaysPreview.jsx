@@ -37,7 +37,7 @@ export default function LoanTableDaysPreview({details}) {
                   displayType="text" 
                   renderText={(v) => <p>{v}</p>}/>
               </TableCell>
-              <TableCell>{row.bank}</TableCell>
+              <TableCell>{row.bank_name}</TableCell>
               <TableCell>{row.checkNumber}</TableCell>
               <TableCell>{row.numberDays}</TableCell>
               <TableCell>
