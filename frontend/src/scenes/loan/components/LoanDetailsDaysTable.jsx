@@ -13,7 +13,7 @@ function EditToolbar(props) {
   
   const handleClick = () =>{
     const id = rows.length + 1
-    setRows((oldRows) => [...oldRows, { id , dueDate: null,  principal : '', interest : '', numberDays : '',  bank_name : null, checkNumber: '', check_date : null, net_proceeds : '', isNew : true}])
+    setRows((oldRows) => [...oldRows, { id , dueDate: null,  principal : '', interest : 0, numberDays : '',  bank_name : null, checkNumber: '', check_date : null, net_proceeds : 0, isNew : true}])
     setRowModesModel((oldModel) => ({
       ...oldModel,
       [id] : { mode: GridRowModes.Edit, fieldToFocus: 'dueDate' }
@@ -138,7 +138,6 @@ const CustomFooter  = (props) => {
   )
 }
 
-
 export default function LoanDetailsTable({banks, rows, setRows, formValue}) {
 
   const theme = useTheme()
@@ -159,6 +158,7 @@ export default function LoanDetailsTable({banks, rows, setRows, formValue}) {
 
   const handleRowInputChange = (newRow) => {
     const updatedRow = { ...newRow, isNew : false}
+    console.log(163, {...newRow})
     setRows(rows.map((row)=> (row.id === newRow.id ? updatedRow : row)))
     return updatedRow
   }
@@ -178,7 +178,6 @@ export default function LoanDetailsTable({banks, rows, setRows, formValue}) {
   }, [rows])
 
   const columns = [
-    // { field: 'id', headerName: 'Count', editable: false,  width: 70 },
     { field: 'dueDate', headerName: 'Cleared Date', editable: true, width: 150,
       GRID_DATE_COL_DEF, 
       renderEditCell : (params) => { return <GridDatePicker {...params} />} ,
@@ -223,18 +222,13 @@ export default function LoanDetailsTable({banks, rows, setRows, formValue}) {
       }
     }, 
     { field: 'interest', headerName: 'Interest', width: 150, editable : true,
-    valueSetter : (params) => {
-        if(params.row.dueDate && params.row.principal && formValue.interest_rate && params.row.numberDays){
-          const cal = (+params.row.principal * (+formValue.interest_rate / 100) * (+params.row.numberDays / 30))
-          return {...params.row, interest : cal}
-        }
-        return {...params.row}
-      },
       valueFormatter : (params) => {
         return formatNumber(params)
       },
-
-      preProcessEditCellProps :  handleAmountValidation,
+      preProcessEditCellProps : (params) => {  // validate
+        const err = params.props.value == undefined
+        return { ...params.props, error: err };
+      },
       renderEditCell : GridCurrency
     },
    
@@ -244,12 +238,8 @@ export default function LoanDetailsTable({banks, rows, setRows, formValue}) {
         return formatNumber(params)
       },
       valueSetter : (params) => {
-
-        if(params.row.principal && params.row.interest){
-          const dif = +params.row.principal - +params.row.interest 
-          return {...params.row , net_proceeds : dif}
-        }
-        return {...params.row}
+        const dif = +params.row.principal - +params.row.interest 
+        return {...params.row, net_proceeds : dif}
       }
     },
     
@@ -277,6 +267,9 @@ export default function LoanDetailsTable({banks, rows, setRows, formValue}) {
       editMode="row"
       rowModesModel={rowModesModel}
       onRowModesModelChange={handleRowModesModelChange}
+      onProcessRowUpdateError={(error) => {
+        console.log(258, error)
+      }}
       onRowEditStop={handleRowEditStop}
       processRowUpdate={handleRowInputChange}
       slots={{

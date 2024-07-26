@@ -25,7 +25,6 @@ const getIPv4 = (port) => {
   }
 }
 
-
 const PORT = process.env.PORT || 8000
 app.use('/api/public', express.static('public'))
 

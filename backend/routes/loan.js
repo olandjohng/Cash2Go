@@ -387,7 +387,7 @@ loanRouter.post('/', async (req, res) => {
   
 
 
-  const {is_rediscount} = await builder('loan_facilitytbl').select('is_rediscount').where('description', loan_facility).first()
+  // const {is_rediscount} = await builder('loan_facilitytbl').select('is_rediscount').where('description', loan_facility).first()
   
   const pnNumber = await createPnNumber(req.body)
 
@@ -436,7 +436,7 @@ loanRouter.post('/', async (req, res) => {
             check_number : Number(v.checkNumber),
             bank_account_id : Number(v.bank_account_id),
             // monthly_amortization : Number(v.amortization),
-            monthly_interest : is_rediscount ? 0 : Number(v.interest),
+            monthly_interest : Number(v.interest),
             monthly_principal : Number(v.principal),
             net_proceeds : Number(v.net_proceeds),
             accumulated_penalty : 0
@@ -450,7 +450,7 @@ loanRouter.post('/', async (req, res) => {
           check_number : Number(v.checkNumber),
           bank_account_id : Number(v.bank_account_id),
           monthly_amortization : Number(v.amortization),
-          monthly_interest : is_rediscount ? 0 : Number(v.interest),
+          monthly_interest : Number(v.interest),
           monthly_principal : Number(v.principal),
           accumulated_penalty : 0
         }

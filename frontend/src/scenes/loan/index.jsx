@@ -302,6 +302,8 @@ const Loan = () => {
       console.log("error", error);
     }
   };
+
+  
   useEffect(() => {
     let active = true;
     try {
