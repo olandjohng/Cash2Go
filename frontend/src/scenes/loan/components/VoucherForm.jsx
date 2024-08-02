@@ -35,7 +35,7 @@ export default function VoucherForm({accountTitle, voucher, setVoucher }) {
           label='Prepared By'
           options={employees}
           err= {validationError}
-          getOptionLabel={(option) => option.name || option ||"" }
+          getOptionLabel={(option) => option.name || option || "" }
           renderOption={(props, option) => 
             <Box {...props} component='li' key={option.employee_id} id={option.employee_id}>
               {option.name}

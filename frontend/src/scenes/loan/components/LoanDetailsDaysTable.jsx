@@ -215,7 +215,7 @@ export default function LoanDetailsTable({banks, rows, setRows, formValue}) {
       valueSetter : (params) => {
         if(params.row.dueDate){
           const now = dayjs()
-          const dif = Math.abs(now.diff(params.row.check_date, 'day')) + 1
+          const dif = Math.abs(now.diff(params.row.dueDate, 'day')) + 1
           return {...params.row, numberDays: dif}
         }
         return {...params.row}

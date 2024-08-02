@@ -24,6 +24,7 @@ import DeductionDataGrid from "./components/DeductionDataGrid";
 import deductionTemplate from "../../assets/deduction.html?raw"
 import { toastErr, toastSucc } from "../../utils";
 import SearchInputForm from "../report/component/SearchInputForm";
+
 function paymentReducer(state, action) {
   switch(action.type){
     case 'INIT' :

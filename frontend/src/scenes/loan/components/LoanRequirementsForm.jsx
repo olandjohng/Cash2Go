@@ -5,13 +5,13 @@ import { DatePicker } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
 
 
-const CustomerComboBox = ({value, setter, disabled}) => {
+const CustomerComboBox = ({value, handleChange, disabled, name,}) => {
   const ref = useRef()
   const [customers, setCustomers] = useState([])
   
   let searchTimeOut = null;
 
-  const fetchData = async (value) => {
+  const fetchData = async () => {
     try {
       const request = await fetch(`/api/customers/search?name=${value}`)
       const customerData = await request.json()
@@ -20,34 +20,16 @@ const CustomerComboBox = ({value, setter, disabled}) => {
       console.log(error)
     }
   }
+
   useEffect(()=> {
-    const customerData = fetchData('')
+    const customerData = fetchData()
   }, [])
 
   const handleInputChange = async (event, value) => {
-    if(event && event.type === 'change'){
-      if(value.length >= 2){
-        clearTimeout(searchTimeOut)
-        searchTimeOut = setTimeout(() => {
-          const req = async () => {
-            try {
-              // const customerData = await fetchData(value)
-              fetchData(value)
-              // setCustomers(customerData)
-              clearTimeout(searchTimeOut)          
-            } catch (error) {
-              console.log(error)
-            }
-          }
-          req()
-        }, 1000)
-      }
-    }
 
     if(event && event.type === 'click') {
-      setter((old) => { 
-        return {...old , customer_name : value, customer_id : Number(event.target.id)}
-      })
+      handleChange(value, Number(event.target.id))
+
     }
 
   }
@@ -62,7 +44,7 @@ const CustomerComboBox = ({value, setter, disabled}) => {
       onInputChange={handleInputChange}
       value={value}
       getOptionLabel={(option) => option.name || "" || option}
-      renderInput={(params) => <TextField {...params} label='Borrower Name' />}
+      renderInput={(params) => <TextField {...params} label={name} />}
       renderOption={(props, option) => 
         <Box {...props} component='li' key={option.id} id={option.id}>
           {option.name}
@@ -75,6 +57,7 @@ const CustomerComboBox = ({value, setter, disabled}) => {
 
 export default function LoanRequirementsForm({banks, collaterals, categories, facilities, isRenew = false, isRestructure = false} ) {
   const {formValue, setFormValue, validationError, setValidationError} = useContext(LoanFormContext)
+  
   const handleTextInputChange = (e, field) => {
     setValidationError(null)
     setFormValue((old) => ({...old , [field] : e.target.value}))
@@ -87,7 +70,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
 
   return (
     <Grid container spacing={2} >
-      <Grid item xs={2}>
+      <Grid item xs={1.5}>
         <TextInput
           // disabled={isRestructure}
           value={formValue.voucher_number}
@@ -97,14 +80,23 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           change={(e, field) => handleTextInputChange(e, field)}
         />
       </Grid>
-      <Grid item xs={5}>
+      <Grid item xs={3.5}>
         <CustomerComboBox
           disabled ={isRenew | isRestructure}
-          setter = {setFormValue}
+          name='Borrower Name'
+          handleChange={(value, id) => setFormValue((old) => ({...old, customer_name : value, customer_id : id}))}
           value = {formValue.customer_name}
+          /> 
+      </Grid>
+      <Grid item xs={3.5}>
+        <CustomerComboBox
+          name='Co-Maker Name'
+          disabled ={isRenew | isRestructure}
+          handleChange={(value, id) => setFormValue((old) => ({...old, co_maker_name : value, co_maker_id : id}))}
+          value = {formValue.co_maker_name}
         /> 
       </Grid>
-      <Grid item xs={5}>
+      <Grid item xs={3.5}>
         <TextInput
           disabled={isRestructure}
           value={formValue.check_issued_name}

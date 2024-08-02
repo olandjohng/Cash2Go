@@ -51,6 +51,7 @@ export default function LoanDetailsForm({banks, rows, setRows}) {
             InputProps={{ startAdornment : <AttachFile /> }}
             inputProps={{ accept : '.csv'}}
             onChange={ async (file) => { setFile(file) }}/>
+            
           <Button color='success' variant='outlined' 
             onClick={ async () => {
               if(file) {

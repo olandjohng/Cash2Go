@@ -5,7 +5,6 @@ const USER = 'root'
 const PASSWORD = ''
 const DATABASE = 'u787404562_loandb'
 
-console.log(process.env.DB_HOST)
 
 const builder = knex({
   client: 'mysql2',

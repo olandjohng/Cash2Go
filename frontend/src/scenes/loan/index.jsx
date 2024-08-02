@@ -53,6 +53,8 @@ export const LOAN_INITIAL_VALUES = {
   customer_id: "",
   customer_name: "",
   transaction_date: new Date().toISOString().split("T")[0],
+  co_maker_name : "",
+  co_maker_id : "",
   bank_account_id: "",
   term_type: "months",
   bank_name: "",

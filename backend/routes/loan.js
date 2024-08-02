@@ -385,8 +385,6 @@ loanRouter.post('/', async (req, res) => {
     return max + 1
   }
   
-
-
   // const {is_rediscount} = await builder('loan_facilitytbl').select('is_rediscount').where('description', loan_facility).first()
   
   const pnNumber = await createPnNumber(req.body)

@@ -1,7 +1,11 @@
 const express = require("express");
 const paymentRouter = express.Router();
 const builder = require("../builder");
+const multer  = require('multer')
+const path = require('path');
+const  supabaseClient  = require("../supabase/supabase");
 
+const upload = multer()
 
 paymentRouter.get("/search", async (req, res) => {
   const page = parseInt(req.query.page) || 1;
@@ -10,33 +14,56 @@ paymentRouter.get("/search", async (req, res) => {
   // console.log('offset',   req.query.page)
   const search = req.query.search ? req.query.search : "";
   try {
+    //   builder
+    //     .select({
+    //       id: "loan_header_id",
+    //       pn_number: "pn_number",
+    //       customername: "customername",
+    //       loancategory: "loancategory",
+    //       loanfacility: "loanfacility",
+    //       principal_amount: "principal_amount",
+    //       total_interest: "total_interest",
+    //       date_granted: "date_granted",
+    //       TotalPrincipalPayment: "TotalPrincipalPayment",
+    //       TotalInterestPayment: "TotalInterestPayment",
+    //       TotalPayment: "TotalPayment",
+    //       PrincipalBalance: "PrincipalBalance",
+    //       InterestBalance: "InterestBalance",
+    //       Balance: "Balance",
+    //     })
+    //     .from({ c: "new_payment" })
+    //     .modify((queryBuilder) => {
+    //       if (search.trim() !== "") {
+    //         queryBuilder.where("customername", "like", `%${search.trim()}%`); // Filter by customer name
+    //       }
+    //     })
+    //     .limit(pageSize)
+    //     .offset(offset),
     const [results, totalCount] = await Promise.all([
-      builder
-        .select({
-          id: "loan_header_id",
-          pn_number: "pn_number",
-          customername: "customername",
-          loancategory: "loancategory",
-          loanfacility: "loanfacility",
-          principal_amount: "principal_amount",
-          total_interest: "total_interest",
-          date_granted: "date_granted",
-          TotalPrincipalPayment: "TotalPrincipalPayment",
-          TotalInterestPayment: "TotalInterestPayment",
-          TotalPayment: "TotalPayment",
-          PrincipalBalance: "PrincipalBalance",
-          InterestBalance: "InterestBalance",
-          Balance: "Balance",
-        })
-        .from({ c: "new_payment" })
-        .modify((queryBuilder) => {
-          if (search.trim() !== "") {
-            queryBuilder.where("customername", "like", `%${search.trim()}%`); // Filter by customer name
-          }
-        })
-        .limit(pageSize)
-        .offset(offset),
-      builder
+        builder.select(
+          ['loan_detail.loan_header_id']
+        ).from('loan_detail').where('check_number', req.query.search).modify((queryBuilder, foreignKey)=> {
+          // console.log(foreignKey)
+          queryBuilder.innerJoin('new_payment', foreignKey, 'new_payment.loan_header_id').select(
+            {
+              id: "loan_detail.loan_header_id",
+              pn_number: "pn_number",
+              customername: "customername",
+              loancategory: "loancategory",
+              loanfacility: "loanfacility",
+              principal_amount: "principal_amount",
+              total_interest: "total_interest",
+              date_granted: "date_granted",
+              TotalPrincipalPayment: "TotalPrincipalPayment",
+              TotalInterestPayment: "TotalInterestPayment",
+              TotalPayment: "TotalPayment",
+              PrincipalBalance: "PrincipalBalance",
+              InterestBalance: "InterestBalance",
+              Balance: "Balance",
+            }
+          )
+        }, 'loan_detail.loan_header_id'),
+       builder
         .count("* as count")
         .from({ c: "new_payment" })
         .modify((queryBuilder) => {
@@ -46,7 +73,31 @@ paymentRouter.get("/search", async (req, res) => {
         })
         .first(),
     ]);
+    // const result = await builder.select(
+    //   ['loan_detail.loan_header_id']
+    // ).from('loan_detail').where('check_number', req.query.search).modify((queryBuilder, foreignKey)=> {
+    //   // console.log(foreignKey)
+    //   queryBuilder.innerJoin('new_payment', 'loan_detail.loan_header_id', 'new_payment.loan_header_id').select(
+    //     {
+    //       id: "loan_detail.loan_header_id",
+    //       pn_number: "pn_number",
+    //       customername: "customername",
+    //       loancategory: "loancategory",
+    //       loanfacility: "loanfacility",
+    //       principal_amount: "principal_amount",
+    //       total_interest: "total_interest",
+    //       date_granted: "date_granted",
+    //       TotalPrincipalPayment: "TotalPrincipalPayment",
+    //       TotalInterestPayment: "TotalInterestPayment",
+    //       TotalPayment: "TotalPayment",
+    //       PrincipalBalance: "PrincipalBalance",
+    //       InterestBalance: "InterestBalance",
+    //       Balance: "Balance",
+    //     }
+    //   )
+    // }, 'loan_detail.loan_header_id')
 
+    // console.log(result)
     res.json({
       data: results,
       page: page + 1,
@@ -133,7 +184,24 @@ paymentRouter.get('/', async (req, res) => {
   res.json({data : result})
 })
 
-paymentRouter.post('/', async (req, res) => {
+async function supabaseUpload(file) {
+  if(file){
+    try {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+      const upload = await supabaseClient.storage.from('Attachment').upload(`${uniqueSuffix}${path.extname(file.originalname)}`, file.buffer, {
+        contentType: file.mimetype,
+      })
+      return upload.data.fullPath
+
+    } catch (error) {
+      console.log(error)
+    }
+  }else{
+    return ''
+  }
+}
+
+paymentRouter.post('/', upload.single('attachment'), async (req, res) => {
   // get payment status 
   const data = req.body
   const {principal_payment, interest_payment, penalty_amount} = data 
@@ -147,9 +215,10 @@ paymentRouter.post('/', async (req, res) => {
     }
     return status
   }
-
+  
   try {
-
+    const fileName = await supabaseUpload(req.file)
+    
     const paymentStatus = await builder('payment_status').select('*')
     
     const status = formatStatus(paymentStatus)
@@ -226,6 +295,7 @@ paymentRouter.post('/', async (req, res) => {
           payment_date : processDate,
           payment_type : data.payment_type,
           payment_receipt : data.pr_number,
+          attachment : fileName
           // check_date : data.check_date
         }
         if(data.payment_type.toLowerCase() === 'check') {

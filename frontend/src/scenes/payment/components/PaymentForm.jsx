@@ -47,6 +47,7 @@ const initialPaymentData = {
   bank: "",
   check_number: "",
   remarks: "",
+  attachment : null
 };
 const initialCashRowData = [
   { denomination: 1000, count: 0 },
@@ -159,13 +160,25 @@ export default function PaymentForm({paymentDispacher, popup}) {
     // set loading
     const formatData = {...paymentData , check_date : paymentData.check_date ? dayjs(paymentData.check_date).format('YYYY-MM-DD') : null}
     // return console.log(formatData)
+    const fData = new FormData()
+    const keys = Object.keys(formatData)
+
+    for (const key in keys) {
+      const k = keys[key]
+      fData.append(k, formatData[k])
+    }
+
+    // console.log(fData.)
+    fData.forEach((v) => console.log(v))
+    // return
+
     try {
       const req = await fetch('/api/payments', {
         method : 'post',
-        body : JSON.stringify(formatData),
-        headers : {
-          "Content-Type": "application/json",
-        }
+        body : fData,
+        // headers : {
+        //   "Content-Type": "multipart/form-data",
+        // }
       })
 
       if(req.ok) {

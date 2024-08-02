@@ -29,9 +29,9 @@ const PORT = process.env.PORT || 8000
 app.use('/api/public', express.static('public'))
 
 app.use(express.static('dist'))
-app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
 
 app.use('/api/loans', loanRouter)
 app.use('/api/payments', paymentRouter)

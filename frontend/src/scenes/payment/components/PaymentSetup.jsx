@@ -8,6 +8,8 @@ import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { tokens } from "../../../theme";
 import { useTheme } from "@emotion/react";
+import { MuiFileInput } from "mui-file-input";
+import { AttachFile } from "@mui/icons-material";
 
 const fixedOptions = [
   { value: "CASH", label: "Cash" },
@@ -78,12 +80,15 @@ const TextInput = ({name, onValueChange, ...props }) => {
     />
   )
 }
+
 const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter, selectedBank, selectedBankSetter}) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [banks, setBanks] = useState([]);
   const [showOrField, setShowOrField] = useState(false);
   const [total, setTotal] = useState(0)
+  const [file, setFile] = useState(paymentData.attachment)
+
 
   const handleRowEdit = (newRow, oldRow) => {
     const updatedRow = cashRow.map((v) => {
@@ -101,7 +106,10 @@ const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter, 
   const handleTextFieldChange = (e) => {
     paymentDataSetter((old) => ({...old, [e.target.name] : e.target.value}))
   }
-
+  const handleFileChange  = (file) => {
+    paymentDataSetter((old) => ({...old, attachment : file}))
+    setFile(file)
+  }
 
   useEffect(() => {
     const getBanks = async () => {
@@ -181,6 +189,17 @@ const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter, 
           </Grid>
           
         )}
+      </Grid>
+      <Grid item>
+        <MuiFileInput 
+          value={file}
+          InputProps={{ startAdornment : <AttachFile /> }}
+          placeholder="Upload Attachment"
+          hideSizeText 
+          label='Attachment' 
+          getInputText={(value) => value ? value.name : ''}
+          onChange={handleFileChange}
+        />
       </Grid>
     </Grid>
   );
