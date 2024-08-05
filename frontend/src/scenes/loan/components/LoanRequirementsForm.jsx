@@ -9,8 +9,6 @@ const CustomerComboBox = ({value, handleChange, disabled, name,}) => {
   const ref = useRef()
   const [customers, setCustomers] = useState([])
   
-  let searchTimeOut = null;
-
   const fetchData = async () => {
     try {
       const request = await fetch(`/api/customers/search?name=${value}`)
@@ -26,10 +24,13 @@ const CustomerComboBox = ({value, handleChange, disabled, name,}) => {
   }, [])
 
   const handleInputChange = async (event, value) => {
+    
+    if(customers.length <= 0){
+      await fetchData()
+    }
 
     if(event && event.type === 'click') {
       handleChange(value, Number(event.target.id))
-
     }
 
   }

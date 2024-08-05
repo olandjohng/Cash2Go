@@ -227,7 +227,7 @@ paymentRouter.post('/', upload.single('attachment'), async (req, res) => {
     
     const total =  principal_payment + interest_payment + penalty_amount
     // status_id
-    if (monthly_principal == principal_payment && interest_payment == monthly_interest) 
+    if (Number(monthly_principal) == Number(principal_payment) && Number(interest_payment) == Number(monthly_interest)) 
       statusId = status['paid'];
     else 
       statusId = status['partialy_paid'];

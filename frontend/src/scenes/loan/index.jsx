@@ -13,7 +13,7 @@ import { useEffect, useReducer, useState } from "react";
 import Popups from "../../components/Popups";
 import DetailsModal from "./components/DetailsModal";
 import LoanForm1 from "./components/LoanForm1";
-import { AccountTreeOutlined, AutorenewOutlined, PrintOutlined, RefreshOutlined } from "@mui/icons-material";
+import { AccountTreeOutlined, AutorenewOutlined, PrintOutlined, RefreshOutlined, DeleteOutline } from "@mui/icons-material";
 import voucherTemplateHTML from "../../assets/voucher.html?raw";
 import c2gImage from "../../assets/c2g_logo_nb.png";
 import * as ejs from "ejs";
@@ -36,7 +36,7 @@ function reducer(state, action) {
         }
         return v
      })
-     return [...updateLoan, action.loan];
+      return [...updateLoan, action.loan];
     case "RECAL": 
       const recal = state.map((v) => {
         console.log(action)
@@ -45,7 +45,10 @@ function reducer(state, action) {
         }
         return v
      })
-    return [...recal, action.loan]
+      return [...recal, action.loan]
+    case "DELETE": 
+     return state.filter(v => v.loan_header_id != action.id)
+     
   }
 }
 
@@ -128,7 +131,7 @@ const RefreshToolBar = ({refresh}) =>{
 const Loan = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  let timeOut = null;
+
   const columns = [
     // {field: "loan_header_id", headerName: "ID" },
     {
@@ -167,6 +170,14 @@ const Loan = () => {
             disabled={isLoanOnGoing}
             showInMenu
             onClick={() => restructureLoan(id)}
+          />,
+          <GridActionsCellItem
+            icon={<DeleteOutline />}
+            color="success"
+            label="Delete"
+            disabled={isLoanOnGoing}
+            showInMenu
+            onClick={() => handleDeleteLoanHeader(id)}
           />,
         ];
       },
@@ -213,6 +224,7 @@ const Loan = () => {
     { field: "loanfacility", headerName: "Facility", width: 150 },
     { field: "status_code", headerName: "Status", width: 150 },
   ];
+  
   const [renewFormValue,setRenewFormValue] = useState(LOAN_INITIAL_VALUES)
   const [restructureFormValue, setRestructureFormValue] = useState(LOAN_INITIAL_VALUES)
   const [facilities, setFacilities] = useState([]);
@@ -228,7 +240,7 @@ const Loan = () => {
   const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState(null);
   const [loans, dispatch] = useReducer(reducer, []);
-
+  // console.log(loans)
   const handleRowDoubleClick = (params) => {
     setSelectedLoanId(params.row.loan_header_id);
     setOpenPopup(true);
@@ -254,6 +266,25 @@ const Loan = () => {
     }
   }
 
+  const handleDeleteLoanHeader = async (id) => {
+    try {
+      const request = await fetch('/api/loans', {
+        method : 'DELETE',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({id : id})
+      })
+      if(!request.ok) { return } // error handling
+
+      const response  = await request.json()
+      
+      dispatch({ type: "DELETE", id: response.id })
+      
+    } catch (error) {
+      console.log("Something went Wrong!")
+    }
+  }
 
   const handleSearch = async (value, field) => {
     const params = new URLSearchParams({ [field] : value}).toString()
@@ -266,6 +297,8 @@ const Loan = () => {
       console.log(error)
     }
   };
+
+
   const getData = async (signal) => {
     setLoading(true)
     const urls = [

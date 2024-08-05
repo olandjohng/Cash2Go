@@ -370,6 +370,23 @@ loanRouter.post('/recalculate', async (req, res) => {
   }
 })
 
+loanRouter.delete('/', async (req, res) => {
+  // console.log('delete!')
+  // console.log(req.body.id)
+  const {id} = req.body
+  if (!id) return
+  try {
+    const del = await builder('loan_headertbl').where('loan_header_id', id).del()
+    // console.log(id, del)
+    if(del){
+      return res.status(200).json({id : id})
+    }
+  } catch (error) {
+    
+  }
+})
+
+
 loanRouter.post('/', async (req, res) => {
 
   const {voucher, deduction, loan_details, isCash, term_type, loan_facility} = req.body
@@ -420,7 +437,8 @@ loanRouter.post('/', async (req, res) => {
         term : term, 
         status_code : LoanStatus.ONGOING,
         renewal_id : 0,
-        renewal_amount : 0
+        renewal_amount : 0,
+        co_maker_id : req.body.co_maker_id
       }, '*').transacting(t)
   
   
@@ -433,7 +451,6 @@ loanRouter.post('/', async (req, res) => {
             due_date : v.dueDate,
             check_number : Number(v.checkNumber),
             bank_account_id : Number(v.bank_account_id),
-            // monthly_amortization : Number(v.amortization),
             monthly_interest : Number(v.interest),
             monthly_principal : Number(v.principal),
             net_proceeds : Number(v.net_proceeds),
@@ -480,7 +497,7 @@ loanRouter.post('/', async (req, res) => {
       })
   
       const voucherId = await builder.insert(mapVoucher).into('vouchertbl').transacting(t)
-      
+
       res.status(200).json({
         loan_header_id : id[0],
         date_granted : req.body.date_granted,
