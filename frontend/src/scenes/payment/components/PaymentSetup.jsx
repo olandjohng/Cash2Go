@@ -190,7 +190,7 @@ const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter, 
           
         )}
       </Grid>
-      <Grid item>
+      <Grid item xs={4}>
         <MuiFileInput 
           value={file}
           InputProps={{ startAdornment : <AttachFile /> }}
