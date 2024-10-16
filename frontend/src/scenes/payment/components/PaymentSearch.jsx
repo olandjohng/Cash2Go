@@ -194,6 +194,7 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
           loanIdSetter(loanId)
 
         }}
+        getRowId={(props) => props.loan_header_id}
         // pageSizeOptions={[5]}
         // pagination
         // initialState={{

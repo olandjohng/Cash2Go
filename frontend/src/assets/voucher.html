@@ -23,7 +23,6 @@
         <div class="flex-[0.5]" ><div class="flex justify-end mx-5 text-blue-500  font-bold"><%= voucherNumber  %></div></div>
 
       </div>
-      
       <div class="mt-2 flex justify-between gap-2">
         <div class="flex gap-2 w-4/5">
           <div>PAYEE:</div>
@@ -54,7 +53,6 @@
               <div class="flex justify-around">
                 <div class="flex-1 text-sm text-center">
                   <% if(Number(v.debit) > 0) { %>
-                    
                       <%= Intl.NumberFormat(undefined,  {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(Number(v.debit))  %>
                     <% } else { %> - <% } %>
                 </div>
@@ -71,6 +69,24 @@
       <div class="flex">
         
         <div class="w-[60%]">
+          <% if(has_second_check) { %>
+          <div>
+            <div class="flex flex-col gap-1 pr-2 py-2 border-r border-slate-900">
+              <div class="flex gap-2 ">
+                <div>Check:</div>
+                <div class="border-b flex-1 border-slate-900 font-semibold italic px-3"><%= check_details_2 %></div>
+                <div>Date:</div>
+                <div class="border-b border-slate-900 font-semibold italic px-1"><%= check_date_2  %></div>
+              </div>
+              <div class="flex gap-2 ">
+              </div>
+              <!-- <div class="mt-5">
+                <div class="border-b flex-1 border-slate-900"></div>
+                <div class="text-center">Printed Name & Signature</div>
+              </div> -->
+            </div>
+          </div>
+          <% } %>
           <div>
             <div class="flex flex-col gap-1 pr-2 py-2 border-r border-slate-900">
               <div>
@@ -92,7 +108,7 @@
           </div>
       </div>
       <div class="w-[40%]">
-        <div class="flex flex-col h-full justify-end">
+        <div class="flex flex-col h-full">
           <div class="flex flex-col gap-1 ml-2 my-2 border-slate-900">
             <div class="flex gap-2 ">
               <div>Prepared by:</div>

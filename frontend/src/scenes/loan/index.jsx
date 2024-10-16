@@ -5,15 +5,14 @@ import {
   GridToolbarContainer,
 } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
-import { mockDataTeam } from "../../data/mockData";
 import { useTheme } from "@emotion/react";
-import { Box, Button, IconButton, InputBase, TextField } from "@mui/material";
+import { Box, Button, IconButton, Input, InputBase, TextField } from "@mui/material";
 import Header from "../../components/Header";
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import Popups from "../../components/Popups";
 import DetailsModal from "./components/DetailsModal";
 import LoanForm1 from "./components/LoanForm1";
-import { AccountTreeOutlined, AutorenewOutlined, PrintOutlined, RefreshOutlined, DeleteOutline } from "@mui/icons-material";
+import { AccountTreeOutlined, AutorenewOutlined, PrintOutlined, RefreshOutlined, DeleteOutline, UploadFile, AttachFile } from "@mui/icons-material";
 import voucherTemplateHTML from "../../assets/voucher.html?raw";
 import c2gImage from "../../assets/c2g_logo_nb.png";
 import * as ejs from "ejs";
@@ -21,6 +20,8 @@ import dayjs from "dayjs";
 import LoanRenewForm from "./components/LoanRenewForm";
 import LoanRestructureForm from "./components/LoanRestructureForm";
 import SearchInputForm from "../report/component/SearchInputForm";
+import { MuiFileInput } from "mui-file-input";
+import { toastErr, toastSucc } from "../../utils";
 
 function reducer(state, action) {
   switch (action.type) {
@@ -104,6 +105,8 @@ const getVoucher = async (id) => {
   try {
     const fetchData = await fetch(`/api/loans/voucher/${id}`);
     const voucherJSON = await fetchData.json();
+    console.log(voucherJSON)
+    // return 
     const format = {
       ...voucherJSON,
       logo: c2gImage,
@@ -127,7 +130,6 @@ const RefreshToolBar = ({refresh}) =>{
   )
 }
 
-
 const Loan = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -136,7 +138,6 @@ const Loan = () => {
     // {field: "loan_header_id", headerName: "ID" },
     {
       field: "voucher",
-      // headerName: "Actions",
       type: "actions",
       width: 100,
       getActions: ({ id }) => {
@@ -178,6 +179,14 @@ const Loan = () => {
             disabled={isLoanOnGoing}
             showInMenu
             onClick={() => handleDeleteLoanHeader(id)}
+          />,
+          <GridActionsCellItem
+            icon={<UploadFile />}
+            color="success"
+            label="Upload Attachment"
+            disabled={isLoanOnGoing}
+            showInMenu
+            onClick={() => handleOpenPopup(id) }
           />,
         ];
       },
@@ -235,12 +244,15 @@ const Loan = () => {
   const [accountTitle, setAccountTitle] = useState([]);
   const [loanding, setLoading] = useState(false)
   const [openPopup, setOpenPopup] = useState(false);
+  const [openAttachmentPopup, setOpenAttachmentPopup] = useState(false);
   const [openRenewPopup, setOpenRenewPopup] = useState(false);
   const [openRestructurePopup, setOpenRestructurePopup] = useState(false);
   const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState(null);
   const [loans, dispatch] = useReducer(reducer, []);
-  // console.log(loans)
+  const [fileAttachment, setFileAttachment]  = useState(null)
+  const attachmentId = useRef(null)
+
   const handleRowDoubleClick = (params) => {
     setSelectedLoanId(params.row.loan_header_id);
     setOpenPopup(true);
@@ -298,6 +310,37 @@ const Loan = () => {
     }
   };
 
+  const handleAttachmentSubmit = async () => {
+    if(!fileAttachment) {
+      return toastErr('Please Select a file')
+    }
+    const formData = new FormData()
+    formData.set('loan_attachment', fileAttachment)
+    
+    try {
+      if(!attachmentId.current) return toastErr('Something went wrong!');
+
+      const request = await fetch(`/api/loans/attachment/${attachmentId.current}`, {
+        method : 'POST',
+        body : formData
+      })
+      
+      if(!request.ok) {
+        return toastErr('Something went wrong!')
+      }
+      
+      const response = await request.json()
+      if(!response.success) {
+        return toastErr('Something went wrong!')
+      }
+      toastSucc('File Uploaded')
+      attachmentId.current = null
+      setOpenAttachmentPopup(false)
+    } catch (error) {
+      toastErr('Something went wrong!')
+    }
+
+  }
 
   const getData = async (signal) => {
     setLoading(true)
@@ -315,6 +358,7 @@ const Loan = () => {
       const req = await Promise.all(urls);
 
       const loanData = await req[0].json();
+      console.log(loanData)
       // const customerData = await req[1].json()
       const collateralData = await req[1].json();
       const facilityData = await req[2].json();
@@ -338,7 +382,11 @@ const Loan = () => {
     }
   };
 
-  
+  const handleOpenPopup = (id) => {
+    attachmentId.current = id
+    setOpenAttachmentPopup(true)
+  }
+
   useEffect(() => {
     let active = true;
     try {
@@ -403,6 +451,26 @@ const Loan = () => {
       >
         <LoanRestructureForm dispatcher={dispatch} popup={setOpenRestructurePopup} loanInitialValue={restructureFormValue} accountTitle={accountTitle}  banks={banks} collaterals={collaterals} categories={categories} facilities={facilities}/>
       </Popups>
+      <Popups
+        title='Upload Attachment'
+        openPopup={openAttachmentPopup}
+        setOpenPopup={setOpenAttachmentPopup}
+      >
+        <div style={{ display : "flex", gap : 10}}>
+          <MuiFileInput 
+            label='Attachment'
+            placeholder="Upload Attachment"
+            hideSizeText 
+            value={fileAttachment}
+            InputProps={{ startAdornment : <AttachFile /> }}
+            getInputText={(value) => value ? value.name : ''}
+            onChange={setFileAttachment}
+          />
+          <Button variant="outlined" color='success' onClick={handleAttachmentSubmit} >Save</Button>
+        </div>
+      </Popups>
+
+
       <Popups
         title="New Loan"
         openPopup={openNewLoanPopup}

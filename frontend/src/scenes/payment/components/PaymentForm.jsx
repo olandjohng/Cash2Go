@@ -168,10 +168,6 @@ export default function PaymentForm({paymentDispacher, popup}) {
       fData.append(k, formatData[k])
     }
 
-    // console.log(fData.)
-    fData.forEach((v) => console.log(v))
-    // return
-
     try {
       const req = await fetch('/api/payments', {
         method : 'post',
@@ -183,7 +179,6 @@ export default function PaymentForm({paymentDispacher, popup}) {
 
       if(req.ok) {
         const paymentsJSON = await req.json()
-        console.log('POST payment_data', paymentsJSON)
         paymentDispacher({type : 'ADD', payment : paymentsJSON})
         popup(false)
         
@@ -202,8 +197,6 @@ export default function PaymentForm({paymentDispacher, popup}) {
     } catch (error) {
       throw new Error(error)
     }
-
-    // 
   }
   
   return (

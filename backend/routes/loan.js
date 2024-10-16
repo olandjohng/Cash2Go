@@ -4,7 +4,12 @@ const builder = require('../builder')
 const weekOfYear = require('dayjs/plugin/weekOfYear')
 const dayjs = require('dayjs')
 const {getLoanList, getLoan, saveLoan} = require('../controller/loanController')
+const { upload } = require('../middleware/multerMiddleware')
 dayjs.extend(weekOfYear)
+const multer = require('multer')
+const collections = require('./collections')
+const { formatName } = require('../utils/utils')
+
 
 const LoanStatus = {
   RENEWED : 'Renewed',
@@ -38,6 +43,9 @@ async function createPnNumber(req){
   return `${categoryCode}-${id}-${req.customer_id}-${year}`
 }
 
+const attachment = upload.single('loan_attachment')
+
+
 loanRouter.get('/', getLoanList)
 
 const convertEmpty = (name) => name !== '' ? name : ''
@@ -47,7 +55,6 @@ loanRouter.get('/voucher/:id', async (req, res) =>{
   const {id} = req.params
   
   const query = await builder.select('*').from('view_voucher').where('loan_header_id', id)
-
   if(query.length <= 0) {
     return res.status(400).send()
   }
@@ -70,13 +77,16 @@ loanRouter.get('/voucher/:id', async (req, res) =>{
   const midInitial = convertEmpty(item.cmname)
   
   const fullname = `${lastname[0]}, ${firstName}  ${midInitial} ${extName}`
-  
+
   const voucherInfo = {
     details : details,
     prepared_by : item.prepared_by,
     approved_by : item.approved_by,
     checked_by : item.checked_by,
     check_details : `${item.bank_name}-${item.check_number}`,
+    check_details_2 : `${item.bank_name_2}-${item.check_number_2}`,
+    check_date_2: item.has_second_check ?  dayjs(item.check_date_2).format('MM-DD-YYYY') : null,
+    has_second_check: item.has_second_check,
     check_date : item.check_date,
     borrower : fullname.trim(),
     date : new Date().toISOString().split('T')[0],
@@ -86,16 +96,16 @@ loanRouter.get('/voucher/:id', async (req, res) =>{
   res.status(200).json(voucherInfo)
 })
 
-const formatName = (name) =>  {
+// const formatName = (name) => {
   
-  const lastName = name.clname.split(',')
-  const firstName = name.cfname === '' ? '' : `, ${name.cfname}`
-  const middleName = name.cmname === '' ? '' : ` ${name.cmname}`
-  const extName = lastName[1] ? lastName[1] : ''
-  const fullname = lastName[0] + firstName + middleName + extName
-  return fullname;
+//   const lastName = name.clname.split(',')
+//   const firstName = name.cfname === '' ? '' : `, ${name.cfname}`
+//   const middleName = name.cmname === '' ? '' : ` ${name.cmname}`
+//   const extName = lastName[1] ? lastName[1] : ''
+//   const fullname = lastName[0] + firstName + middleName + extName
+//   return fullname;
 
-}
+// }
 
 loanRouter.get('/renew/:id', async (req, res) => {
 
@@ -235,7 +245,6 @@ loanRouter.post('/renew', async (req, res) => {
     console.log(e)
   }
 })
-
 
 loanRouter.get('/recalculate/:id', async (req, res) => {
   try {
@@ -389,7 +398,7 @@ loanRouter.delete('/', async (req, res) => {
 
 loanRouter.post('/', async (req, res) => {
 
-  const {voucher, deduction, loan_details, isCash, term_type, loan_facility} = req.body
+  const {voucher, deduction, loan_details, isCash, term_type, loan_facility, } = req.body
 
   function getMaxDueDate (details) {
     let max = 0
@@ -412,36 +421,75 @@ loanRouter.post('/', async (req, res) => {
   
   try {
     await builder.transaction(async t => {
-      
-      const id = await builder('loan_headertbl').insert({
-        pn_number : pnNumber,
-        check_number :  req.body.check_number,
-        term_type : req.body.term_type,
-        check_date : req.body.check_date,
-        prepared_by : req.body.prepared_by,
-        approved_by : req.body.approved_by,
-        checked_by : req.body.checked_by,
-        customer_id : req.body.customer_id,
-        transaction_date : req.body.transaction_date,
-        bank_account_id : Number(req.body.bank_account_id),
-        collateral_id : req.body.collateral_id,
-        loan_category_id : req.body.loan_category_id,
-        loan_facility_id : req.body.loan_facility_id,
-        principal_amount : Number(req.body.principal_amount),
-        interest_rate : Number(req.body.interest_rate),
-        // date_granted : dayjs(req.body.date_granted).format('YYYY-MM-DD'),
-        date_granted : req.body.date_granted,
-        check_issued_name : req.body.check_issued_name,
-        voucher_number : req.body.voucher_number,
-        total_interest : totalInterest,
-        term : term, 
-        status_code : LoanStatus.ONGOING,
-        renewal_id : 0,
-        renewal_amount : 0,
-        co_maker_id : req.body.co_maker_id
-      }, '*').transacting(t)
-  
-  
+      let id = 0;
+      if(!req.body.has_second_check) {
+        console.log('No second check')
+        id = await builder('loan_headertbl').insert({
+          pn_number : pnNumber,
+          check_number :  req.body.check_number,
+          term_type : req.body.term_type,
+          check_date : req.body.check_date,
+          prepared_by : req.body.prepared_by,
+          approved_by : req.body.approved_by,
+          checked_by : req.body.checked_by,
+          customer_id : req.body.customer_id,
+          transaction_date : req.body.transaction_date,
+          bank_account_id : Number(req.body.bank_account_id),
+          collateral_id : req.body.collateral_id,
+          loan_category_id : req.body.loan_category_id,
+          loan_facility_id : req.body.loan_facility_id,
+          principal_amount : Number(req.body.principal_amount),
+          interest_rate : Number(req.body.interest_rate),
+          // date_granted : dayjs(req.body.date_granted).format('YYYY-MM-DD'),
+          date_granted : req.body.date_granted,
+          has_second_check: false,
+          check_issued_name : req.body.check_issued_name,
+          voucher_number : req.body.voucher_number,
+          total_interest : totalInterest,
+          term : term, 
+          status_code : LoanStatus.ONGOING,
+          renewal_id : 0,
+          renewal_amount : 0,
+          co_maker_id : req.body.co_maker_id
+        }, '*').transacting(t)
+      }else{
+        console.log('second check')
+        id = await builder('loan_headertbl').insert({
+          pn_number : pnNumber,
+          check_number :  req.body.check_number,
+          term_type : req.body.term_type,
+          check_date : req.body.check_date,
+          prepared_by : req.body.prepared_by,
+          approved_by : req.body.approved_by,
+          checked_by : req.body.checked_by,
+          customer_id : req.body.customer_id,
+          transaction_date : req.body.transaction_date,
+          bank_account_id : Number(req.body.bank_account_id),
+          collateral_id : req.body.collateral_id,
+          loan_category_id : req.body.loan_category_id,
+          loan_facility_id : req.body.loan_facility_id,
+          principal_amount : Number(req.body.principal_amount),
+          interest_rate : Number(req.body.interest_rate),
+          // date_granted : dayjs(req.body.date_granted).format('YYYY-MM-DD'),
+          date_granted : req.body.date_granted,
+          check_issued_name : req.body.check_issued_name,
+          voucher_number : req.body.voucher_number,
+          total_interest : totalInterest,
+          has_second_check: true,
+          bank_name_2:  req.body.bank_name_2,
+          check_number_2: req.body.check_number_2,
+          check_date_2: req.body.check_date_2,
+          term : term, 
+          status_code : LoanStatus.ONGOING,
+          renewal_id : 0,
+          renewal_amount : 0,
+          co_maker_id : req.body.co_maker_id
+        }, '*').transacting(t)
+        console.log(488, id)
+      }
+
+      // console.log(481, id)
+      // return 
       const loanDetailsMap = loan_details.map(v => { 
         if(term_type === 'days') {
           return {
@@ -470,8 +518,8 @@ loanRouter.post('/', async (req, res) => {
           accumulated_penalty : 0
         }
       })
-  
-      await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
+
+      // await builder.insert(loanDetailsMap).into('loan_detail').transacting(t)
       //TODO : refactor 
       //TODO handle deduction id in client
       const deductionFormat = deduction.map((v) =>({
@@ -558,154 +606,38 @@ loanRouter.get('/penalty', async (req, res) =>{
   res.status(200).json(penalty)
 })
 
+loanRouter.use('/collections', collections)
 
-loanRouter.get('/collections', async (req, res) => {
-  const DAYWEEK = 7
-  const currentDay = dayjs().day()
-  const difference = DAYWEEK - currentDay - 1
-  const from = dayjs().subtract(currentDay, 'day').format('YYYY-MM-DD')
-  const to = dayjs().add(difference, 'day').format('YYYY-MM-DD')
 
-  const getWeeklyCollection = async () => {
-    try {
-      const weeklyCollection = await builder(builder.raw('loan_detail as l_d'))
-        .select(
-          'due_date',
-          'l_d.loan_header_id',
-          'l_d.loan_detail_id',
-          'monthly_amortization',
-          'monthly_interest',
-          'monthly_principal',
-          'accumulated_penalty',
-          'net_proceeds'
-        )
-        .orderBy('due_date', 'asc')
-        .havingBetween('due_date', [from , to])
-          // pn_number
-          .modify((subBuilder, foreignKey) => {
-            subBuilder.innerJoin(builder.raw('loan_headertbl as l_h'), foreignKey, 'l_h.loan_header_id').select('pn_number')
-            // payment status    
-            .modify((subBuilder, foreignKey) => {
-              subBuilder.leftJoin(builder.raw('paymenttbl as p'), foreignKey, 'p.loan_detail_id').select(builder.raw('ifnull(payment_status_id, 0) as payment_status_id'), builder.raw('ifnull(payment_id, 0) as payment_id'), builder.raw(`ifnull(receiptno, "") as pr_number`))
-            }, 'l_d.loan_detail_id',)
-            // customer name
-            .modify((subBuilder, foreignKey)=> {
-              subBuilder.innerJoin(builder.raw('customertbl as c'), foreignKey, 'c.customerid').select('clname','cfname','cmname', )
-            },'l_h.customer_id')
-      }, 'l_d.loan_header_id')
-  
-      const formatWeeklyCollection = weeklyCollection.map(v => ({...v, full_name : formatName(v), due_date : dayjs(v.due_date).format('MM-DD-YYYY')}))
-      return formatWeeklyCollection
-    } catch (error) {
-      console.log(559, error)
-      res.status(500)
+loanRouter.post('/attachment/:id', (req, res) => {
+  attachment(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      // A Multer error occurred when uploading.
+      res.status(500).json({success : false})
+    } else if (err) {
+      // An unknown error occurred when uploading.
+      res.status(500).json({success : false})
     }
-  }
+    const { id } = req.params
+    
+    if(!id) return res.status(500).json({success : false});
 
-  const getMonthlyCollection = async () => {
     try {
+      const updateAttachment = await builder('loan_headertbl').where('loan_header_id', '=', id).update({
+        attachment_url : req.file.path
+      })
       
-      const monthlyCollection = await builder(builder.raw('loan_detail as l_d'))
-        .select(
-          'due_date',
-          'l_d.loan_header_id',
-          'l_d.loan_detail_id',
-          'monthly_amortization',
-          'monthly_interest',
-          'monthly_principal',
-          'accumulated_penalty',
-          'net_proceeds',
-        )
-        .orderBy('due_date', 'asc')
-        .whereRaw(`month(due_date) = ?`, [dayjs().month() + 1]).andWhereRaw(`year(due_date) = ?`, [dayjs().year()])
-        .modify((subBuilder, foreignKey) => {
-          subBuilder.innerJoin(builder.raw('loan_headertbl as l_h'), foreignKey, 'l_h.loan_header_id').select('pn_number')
-          // payment status    
-          .modify((subBuilder, foreignKey) => {
-            subBuilder.leftJoin(builder.raw('paymenttbl as p'), foreignKey, 'p.loan_detail_id').select(builder.raw('ifnull(payment_status_id, 0) as payment_status_id'), builder.raw('ifnull(payment_id, 0) as payment_id'), builder.raw(`ifnull(receiptno, "") as pr_number`))
-          }, 'l_d.loan_detail_id',)
-          // customer name
-          .modify((subBuilder, foreignKey)=> {
-            subBuilder.innerJoin(builder.raw('customertbl as c'), foreignKey, 'c.customerid').select('clname','cfname','cmname', )
-          },'l_h.customer_id')
-        }, 'l_d.loan_header_id')
-        const formatMonthlyCollection = monthlyCollection.map(v => ({...v, full_name : formatName(v), due_date : dayjs(v.due_date).format('MM-DD-YYYY')}))
-        return formatMonthlyCollection
-    } catch (error) {
-      throw new Error(error.message)
-    }
-  }
-
-  const getYealyCollection = async () => {
-    try {
+      // console.log(updateAttachment)
+      res.status(200).json({success : true})
       
-      const yearlyCollection = await builder(builder.raw('loan_detail as l_d'))
-        .select(
-          'due_date',
-          'l_d.loan_header_id',
-          'l_d.loan_detail_id',
-          'monthly_amortization',
-          'monthly_interest',
-          'monthly_principal',
-          'accumulated_penalty',
-          'net_proceeds',
-        ).orderBy('due_date', 'asc')
-        .whereRaw(`year(due_date) = ?`, [dayjs().year()])
-        .modify((subBuilder, foreignKey) => {
-          subBuilder.innerJoin(builder.raw('loan_headertbl as l_h'), foreignKey, 'l_h.loan_header_id').select('pn_number')
-          // payment status    
-          .modify((subBuilder, foreignKey) => {
-            subBuilder.leftJoin(builder.raw('paymenttbl as p'), foreignKey, 'p.loan_detail_id').select(builder.raw('ifnull(payment_status_id, 0) as payment_status_id'), builder.raw('ifnull(payment_id, 0) as payment_id'), builder.raw(`ifnull(receiptno, "") as pr_number`))
-          }, 'l_d.loan_detail_id',)
-          // customer name
-          .modify((subBuilder, foreignKey)=> {
-            subBuilder.innerJoin(builder.raw('customertbl as c'), foreignKey, 'c.customerid').select('clname','cfname','cmname', )
-          },'l_h.customer_id')
-        }, 'l_d.loan_header_id')
-        const formatYearlyCollection = yearlyCollection.map(v => ({...v, full_name : formatName(v), due_date : dayjs(v.due_date).format('MM-DD-YYYY')}))
-        return formatYearlyCollection
     } catch (error) {
-      throw new Error(error.message)
+      console.log(error)
+      res.status(500).json({success : false});
     }
-  }
-  
-  const getIncome = async () => {
-    try {
-      const income = await builder('payment_historytbl')
-      .select(builder.raw('payment_principal + payment_interest as total, payment_date as date'))
-      .whereRaw(`month(payment_date) = ?`, [dayjs().month() + 1])
-  
-      const monthly = income.reduce((total, curr) => total + Number(curr.total), 0)
-      const daily = income.filter((value) => dayjs(value.date).isSame(dayjs()))
-                    .reduce((total, curr) => total + Number(curr.total), 0)
-      const weekly = income.filter((value) => dayjs(value.date).week() === dayjs().week())
-                    .reduce((total, curr) => total + Number(curr.total), 0)
-      return {
-        daily : daily,
-        weekly : weekly,
-        monthly : monthly,
-      }
-    } catch (error) {
-      throw new Error(error.message)
-    }
-  }
-  try {
-    const data = {
-      weeklyCollection : await getWeeklyCollection(),
-      monthlyCollection : await getMonthlyCollection(),
-      yearlyCollection : await getYealyCollection(),
-      income : await getIncome()
-    }
-    res.status(200).json(data)
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      // Aborting a fetch throws an error
-      // So we can't update state afterwards
-    }
-  }
-
+  })
 })
+
 
 loanRouter.get('/:id', getLoan)
 
-module.exports = loanRouter
+module.exports = {loanRouter }

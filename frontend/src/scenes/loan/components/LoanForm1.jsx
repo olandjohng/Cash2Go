@@ -170,6 +170,61 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
   const totalCredit = voucher.reduce((acc, cur) =>  acc + Number(cur.credit), 0)
   const totalDebit = voucher.reduce((acc, cur) =>  acc + Number(cur.debit), 0)
 
+
+  const handleSubmit = async () => {
+    let data
+
+    if(formValue.check_date_2) {
+      data  = {...formValue, check_date : dayjs(formValue.check_date).format(), date_granted : formValue.date_granted.format(), check_date_2 : formValue.check_date_2.format()}
+    }else { 
+      data  = {...formValue, check_date : dayjs(formValue.check_date).format(), date_granted : formValue.date_granted.format()}
+    }
+
+    
+    const mapLoanDetails = data.loan_details.map((v) => {
+      let item = {...v , dueDate : v.dueDate.format()}
+      
+      for (const b of banks) {
+        if(item.bank_name === b.bank_branch) {
+          item = {...item, bank_account_id : b.id }
+        }
+      }
+      
+      if(item.check_date)
+        return {...item, check_date : item.check_date.format()};
+      
+      return {...item};
+    })
+    
+    data = {...data , loan_details : mapLoanDetails} 
+    console.log(JSON.stringify(data))
+    console.log(data)
+    fetch('/api/loans', {
+      method : 'POST',
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data)
+    })
+    .then((d) => d.json())
+    .then((res) => {
+      setModalOpen(false)
+      dispatcher({type : 'ADD', loans : res })
+      toast.success('Save Successfully!', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+        transition: Bounce,
+      });
+    }  
+    ).catch(err => console.log(err))
+  }
+
   const handleLoanRequirement = async () => {
     try {
       loanRequirementSchema.validateSync(formValue, 
@@ -248,54 +303,8 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
     <LoanFormContext.Provider value={{formValue, setFormValue, validationError, setValidationError,}}>
       <div style={{width: 900, color: grey[600]}} >
         <MultiStepForm1
-        initialFormValues={formValue}
-        onSubmit={ async () => {
-          let data = {...formValue, check_date : dayjs(formValue.check_date).format(), date_granted : formValue.date_granted.format()}
-          
-          const mapLoanDetails = data.loan_details.map((v) => {
-            let item = {...v , dueDate : v.dueDate.format()}
-            
-            for (const b of banks) {
-              if(item.bank_name === b.bank_branch) {
-                item = {...item, bank_account_id : b.id }
-              }
-            }
-            
-            if(item.check_date)
-              return {...item, check_date : item.check_date.format()};
-            
-            return {...item};
-          })
-          
-          data = {...data , loan_details : mapLoanDetails} 
-
-          // return console.log(data)
-          // console.log('fetch', data)
-          fetch('/api/loans', {
-            method : 'POST',
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data)
-          })
-          .then((d) => d.json())
-          .then((res) => {
-            setModalOpen(false)
-            dispatcher({type : 'ADD', loans : res })
-            toast.success('Save Successfully!', {
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "colored",
-              transition: Bounce,
-            });
-          }  
-          ).catch(err => console.log(err))
-        }}
+          initialFormValues={formValue}
+          onSubmit={handleSubmit}
         >
           <FormStep
             stepName="Loan Requirements"
@@ -373,6 +382,9 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
                 details : formValue.voucher,
                 voucherNumber : formValue.voucher_number,
                 logo : c2gLogo,
+                has_second_check: formValue.has_second_check,
+                check_details_2: `${formValue.bank_name_2}-${formValue.check_number_2}`,
+                check_date_2:  formValue.has_second_check ? dayjs(formValue.check_date_2).format('MM-DD-YYYY') : null,
                 prepared_by : formValue.prepared_by,
                 approved_by : formValue.approved_by,
                 checked_by : formValue.checked_by,

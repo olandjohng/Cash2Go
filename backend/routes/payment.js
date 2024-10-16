@@ -40,30 +40,34 @@ paymentRouter.get("/search", async (req, res) => {
     //     .limit(pageSize)
     //     .offset(offset),
     const [results, totalCount] = await Promise.all([
-        builder.select(
-          ['loan_detail.loan_header_id']
-        ).from('loan_detail').where('check_number', req.query.search).modify((queryBuilder, foreignKey)=> {
-          // console.log(foreignKey)
-          queryBuilder.innerJoin('new_payment', foreignKey, 'new_payment.loan_header_id').select(
-            {
-              id: "loan_detail.loan_header_id",
-              pn_number: "pn_number",
-              customername: "customername",
-              loancategory: "loancategory",
-              loanfacility: "loanfacility",
-              principal_amount: "principal_amount",
-              total_interest: "total_interest",
-              date_granted: "date_granted",
-              TotalPrincipalPayment: "TotalPrincipalPayment",
-              TotalInterestPayment: "TotalInterestPayment",
-              TotalPayment: "TotalPayment",
-              PrincipalBalance: "PrincipalBalance",
-              InterestBalance: "InterestBalance",
-              Balance: "Balance",
-            }
-          )
-        }, 'loan_detail.loan_header_id'),
-       builder
+        // builder.select(
+        //   ['loan_detail.loan_header_id']
+        // ).from('loan_detail')
+        // // .where('check_number', req.query.search)
+        // .modify((queryBuilder, foreignKey)=> {
+        //   // console.log(foreignKey)
+        //   queryBuilder.innerJoin('new_payment', foreignKey, 'new_payment.loan_header_id').select(
+        //     {
+        //       id: "loan_detail.loan_header_id",
+        //       pn_number: "pn_number",
+        //       customername: "customername",
+        //       loancategory: "loancategory",
+        //       loanfacility: "loanfacility",
+        //       principal_amount: "principal_amount",
+        //       total_interest: "total_interest",
+        //       date_granted: "date_granted",
+        //       TotalPrincipalPayment: "TotalPrincipalPayment",
+        //       TotalInterestPayment: "TotalInterestPayment",
+        //       TotalPayment: "TotalPayment",
+        //       PrincipalBalance: "PrincipalBalance",
+        //       InterestBalance: "InterestBalance",
+        //       Balance: "Balance",
+        //     }
+        //   ).where("customername", "like", `%${search.trim()}%`);
+        // }, 'loan_detail.loan_header_id'),
+        //end
+        builder.select('*').from('new_payment').where("customername", "like", `%${search.trim()}%`),
+        builder
         .count("* as count")
         .from({ c: "new_payment" })
         .modify((queryBuilder) => {
@@ -98,11 +102,13 @@ paymentRouter.get("/search", async (req, res) => {
     // }, 'loan_detail.loan_header_id')
 
     // console.log(result)
+    // console.log(results)
     res.json({
       data: results,
       page: page + 1,
       totalCount: totalCount.count,
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message || "Internal Server Error" });
@@ -452,8 +458,8 @@ paymentRouter.get("/read/:id", async (req, res) => {
         ,'payment_amount'
         ,'Balance'
         ,'running_balance'
-        ,'running_total',
-        'description'
+        // ,'running_total',
+        // 'description'
     )
     .from("new_view_payment_detail") // 
     .where("loan_header_id", id)

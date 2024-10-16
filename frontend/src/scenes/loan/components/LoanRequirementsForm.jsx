@@ -1,4 +1,4 @@
-import { Autocomplete, Box, Grid, TextField } from '@mui/material'
+import { Autocomplete, Box, Checkbox, Grid, TextField } from '@mui/material'
 import { useContext, useEffect, useRef, useState } from 'react'
 import { ComboBox, LoanFormContext, TextInput } from './LoanForm1'
 import { DatePicker } from '@mui/x-date-pickers'
@@ -58,14 +58,17 @@ const CustomerComboBox = ({value, handleChange, disabled, name,}) => {
 
 export default function LoanRequirementsForm({banks, collaterals, categories, facilities, isRenew = false, isRestructure = false} ) {
   const {formValue, setFormValue, validationError, setValidationError} = useContext(LoanFormContext)
-  
+  const [hasSecondCheck, setHasSecondCheck] = useState(false)
+
   const handleTextInputChange = (e, field) => {
+    console.log(field)
     setValidationError(null)
     setFormValue((old) => ({...old , [field] : e.target.value}))
   }
   
   const handleComboBoxChange = (fields, values) => {
     setValidationError(null)
+    console.log(fields, values)
     setFormValue((old) => ({...old, [fields.name] : values.value , [fields.id] : values.id}))
   }
 
@@ -150,9 +153,6 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
               setFormValue((old) => ({...old , check_date : val}))
             }
           }}
-          // slots={{
-          //   // textField : (params) => <TextField {...params}  />
-          // }}
           />
       </Grid>
       <Grid item xs={3}>
@@ -172,7 +172,60 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           // }}
           />
       </Grid>
-      <Grid item xs={12}>
+      <Grid item style={{ display : 'flex'}}>
+        <Checkbox style={{ color : 'white'}} checked={formValue.has_second_check} onChange={(e, checked) => {
+          setHasSecondCheck(checked)
+          setFormValue((old) => ({...old, has_second_check : checked}))
+        }} />
+      </Grid>
+      <Grid item xs={2}>
+        <ComboBox
+          disabled={!formValue.has_second_check}
+          label='Bank'
+          inputChange={(fields, values) => handleComboBoxChange(fields, values) } 
+          value={formValue.bank_name_2}
+          options={banks}
+          idfield='bank_account_id_2'
+          getOptionLabel={(option) => option.name || "" || option}
+          renderOption={(props, option) => {
+            if(option.owner) {
+              return <Box {...props} component='li' key={option.id} id={option.id}>
+                {option.name}
+              </Box>  
+            }
+          }
+          }
+          nameField="bank_name_2"
+        />
+      </Grid>
+      
+      <Grid item xs={6} >
+        <TextInput
+          disabled={!formValue.has_second_check}
+          value={formValue.check_number_2}
+          label="Check Number"
+          name="check_number_2"
+          // error={validationError}
+          change={(e, field) => handleTextInputChange(e, field)}
+          />
+      </Grid>
+      
+      <Grid item xs='auto'>
+        <DatePicker
+          disabled={!formValue.has_second_check}
+          label='Check Date'
+          name='check_date_2'
+          value={formValue.check_date_2 ? dayjs(formValue.check_date_2) : formValue.check_date_2}
+          onChange={(val) => { 
+            setValidationError(null)
+            if(val){
+              setFormValue((old) => ({...old , check_date_2 : val}))
+            }
+          }}
+          />
+      </Grid>
+
+      <Grid item xs={4}>
         <ComboBox 
           disabled={isRestructure}
           label='Collateral'
@@ -189,7 +242,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           nameField="collateral"
           err={validationError}/>
       </Grid>
-      <Grid item xs={12}>
+      <Grid item xs={4}>
         <ComboBox 
           disabled={isRestructure}
           label='Category'
@@ -207,7 +260,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           err={validationError}
         />
       </Grid>
-      <Grid item xs={12}>
+      <Grid item xs={4}>
         <ComboBox 
           disabled={isRestructure}
           label='Facility'

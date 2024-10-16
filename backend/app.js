@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const loanRouter = require('./routes/loan')
+const {loanRouter} = require('./routes/loan')
 const customerRouter = require('./routes/customer')
 const bankRouter = require('./routes/bank')
 const deductionRouter = require('./routes/deduction')
@@ -14,6 +14,7 @@ const accountTitleRouter = require('./routes/accountTitle')
 const employeeRouter = require('./routes/employee')
 const paymentRouter = require('./routes/payment');
 const os = require('os');
+const reportsRouter = require('./routes/reports')
 
 const getIPv4 = (port) => {
   const networkInterfaces = os.networkInterfaces()
@@ -45,6 +46,7 @@ app.use('/api/customerInfo', customerInfoRouter)
 app.use('/api/collateral', collateralRouter)
 app.use('/api/account-category', accountCategoryRouter)
 app.use('/api/account-title', accountTitleRouter)
+app.use('/api/reports', reportsRouter)
 app.use('/api/employee', employeeRouter)
 
 app.use('*', express.static('dist'))

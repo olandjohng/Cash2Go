@@ -32,10 +32,9 @@ async function getLoanList (req, res) {
   
   }).orderBy('date_granted', 'desc')
   .from('view_loan_header')
-  
+
   const loanMap = loans.map((v) =>{
     const item = v
-
     const lastname = item.clname.split(',')
     const firstName = item.cfname === '' ? '' :  `, ${item.cfname}`
     const extName = lastname[1] ? lastname[1] : ''
@@ -48,7 +47,7 @@ async function getLoanList (req, res) {
     if(v.term_type) {
       term = `${v.term} ${v.term_type}`
     } 
-
+    
     return {
       ...v, name : fullname.trim(),
       loan_term : term
