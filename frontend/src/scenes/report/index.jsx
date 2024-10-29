@@ -59,9 +59,36 @@ export default function Report() {
   ] 
 
   return (
-    <div style={{ padding: 20 , height: "100%", }}>
+    <div style={{ padding: 20 , height: "90%" }}>
       <Header title='Report' showButton={false} />
-        <Box display='flex' height='85%' gap='10px' >
+      <div style={{display : 'flex', height: '90%', gap : '5px'}}>
+        <DataGrid
+        sx={{ height: "100%" }} 
+        columns={denom_column} 
+        rows={denoms}
+        slots={{
+          toolbar : TollBar,
+          footer : FooterSave
+        }}
+        slotProps={{
+          toolbar: { setDenoms, denoms},
+          footer: { total : denoms.reduce((acc, cur) => acc + cur.total, 0), data : denoms}
+        }}
+        />
+        {!isLoading &&
+          <DataGrid
+
+          sx={{ height: "100%" }} 
+          slots={{
+            footer : FooterTotal
+          }}
+          slotProps={{
+            footer: { total : data.total }
+          }}
+          loading={isLoading} columns={payment_column} rows={data.details} />
+        }
+      </div>
+        {/* <Box display='flex' height='85%' gap='10px' >
           <Grid container  spacing={1} >
             <Grid item xs={6}>
               <DataGrid
@@ -94,7 +121,7 @@ export default function Report() {
             </Grid>
 
           </Grid>
-        </Box>
+        </Box> */}
     </div>
   )
 }

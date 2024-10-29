@@ -358,7 +358,6 @@ const Loan = () => {
       const req = await Promise.all(urls);
 
       const loanData = await req[0].json();
-      console.log(loanData)
       // const customerData = await req[1].json()
       const collateralData = await req[1].json();
       const facilityData = await req[2].json();

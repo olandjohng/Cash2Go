@@ -19,6 +19,7 @@ import AccountTitle from "./scenes/accountTitle";
 import Employee from "./scenes/employee";
 import LoanPayment from "./scenes/payment";
 import Report from "./scenes/report";
+import ExpensesPage from "./scenes/expenses";
 
 function App() {
 
@@ -62,11 +63,13 @@ function App() {
               <Route path="/deduction" element={<DeductionType />} />
               <Route path="/deduction/new" element={<DeductionType />} />
               <Route path="/deduction/:id" element={<DeductionType />} />
-
+              
               <Route path="/collateral" element={<Collateral />} />
               <Route path="/collateral/new" element={<Collateral />} />
               <Route path="/collateral/:id" element={<Collateral />} />
 
+              <Route path="/expenses" element={<ExpensesPage />} />
+              
               <Route path="/account-category" element={<AccountCategory />} />
               <Route path="/account-category/new" element={<AccountCategory />} />
               <Route path="/account-category/:id" element={<AccountCategory />} />

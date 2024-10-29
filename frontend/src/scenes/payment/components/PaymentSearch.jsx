@@ -1,13 +1,19 @@
-import { PointOfSaleOutlined, SearchOutlined } from '@mui/icons-material'
-import { Box, Button, IconButton, InputBase, Tooltip } from '@mui/material'
+import { Category, PointOfSaleOutlined, SearchOutlined } from '@mui/icons-material'
+import { Box, Button, IconButton, InputBase, MenuItem, TextField, Tooltip } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { tokens } from "../../../theme";
 import { useTheme } from "@emotion/react";
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-
+import { useFormik } from 'formik';
+import * as yup from 'yup';
 // const SERVER_URL = "/api/payments";
+
+const validationSchema = yup.object({
+  input : yup.string().required(),
+  category: yup.string().required()
+})
 
 
 const formatNumber = (value) => {
@@ -22,17 +28,25 @@ const formatNumber = (value) => {
 export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSetter, paymentDataSetter }) {
 
   const [selectionModel, setSelectionModel] = useState([])
+  const formik = useFormik({
+    initialValues: {
+      input : '',
+      category : 'name'
+    },
+    validationSchema : validationSchema,
+    onSubmit : handleSearch
+  })
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [rows, setRows] = useState(paymentRow)
   const [isLoading, setIsLoading] = useState(false)
-  const [searchInput, setSearchInput] = useState('')
   const [rowCount, setRowCount] = useState(0);
   
   const [paginationModel, setPaginationModel] = useState({
     page: 0, // Initial page
     pageSize: 100,
   });
+  
   const columns = [
     { field: "pn_number", width: 200, headerName: "PN Number" },
     { field: "customername", width: 250, headerName: "Borrower" },
@@ -124,16 +138,16 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
     paymentRowSetter(rows)
   },[rows])
   
-  const handleSearch = async (e) => {
-    e.preventDefault()
-    console.log(e)
+  async function handleSearch(data){
+    
     setIsLoading(true)
     try {
       const response = await axios.get(`/api/payments/search`, {
         params: {
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
-          search : searchInput
+          search : data.input,
+          category : data.category
         },
       });
 
@@ -147,11 +161,9 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
       setIsLoading(false);
     }
   }
-
-
   return (
     <>
-      <form onSubmit={handleSearch}>
+      <form onSubmit={formik.handleSubmit}>
       <Box
         display="flex"
         alignItems="flex-start"
@@ -159,11 +171,27 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
         backgroundColor={colors.greenAccent[800]}
         borderRadius="3px"
       >
+        <TextField 
+          select
+          // label='Category Search'
+          id='category'
+          name='category'
+          defaultValue='name'
+          size='small'
+          value={formik.values.category}
+          onChange={formik.handleChange}
+        >
+          <MenuItem value='name'>Customer Name</MenuItem>
+          <MenuItem value='check'>Check Number</MenuItem>
+        </TextField>
+
         <InputBase
-          sx={{ mx: 2, mt: 0.5, flex: 1 }}
-          value={searchInput}
+          sx={{ mx: 2, mt: 0.5, flex: 1}}
+          value={formik.values.input}
           placeholder="Search"
-          onChange={(e) => setSearchInput(e.target.value)}
+          id='input'
+          name='input'
+          onChange={formik.handleChange}
         />
         <IconButton type="submit" sx={{ px: 1.5 }} >
           <SearchOutlined/>

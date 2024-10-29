@@ -10,104 +10,72 @@ const upload = multer()
 paymentRouter.get("/search", async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const pageSize = parseInt(req.query.pageSize) || 10;
+
   const offset = (page - 1) * pageSize;
   // console.log('offset',   req.query.page)
-  const search = req.query.search ? req.query.search : "";
-  try {
-    //   builder
-    //     .select({
-    //       id: "loan_header_id",
-    //       pn_number: "pn_number",
-    //       customername: "customername",
-    //       loancategory: "loancategory",
-    //       loanfacility: "loanfacility",
-    //       principal_amount: "principal_amount",
-    //       total_interest: "total_interest",
-    //       date_granted: "date_granted",
-    //       TotalPrincipalPayment: "TotalPrincipalPayment",
-    //       TotalInterestPayment: "TotalInterestPayment",
-    //       TotalPayment: "TotalPayment",
-    //       PrincipalBalance: "PrincipalBalance",
-    //       InterestBalance: "InterestBalance",
-    //       Balance: "Balance",
-    //     })
-    //     .from({ c: "new_payment" })
-    //     .modify((queryBuilder) => {
-    //       if (search.trim() !== "") {
-    //         queryBuilder.where("customername", "like", `%${search.trim()}%`); // Filter by customer name
-    //       }
-    //     })
-    //     .limit(pageSize)
-    //     .offset(offset),
-    const [results, totalCount] = await Promise.all([
-        // builder.select(
-        //   ['loan_detail.loan_header_id']
-        // ).from('loan_detail')
-        // // .where('check_number', req.query.search)
-        // .modify((queryBuilder, foreignKey)=> {
-        //   // console.log(foreignKey)
-        //   queryBuilder.innerJoin('new_payment', foreignKey, 'new_payment.loan_header_id').select(
-        //     {
-        //       id: "loan_detail.loan_header_id",
-        //       pn_number: "pn_number",
-        //       customername: "customername",
-        //       loancategory: "loancategory",
-        //       loanfacility: "loanfacility",
-        //       principal_amount: "principal_amount",
-        //       total_interest: "total_interest",
-        //       date_granted: "date_granted",
-        //       TotalPrincipalPayment: "TotalPrincipalPayment",
-        //       TotalInterestPayment: "TotalInterestPayment",
-        //       TotalPayment: "TotalPayment",
-        //       PrincipalBalance: "PrincipalBalance",
-        //       InterestBalance: "InterestBalance",
-        //       Balance: "Balance",
-        //     }
-        //   ).where("customername", "like", `%${search.trim()}%`);
-        // }, 'loan_detail.loan_header_id'),
-        //end
-        builder.select('*').from('new_payment').where("customername", "like", `%${search.trim()}%`),
-        builder
-        .count("* as count")
-        .from({ c: "new_payment" })
-        .modify((queryBuilder) => {
-          if (search.trim() !== "") {
-            queryBuilder.where("customername", "like", `%${search.trim()}%`); // Filter by customer name
-          }
-        })
-        .first(),
-    ]);
-    // const result = await builder.select(
-    //   ['loan_detail.loan_header_id']
-    // ).from('loan_detail').where('check_number', req.query.search).modify((queryBuilder, foreignKey)=> {
-    //   // console.log(foreignKey)
-    //   queryBuilder.innerJoin('new_payment', 'loan_detail.loan_header_id', 'new_payment.loan_header_id').select(
-    //     {
-    //       id: "loan_detail.loan_header_id",
-    //       pn_number: "pn_number",
-    //       customername: "customername",
-    //       loancategory: "loancategory",
-    //       loanfacility: "loanfacility",
-    //       principal_amount: "principal_amount",
-    //       total_interest: "total_interest",
-    //       date_granted: "date_granted",
-    //       TotalPrincipalPayment: "TotalPrincipalPayment",
-    //       TotalInterestPayment: "TotalInterestPayment",
-    //       TotalPayment: "TotalPayment",
-    //       PrincipalBalance: "PrincipalBalance",
-    //       InterestBalance: "InterestBalance",
-    //       Balance: "Balance",
-    //     }
-    //   )
-    // }, 'loan_detail.loan_header_id')
+  const input = req.query.search ? req.query.search : "";
+  const category = req.query.category
+  // return console.log(input, cat)
 
-    // console.log(result)
-    // console.log(results)
-    res.json({
-      data: results,
-      page: page + 1,
-      totalCount: totalCount.count,
-    });
+  try {
+    if(category === 'name') {
+      const [results, totalCount] = await Promise.all([
+          builder.select('*').from('new_payment').where("customername", "like", `%${input.trim()}%`),
+          // second
+          builder
+          .count("* as count")
+          .from({ c: "new_payment" })
+          .modify((queryBuilder) => {
+            if (input.trim() !== "") {
+              queryBuilder.where("customername", "like", `%${input.trim()}%`); // Filter by customer name
+            }
+          })
+          .first(),
+      ]);
+      res.status(200).json({
+        data: results,
+        page: page + 1,
+        totalCount: totalCount.count,
+      });
+      return 
+    }
+    
+    const [results, totalCount] = await Promise.all([
+      builder('view_loan_detail').select(
+        'new_payment.loan_header_id',
+        'new_payment.pn_number',
+        'customername',
+        'loancategory',
+        'loanfacility',
+        'principal_amount',
+        'total_interest',
+        'date_granted',
+        'TotalPrincipalPayment',
+        'TotalInterestPayment',
+        'TotalPenaltyPayment',
+        'TotalPayment',
+        'PrincipalBalance',
+        'PenaltyBalance',
+        'InterestBalance',
+        'Balance'
+      ).where('check_number', input.trim()).innerJoin('new_payment', 'view_loan_detail.loan_header_id', 'new_payment.loan_header_id'),
+      // second
+      builder
+      .count("* as count")
+      .from({ c: "new_payment" })
+      .modify((queryBuilder) => {
+        if (input.trim() !== "") {
+          queryBuilder.where("customername", "like", `%${input.trim()}%`); // Filter by customer name
+        }
+      })
+      .first(),
+      ]);
+      res.status(200).json({
+        data: results,
+        page: page + 1,
+        totalCount: totalCount.count,
+      });
+      return
 
   } catch (error) {
     console.error(error);
@@ -126,7 +94,8 @@ const formatName = (item) => {
 
 paymentRouter.get('/', async (req, res) => {
   
-  const {date, search} = req.query
+  const {date, search, from, to} = req.query
+  // return
   const fields = [
     {id : 'p_h.payment_history_id'},
     'p.loan_detail_id',
@@ -149,7 +118,6 @@ paymentRouter.get('/', async (req, res) => {
     'cmname',
     'clname',
   ]
-
   // let payments;
   // if(search){
   const payments = await builder(builder.raw('payment_historytbl as p_h'))
@@ -162,14 +130,14 @@ paymentRouter.get('/', async (req, res) => {
     .innerJoin(builder.raw('customertbl as c'), 'c.customerid', 'l_h.customer_id')
     .modify((sub) => {
       if(req.query['customer_name'])
-        sub.whereILike('clname', `%${req.query['customer_name']}%`)
-         .orWhereILike('cfname', `%${req.query['customer_name']}%`);
-      else if (req.query['pn_number'])
-        sub.whereILike('pn_number', `%${req.query['pn_number']}%`)
-      else if (req.query['pr_number'])
-        sub.whereILike('payment_receipt', `%${req.query['pr_number']}%`)
+        sub.whereILike('clname', `%${req.query['customer_name'].trim()}%`)
+         .orWhereILike('cfname', `%${req.query['customer_name'].trim()}%`);
+      else if (req.query['pn_number']) 
+        sub.whereILike('pn_number', `%${req.query['pn_number'].trim()}%`)
+      else if (req.query['check_number'])
+        sub.whereILike(builder.raw('p.checkno'), `%${req.query['check_number'].trim()}%`)
       else 
-        sub.havingBetween('p_h.payment_date', [date.from , date.to])
+        sub.havingBetween('p_h.payment_date', [from , to])
     })
     
   const result = payments.map((payment) => {

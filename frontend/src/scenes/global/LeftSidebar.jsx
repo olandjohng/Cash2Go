@@ -3,7 +3,7 @@ import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar"
 import { Box, IconButton, Typography, useTheme } from "@mui/material"
 import { Link } from "react-router-dom"
 import { tokens } from "../../theme"
-import { HomeOutlined, PeopleOutlined, MenuOutlined, ReceiptOutlined, PointOfSaleOutlined, AttachMoneyOutlined, Diversity3Outlined, CategoryOutlined, TrendingDownOutlined, EmojiTransportationOutlined, AccountBalanceOutlined, CompareArrowsOutlined, ClassOutlined, TitleOutlined, BadgeOutlined } from "@mui/icons-material"
+import { HomeOutlined, PeopleOutlined, MenuOutlined, ReceiptOutlined, PointOfSaleOutlined, AttachMoneyOutlined, Diversity3Outlined, CategoryOutlined, TrendingDownOutlined, EmojiTransportationOutlined, AccountBalanceOutlined, CompareArrowsOutlined, ClassOutlined, TitleOutlined, BadgeOutlined, RequestQuoteOutlined } from "@mui/icons-material"
 import 'react-pro-sidebar/dist/css/styles.css';
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
@@ -152,6 +152,13 @@ const LeftSidebar = () => {
               title="Report"
               to="/report"
               icon={<ReceiptOutlined />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Expenses"
+              to="/expenses"
+              icon={<RequestQuoteOutlined />}
               selected={selected}
               setSelected={setSelected}
             />

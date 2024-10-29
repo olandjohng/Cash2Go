@@ -51,8 +51,8 @@ export default function LoanPayment() {
   const [searchValue, setSearchValue] = useState("");
   const [dateView, setDateView] = useState(
     {
-      from : dayjs(Date()),
-      to : dayjs(Date())
+      from : dayjs(),
+      to : dayjs()
     }
   )
   const [paginationModel, setPaginationModel] = useState({
@@ -152,10 +152,10 @@ export default function LoanPayment() {
   ]
 
   const handleSearch = async (value, field) => {
-    const params = new URLSearchParams({[field] : value , date : {
-      from : dateView.from.format('YYYY-MM-DD'),
-      to : dateView.to.format('YYYY-MM-DD')
-    }}).toString()
+    const params = new URLSearchParams({[field] : value , 
+        from : dateView.from.format('YYYY-MM-DD'),
+        to : dateView.to.format('YYYY-MM-DD')
+    }).toString()
 
     const req = !isDeductionView ? 
       axios.get(`/api/payments?${params}`, 
@@ -201,7 +201,7 @@ export default function LoanPayment() {
         <Box display='flex' gap={1}>
           <SearchInputForm name='customer_name' placeholder='Search Customer Name' submit={handleSearch} />
           <SearchInputForm name='pn_number' placeholder='Search PN Number' submit={handleSearch} />
-          <SearchInputForm name='pr_number' placeholder='Search PR Number' submit={handleSearch} />
+          <SearchInputForm name='check_number' placeholder='Search Check Number' submit={handleSearch} />
         </Box>
         <Box display='flex' gap={1}>
           <DatePicker label='from' sx={{width : 150}} value={dateView.from} slotProps={{textField : {size : 'small'}}} 
