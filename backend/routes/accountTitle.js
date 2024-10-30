@@ -87,7 +87,7 @@ accountTitleRouter.delete('/delete/:id', async (req, res) => {
 
 accountTitleRouter.get('/expenses', async (req, res) => {
   try {
-    const expenses = await builder('account_titletbl').select({ id: 'account_title_id', name : 'account_title'}).where('is_expenses', true)
+    const expenses = await builder('account_titletbl').select({ id: 'account_title_id', name : 'account_title'})
     res.status(200).json(expenses)
   } catch (error) {
     res.status(500).json({success : false})
