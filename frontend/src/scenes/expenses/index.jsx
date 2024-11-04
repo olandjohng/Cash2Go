@@ -9,13 +9,13 @@ import ExpensesVoucher from './components/ExpensesVoucher'
 import useSwr from 'swr'
 import axios from 'axios'
 import ExpensesPrintVoucher from './components/ExpensesPrintVoucher'
-import { PrintOutlined } from '@mui/icons-material'
+import { CreateOutlined, PrintOutlined } from '@mui/icons-material'
 import voucherTemplateHTML from '../../assets/voucher.html?raw'
 import logo from '../../assets/c2g_logo_nb.png'
 import useSWRMutation from 'swr/mutation'
 import * as ejs from 'ejs'
 import dayjs from 'dayjs'
-import { toastSucc } from '../../utils'
+import { toastErr, toastSucc } from '../../utils'
 
 const initialValues = {
   voucherNumber : '',
@@ -27,28 +27,46 @@ const initialValues = {
   prepared_by: '',
   checked_by: '',
   approved_by: '',
-  voucher_details : [{ category: '', debit: 0, credit: 0}] 
+  voucher_details : [{ category: '', debit: '0', credit: '0'}] 
 }
 
 const fetcher = (url) => {
   return axios.get(url).then(res => res.data)
 }
-const fetchDetails = (url, {arg}) => {
-  return axios.get(url + '/' +  arg).then(res => res.data)
+const fetchDetails = (key, {arg}) => {
+  const url = key + '/' +  arg
+  return axios.get(url).then(res => res.data)
+}
+
+const saveExpenses = async (url, {arg}) => {
+  return await axios.post(url, arg)
 }
 
 export default function ExpensesPage() {
   const [openExpesesForm, setOpenExpensesForm] = useState(false)
+  const [openEditExpensesForm, setOpenEditExpensesForm] = useState(false)
+
   const [activeStep, setActiveStep] = React.useState(0);
   const [details, setDetails] = useState(initialValues)
-  const {data : banks, } = useSwr('/api/banks/cash2go', fetcher)
+  
+  const {data : banks, } = useSwr('/api/expenses/banks', fetcher)
   const {data : expenses_title, } = useSwr('/api/account-title/expenses', fetcher)
   const {data : employee, } = useSwr('/api/employee', fetcher,)
-  const {data : expenses, isLoading, mutate } = useSwr('/api/expenses/', fetcher)
-  const { trigger } = useSWRMutation('/api/expenses', fetchDetails)
   const {data : suppliers} = useSwr('/api/expenses/suppliers', fetcher)
+  const {data : expenses, isLoading, mutate } = useSwr('/api/expenses/', fetcher)
+  
+  const {trigger: createExpenses} = useSWRMutation('/api/expenses', saveExpenses)
+  const { trigger: getExpensesVoucher  } = useSWRMutation('/api/expenses', fetchDetails)
+  const { trigger: getEditExpensesVocher  } = useSWRMutation('/api/expenses/edit', fetchDetails)
 
-  // console.log(suppliers)
+
+  const handleEditVoucher = async (id) => {
+    const response = await getEditExpensesVocher(id)
+    // console.log(response)
+    setDetails(response)
+    setOpenEditExpensesForm(true)
+  }
+
   const handleStepComplete = (data) => {
     setDetails((old) => ({...old, ...data}))
     setActiveStep((prev) => prev + 1)
@@ -56,8 +74,8 @@ export default function ExpensesPage() {
 
   const handlePrintVoucher = async (id) => {
 
-    const response = await trigger(id)
-    console.log(response)
+    const response = await getExpensesVoucher(id)
+    console.log(68, response)
     const input = {
       logo : logo,
       ...response,
@@ -87,6 +105,13 @@ export default function ExpensesPage() {
             icon={<PrintOutlined />}
             label='Print Voucher'
             onClick={() => handlePrintVoucher(id)}
+            showInMenu={true}
+            />,
+            <GridActionsCellItem 
+            icon={<CreateOutlined />}
+            label='Edit Voucher'
+            showInMenu={true}
+            onClick={() => handleEditVoucher(id)}
           />
         ]
       }
@@ -135,10 +160,77 @@ export default function ExpensesPage() {
   const handleSuccess = () => {
     mutate()
     setOpenExpensesForm(false)
+    setOpenEditExpensesForm(false)
     setActiveStep(0)
     setDetails(initialValues)
     toastSucc('Save Successfuly')
   }
+
+  const handleSubmitVoucher = async (data) => {
+    
+    const v_details = data.voucher_details.map(v => {
+      return {
+        account_title_id : v.category.id,
+        credit : Number(v.credit),
+        debit: Number(v.debit)
+      }
+    })
+    // return console.log(data)
+    const input = {
+      header : {
+        payee : data.borrower,
+        date: data.date,
+        check_number : data.check_number,
+        check_date : data.check_date,
+        bank: {name : data.bank.name, id : data.bank.id},
+        voucher_number : data.voucherNumber,
+        prepared_by: data.prepared_by,
+        checked_by: data.checked_by,
+        approved_by: data.approved_by,
+      },
+      details: v_details
+    }
+
+    const response = await createExpenses(input)
+    
+    if(response.status === 200 ) {
+      return handleSuccess()
+    }
+
+    toastErr('Something went wrong!')
+  }
+
+  const handleUpdateVoucher = async (data) => {
+    const input = {
+      header : {
+        payee: data.borrower.name,
+        approved_by : data.approved_by,
+        bank: data.bank.name,
+        bank_id: data.bank_id,
+        check_date: data.check_date,
+        check_number: data.check_number,
+        checked_by: data.checked_by,
+        date: data.date,
+        prepared_by: data.prepared_by,
+        supplier_id: data.supplier_id,
+        voucher_number: data.voucherNumber,
+      },
+      voucher_details : data.voucher_details,
+      map_to_delete : data.map_to_delete
+    }
+    try {
+      const {status} = await axios.put(`/api/expenses/${data.id}`, input)
+      
+      if(status != 200) { return toastErr('Something went Wrong!') }
+      
+      handleSuccess()
+
+    } catch (error) {
+      return toastErr('Something went Wrong!')
+    }
+    
+  }
+
 
   return (
     <div style={{ height: "80%", padding: 20,  }}>
@@ -164,7 +256,31 @@ export default function ExpensesPage() {
               <ExpensesVoucher titles={expenses_title} data={details.voucher_details} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
             </FormStep>
             <FormStep label='Print And Save'>
-              <ExpensesPrintVoucher data={details} onPrevious={handlePrevious} onSuccess={handleSuccess}/>
+              <ExpensesPrintVoucher data={details} onPrevious={handlePrevious} onSubmit={handleSubmitVoucher}/>
+            </FormStep>
+          </ExpensesParentForm>
+        </Box>
+      </Popups>
+      
+      <Popups
+        title="Expenses Form"
+        openPopup={openEditExpensesForm}
+        setOpenPopup={(open) => {
+          setOpenEditExpensesForm(open)
+          setActiveStep(0)
+          setDetails(initialValues)
+        }}
+      >
+        <Box width={900}>
+          <ExpensesParentForm activeStep={activeStep}>
+            <FormStep label='Expenses Details'>
+              <ExpensesDetails onComplete={handleStepComplete} suppliers={suppliers} data={details} banks={banks} employee={employee} />
+            </FormStep>
+            <FormStep label='Voucher'>
+              <ExpensesVoucher titles={expenses_title} data={details.voucher_details} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
+            </FormStep>
+            <FormStep label='Print And Save'>
+              <ExpensesPrintVoucher data={details} onPrevious={handlePrevious} onSubmit={handleUpdateVoucher} />
             </FormStep>
           </ExpensesParentForm>
         </Box>

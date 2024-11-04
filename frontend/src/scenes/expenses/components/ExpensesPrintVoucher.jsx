@@ -13,8 +13,8 @@ async function saveExpenses(url, {arg}) {
 }
 
 
-export default function ExpensesPrintVoucher({data, onPrevious, onSuccess}) {
-  const {trigger } = useSWRMutation('/api/expenses', saveExpenses)
+export default function ExpensesPrintVoucher({data, onPrevious, onSubmit}) {
+  const {trigger} = useSWRMutation('/api/expenses', saveExpenses)
   
   const handlePrevious = () => {
     onPrevious(data)
@@ -45,7 +45,7 @@ export default function ExpensesPrintVoucher({data, onPrevious, onSuccess}) {
   }
   
   const handleSubmit = async () => {
-    
+    return onSubmit(data)
     const v_details = data.voucher_details.map(v => {
       return {
         account_title_id : v.category.id,
@@ -53,14 +53,14 @@ export default function ExpensesPrintVoucher({data, onPrevious, onSuccess}) {
         debit: Number(v.debit)
       }
     })
-
+    // return console.log(data)
     const input = {
       header : {
-        payee : data.borrower.name,
+        payee : data.borrower,
         date: data.date,
         check_number : data.check_number,
         check_date : data.check_date,
-        bank: data.bank.name,
+        bank: {name : data.bank.name, id : data.bank.id},
         voucher_number : data.voucherNumber,
         prepared_by: data.prepared_by,
         checked_by: data.checked_by,

@@ -2,11 +2,19 @@ import { DeleteOutline } from '@mui/icons-material';
 import {Autocomplete, Box, Button, Grid, IconButton, MenuItem, TextField } from '@mui/material'
 import React, { useState } from 'react'
 import { IMaskMixin } from 'react-imask';
+import * as yup from 'yup'
 
 const NumberInput = IMaskMixin(({inputRef, ...props}) => (
   <TextField {...props}  inputRef={inputRef}/>
 ))
 
+const validationSchema = yup.array(
+  yup.object({
+    category : yup.object( { id : yup.number().required(), name : yup.string().required() } ),
+    debit : yup.number().required().transform((value) => Number(value)),
+    credit : yup.number().required().transform((value) => Number(value))
+  })
+)
 
 export default function ExpensesVoucher({onComplete, onPrevious, data, titles}) {
   const [details, setDetails] = useState(data)
@@ -23,8 +31,14 @@ export default function ExpensesVoucher({onComplete, onPrevious, data, titles}) 
     onPrevious({ voucher_details : details})
   }
   
-  const handleComplete = () => {
-    onComplete({ voucher_details : details})
+  const handleComplete = async () => {
+    try {
+      const validate = await validationSchema.validate(details)
+      onComplete({ voucher_details : validate})
+
+    } catch(error) {
+      return console.log(error)
+    }
   }
 
   const handleDelete = (index) => {
@@ -35,7 +49,7 @@ export default function ExpensesVoucher({onComplete, onPrevious, data, titles}) 
   const handleAddEntry = () => {
     setDetails((old) => [...old, {category: '', debit: 0, credit: 0,}])
   }
-
+  
   return (
     <>
       <Grid container spacing='10px'>
@@ -61,6 +75,7 @@ export default function ExpensesVoucher({onComplete, onPrevious, data, titles}) 
                   return <TextField {...props} label='Category' />
                 }}  
                 onChange={(e, value) => {
+                  console.log(64, value)
                   handleChange(index, 'category', value)
                 }}
               />
