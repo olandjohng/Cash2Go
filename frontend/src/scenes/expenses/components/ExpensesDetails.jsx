@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 
 const validitionSchema = yup.object({
   voucherNumber : yup.string().required(),
-  borrower : yup.string().required(),
+  borrower : yup.object({ name : yup.string().required() }),
   date: yup.date().required(),
   bank : yup.object({ name : yup.string().required() }),
   check_number : yup.string().required(),
@@ -24,7 +24,7 @@ const dateValue = (date) => {
   }
   return null
 }
-export default function ExpensesDetails({onComplete, data, banks, employee}) {
+export default function ExpensesDetails({onComplete, data, banks, employee, suppliers}) {
   const formik = useFormik({
     initialValues : data,
     validationSchema : validitionSchema,
@@ -32,7 +32,7 @@ export default function ExpensesDetails({onComplete, data, banks, employee}) {
       onComplete(values)
     }
   })
-
+  
   return (
     <form onSubmit={formik.handleSubmit}>
       <Grid container spacing='15px'>
@@ -40,7 +40,24 @@ export default function ExpensesDetails({onComplete, data, banks, employee}) {
           <TextField label='VOUCHER NO.' fullWidth name='voucherNumber' onChange={formik.handleChange} value={formik.values.voucherNumber} />
         </Grid>
         <Grid item xs={5}>
-          <TextField label='PAYEE' fullWidth name='borrower' onChange={formik.handleChange} value={formik.values.borrower} />
+          <Autocomplete 
+            onChange={(_, value) => formik.setFieldValue('borrower', value)}
+            options={suppliers} 
+            getOptionLabel={(item) => item.name}
+            renderOption={(props, option) => {
+              return (
+              <Box {...props} component='li' key={option.id} id={option.id}>
+                {option.name}
+              </Box>  
+              )
+            }}
+            value={formik.values.borrower || null}
+            renderInput={(props) => {
+              return <TextField {...props} label='PAYEE' />
+            }}
+            
+            />
+          {/* <TextField label='PAYEE' fullWidth name='borrower' onChange={formik.handleChange} value={formik.values.borrower} /> */}
         </Grid>
         <Grid item xs={4}> 
           {/* <TextField fullWidth type='date' label='DATE' name='date' onChange={formik.handleChange} value={formik.values.date}/> */}

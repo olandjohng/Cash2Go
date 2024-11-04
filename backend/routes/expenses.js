@@ -20,6 +20,17 @@ expensesRouter.get('/', async (req, res) => {
   }
 })
 
+expensesRouter.get('/suppliers', async (req, res) => {
+  try {
+    const supplier = await builder('customertbl').select(builder.raw(`CONCAT_WS(', ' , clname,  cfname, cmname ) as name`), { id : 'customerid'})
+    res.status(200).json(supplier)
+    
+  } catch (error) {
+    res.status(500).end()
+  }
+
+})
+
 expensesRouter.get('/:id', async (req, res) => {
   try {
     const { id } = req.params
@@ -51,7 +62,10 @@ expensesRouter.get('/:id', async (req, res) => {
   } catch (error) {
     res.status(500).end()
   }
+
 })
+
+
 
 expensesRouter.post('/', async (req, res) => {
   const { header, details } = req.body

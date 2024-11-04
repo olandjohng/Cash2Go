@@ -15,6 +15,7 @@ async function saveExpenses(url, {arg}) {
 
 export default function ExpensesPrintVoucher({data, onPrevious, onSuccess}) {
   const {trigger } = useSWRMutation('/api/expenses', saveExpenses)
+  
   const handlePrevious = () => {
     onPrevious(data)
   }
@@ -31,10 +32,11 @@ export default function ExpensesPrintVoucher({data, onPrevious, onSuccess}) {
 
     const input = {
       ...data,
+      borrower : data.borrower.name,
       logo : logo,
-     details: v_details,
-     has_second_check : false,
-     check_details : `${data.bank.name}-${data.check_number}` 
+      details: v_details,
+      has_second_check : false,
+      check_details : `${data.bank.name}-${data.check_number}` 
     }
     const template = ejs.render(voucherTemplateHTML, input)
 
@@ -54,7 +56,7 @@ export default function ExpensesPrintVoucher({data, onPrevious, onSuccess}) {
 
     const input = {
       header : {
-        payee : data.borrower,
+        payee : data.borrower.name,
         date: data.date,
         check_number : data.check_number,
         check_date : data.check_date,

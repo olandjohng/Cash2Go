@@ -34,7 +34,7 @@ const fetcher = (url) => {
   return axios.get(url).then(res => res.data)
 }
 const fetchDetails = (url, {arg}) => {
-  return axios.get(url + arg).then(res => res.data)
+  return axios.get(url + '/' +  arg).then(res => res.data)
 }
 
 export default function ExpensesPage() {
@@ -45,7 +45,10 @@ export default function ExpensesPage() {
   const {data : expenses_title, } = useSwr('/api/account-title/expenses', fetcher)
   const {data : employee, } = useSwr('/api/employee', fetcher,)
   const {data : expenses, isLoading, mutate } = useSwr('/api/expenses/', fetcher)
-  const { trigger } = useSWRMutation('/api/expenses/', fetchDetails)
+  const { trigger } = useSWRMutation('/api/expenses', fetchDetails)
+  const {data : suppliers} = useSwr('/api/expenses/suppliers', fetcher)
+
+  // console.log(suppliers)
   const handleStepComplete = (data) => {
     setDetails((old) => ({...old, ...data}))
     setActiveStep((prev) => prev + 1)
@@ -54,7 +57,7 @@ export default function ExpensesPage() {
   const handlePrintVoucher = async (id) => {
 
     const response = await trigger(id)
-    
+    console.log(response)
     const input = {
       logo : logo,
       ...response,
@@ -77,9 +80,8 @@ export default function ExpensesPage() {
     {
       field: 'actions',
       type: 'actions',
-      width: 80,
+      width: 50,
       getActions: ({id}) => {
-        
         return [
           <GridActionsCellItem 
             icon={<PrintOutlined />}
@@ -92,38 +94,41 @@ export default function ExpensesPage() {
     {
       field : 'date',
       headerName: "Date",
-      flex: 1
+      width: 100
     },
     {
       field : 'voucher_number',
       headerName: "Voucher No.",
-      flex: 1
+      // flex: 1
+      width: 100
     },
     {
       field : 'payee',
       headerName: "Payee",
       flex: 1
+      
     },
     
     {
       field : 'check_details',
       headerName: "Check Details",
       flex: 1
+      // width : 
     },
     {
       field : 'prepared_by',
       headerName: "Prepared By",
-      flex: 1
+      width : 120
     },
     {
       field : 'checked_by',
       headerName: "Checked By",
-      flex: 1
+      width : 120
     },
     {
       field : 'approved_by',
       headerName: "Approved By",
-      flex: 1
+      width : 120
     },
   ]
 
@@ -153,7 +158,7 @@ export default function ExpensesPage() {
         <Box width={900}>
           <ExpensesParentForm activeStep={activeStep}>
             <FormStep label='Expenses Details'>
-              <ExpensesDetails onComplete={handleStepComplete} data={details} banks={banks} employee={employee} />
+              <ExpensesDetails onComplete={handleStepComplete} suppliers={suppliers} data={details} banks={banks} employee={employee} />
             </FormStep>
             <FormStep label='Voucher'>
               <ExpensesVoucher titles={expenses_title} data={details.voucher_details} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
