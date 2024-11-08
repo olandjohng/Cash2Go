@@ -6,22 +6,22 @@ import {
 } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import { useTheme } from "@emotion/react";
-import { Box, Button, IconButton, Input, InputBase, TextField } from "@mui/material";
+import { Box, Button, IconButton, Input, InputBase, MenuItem, TextField } from "@mui/material";
 import Header from "../../components/Header";
 import { useEffect, useReducer, useRef, useState } from "react";
 import Popups from "../../components/Popups";
 import DetailsModal from "./components/DetailsModal";
 import LoanForm1 from "./components/LoanForm1";
-import { AccountTreeOutlined, AutorenewOutlined, PrintOutlined, RefreshOutlined, DeleteOutline, UploadFile, AttachFile } from "@mui/icons-material";
+import { AccountTreeOutlined, AutorenewOutlined, PrintOutlined, RefreshOutlined, DeleteOutline, UploadFile, AttachFile, SearchOutlined } from "@mui/icons-material";
 import voucherTemplateHTML from "../../assets/voucher.html?raw";
 import c2gImage from "../../assets/c2g_logo_nb.png";
 import * as ejs from "ejs";
 import dayjs from "dayjs";
 import LoanRenewForm from "./components/LoanRenewForm";
 import LoanRestructureForm from "./components/LoanRestructureForm";
-import SearchInputForm from "../report/component/SearchInputForm";
 import { MuiFileInput } from "mui-file-input";
 import { toastErr, toastSucc } from "../../utils";
+import { useFormik } from "formik";
 
 function reducer(state, action) {
   switch (action.type) {
@@ -91,6 +91,25 @@ export const LOAN_INITIAL_VALUES = {
   },
 
 };
+
+const searchType = [
+  {
+    label : 'Customer Name',
+    value : 'customer_name'
+  },
+  {
+    label : 'PN Number',
+    value : 'pn_number'
+  },
+  {
+    label : 'Loan Category',
+    value : 'loan_category'
+  },
+  {
+    label : 'Loan Facility',
+    value : 'loan_facility'
+  }
+]
 
 const formatNumber = (value) => {
   const format = Number(value).toLocaleString("en", {
@@ -252,6 +271,17 @@ const Loan = () => {
   const [loans, dispatch] = useReducer(reducer, []);
   const [fileAttachment, setFileAttachment]  = useState(null)
   const attachmentId = useRef(null)
+  
+  const formik = useFormik({
+    initialValues : {
+      type : 'customer_name',
+      value: ''
+    },
+    onSubmit : (data) => {
+      handleSearch(data)
+    }
+  })
+
 
   const handleRowDoubleClick = (params) => {
     setSelectedLoanId(params.row.loan_header_id);
@@ -298,15 +328,21 @@ const Loan = () => {
     }
   }
 
-  const handleSearch = async (value, field) => {
-    const params = new URLSearchParams({ [field] : value}).toString()
+  const handleSearch = async (data) => {
+
+    const params = new URLSearchParams(data).toString()
+    // console.log(params)
+    setLoading(true)
     try {
-      const request = await fetch('/api/loans?' + params)
-      const loanSearchJSON = await request.json()
-     
-      dispatch({ type: "INIT", loans: loanSearchJSON })
-    } catch (error) {
-      console.log(error)
+    const request = await fetch('/api/loans?' + params)
+    const loanSearchJSON = await request.json()
+    
+    dispatch({ type: "INIT", loans: loanSearchJSON })
+
+    setLoading(false)
+  } catch (error) {
+    console.log(error)
+    setLoading(false)
     }
   };
 
@@ -407,11 +443,25 @@ const Loan = () => {
         showButton={true}
         onAddButtonClick={() => setOpenNewLoanPopup(true)}
       />
-
-      <Box display='flex' justifyContent='end' mb={1} gap={2}>
-        <SearchInputForm name='customer_name' placeholder='Search Customer Name' submit={handleSearch} />
-        <SearchInputForm name='pn_number' placeholder='Search PN Number' submit={handleSearch} />
-      </Box>
+      <form onSubmit={formik.handleSubmit} >
+        <Box display='flex' justifyContent='end' mb={1} gap={2} >
+          <TextField select label="type" sx={{ width :180}} size="small" name='type' value={formik.values.type} onChange={formik.handleChange}>
+            {searchType.map(v => (
+              <MenuItem value={v.value} key={v.value}>{v.label}</MenuItem>
+            ))}
+          </TextField>
+          <Box style={{
+            display : 'inline-block',
+            background : colors.greenAccent[800],
+            borderRadius : 3
+          }}>
+            <InputBase placeholder="Search" sx={{paddingX : 1}} name='value' value={formik.values.value} onChange={formik.handleChange}/>
+              <IconButton type='submit'>
+              <SearchOutlined />
+            </IconButton>
+          </Box>
+        </Box> 
+      </form>
       <DataGrid
         sx={{ height: "95%" }}
         loading={loanding}

@@ -20,6 +20,7 @@ import Employee from "./scenes/employee";
 import LoanPayment from "./scenes/payment";
 import Report from "./scenes/report";
 import ExpensesPage from "./scenes/expenses";
+import AdjustingEntriesPage from "./scenes/adjusting-entries";
 
 function App() {
 
@@ -41,7 +42,7 @@ function App() {
               
               <Route path="/payments" element={<LoanPayment />} />
               <Route path="/payments/:id" element={<LoanPayment />} />
-              {/* <Route path="/borrowers" element={<Borrowers />}/> */}
+              <Route path="/borrowers" element={<Borrowers />}/>
 
               <Route path="/customers" element={<Customers />}/>
               <Route path="/customers/new" element={<Customers />}/>
@@ -49,8 +50,8 @@ function App() {
 
               <Route path="/banks/cash2go" element={<Banks />} />
               <Route path="/banks/customers" element={<Banks />} />
-              {/* <Route path="/banks/new" element={<Banks />} /> */}
-              {/* <Route path="/banks/:id" element={<Banks />} /> */}
+              <Route path="/banks/new" element={<Banks />} />
+              <Route path="/banks/:id" element={<Banks />} />
 
               <Route path="/category" element={<Category />} />
               <Route path="/category/new" element={<Category />} />
@@ -69,6 +70,7 @@ function App() {
               <Route path="/collateral/:id" element={<Collateral />} />
 
               <Route path="/expenses" element={<ExpensesPage />} />
+              <Route path="/adjusting-entries" element={<AdjustingEntriesPage />} />
               
               <Route path="/account-category" element={<AccountCategory />} />
               <Route path="/account-category/new" element={<AccountCategory />} />

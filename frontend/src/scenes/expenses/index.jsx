@@ -290,6 +290,6 @@ export default function ExpensesPage() {
   )
 }
 
-function FormStep({ label='', children}) {
+export function FormStep({ label='', children}) {
   return children
 }

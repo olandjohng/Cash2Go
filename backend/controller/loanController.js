@@ -3,7 +3,7 @@ const builder = require('../builder')
 async function getLoanList (req, res) {
   
   // const search = req.query.search ? req.query.search : ''
-
+  if(req.query) { console.log(req.query)}
   const loans = await builder.select(
     'loan_header_id',
     'pn_number',
@@ -22,12 +22,20 @@ async function getLoanList (req, res) {
     'term'
   ).modify((sub) => {
   
-    if(req.query['customer_name']) {
-      sub.whereILike('customername', `%${req.query['customer_name'].trim()}%`)
+    if(req.query['type'] == 'customer_name') {
+      return sub.whereILike('customername', `%${req.query['value'].trim()}%`)
     }
   
-    if(req.query['pn_number']) {
-      sub.whereILike('pn_number', `%${req.query['pn_number'].trim()}%`)
+    if(req.query['type'] == 'pn_number') {
+      return sub.whereILike('pn_number', `%${req.query['value'].trim()}%`)
+    }
+    
+    if(req.query['type'] == 'loan_category') {
+      return sub.whereILike('loancategory', `%${req.query['value'].trim()}%`)
+    }
+    
+    if(req.query['type'] == 'loan_facility') {
+      return sub.whereILike('loanfacility', `%${req.query['value'].trim()}%`)
     }
   
   }).orderBy('date_granted', 'desc')

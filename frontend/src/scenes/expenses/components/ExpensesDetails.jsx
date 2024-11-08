@@ -92,21 +92,21 @@ export default function ExpensesDetails({onComplete, data, banks, employee, supp
         </Grid>
         <Grid item xs={4}> 
           <TextField fullWidth select label='PREPAIRED BY' name='prepared_by' onChange={formik.handleChange} value={formik.values.prepared_by}>
-            {employee.map((v)=> (
+            {employee && employee.map((v)=> (
               <MenuItem value={v.name} key={v.name}>{v.name}</MenuItem>
             ))}
           </TextField>
         </Grid>
         <Grid item xs={4}> 
           <TextField fullWidth select label='CHECKED BY' name='checked_by' onChange={formik.handleChange} value={formik.values.checked_by}>
-            {employee.map((v)=> (
+            {employee && employee.map((v)=> (
               <MenuItem value={v.name} key={v.name}>{v.name}</MenuItem>
             ))}
           </TextField>
         </Grid>
         <Grid item xs={4}> 
           <TextField fullWidth select label='APPROVED BY' name='approved_by' onChange={formik.handleChange} value={formik.values.approved_by}>
-            {employee.map((v)=> (
+            {employee && employee.map((v)=> (
                 <MenuItem value={v.name} key={v.name}>{v.name}</MenuItem>
               ))}
           </TextField>

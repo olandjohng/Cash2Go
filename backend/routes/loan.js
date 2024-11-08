@@ -96,16 +96,6 @@ loanRouter.get('/voucher/:id', async (req, res) =>{
   res.status(200).json(voucherInfo)
 })
 
-// const formatName = (name) => {
-  
-//   const lastName = name.clname.split(',')
-//   const firstName = name.cfname === '' ? '' : `, ${name.cfname}`
-//   const middleName = name.cmname === '' ? '' : ` ${name.cmname}`
-//   const extName = lastName[1] ? lastName[1] : ''
-//   const fullname = lastName[0] + firstName + middleName + extName
-//   return fullname;
-
-// }
 
 loanRouter.get('/renew/:id', async (req, res) => {
 
