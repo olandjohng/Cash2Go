@@ -6,7 +6,8 @@ import { tokens } from '../../theme';
 import { toastErr, toastSucc } from '../../utils';
 import * as yup from 'yup'
 import { useFormik } from 'formik';
-import { DataGrid, GridActionsCell, GridActionsCellItem } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCell, GridActionsCellItem, useGridApiRef, GRID_NUMERIC_COL_DEF } from '@mui/x-data-grid';
+import { NumericFormat, numericFormatter } from 'react-number-format';
 import useSWR from 'swr'
 import useSWRMutation from 'swr/mutation'
 
@@ -20,33 +21,62 @@ const denomSchema = yup.object({
   quantity: yup.string().required(),
 })
 
+const denomRows = [
+  {denomination : 1000, quantity: 0, total : 0},
+  {denomination : 500, quantity: 0, total : 0},
+  {denomination : 200, quantity: 0, total : 0},
+  {denomination : 100, quantity: 0, total : 0},
+  {denomination : 50, quantity: 0, total : 0},
+  {denomination : 20, quantity: 0, total : 0},
+  {denomination : 5, quantity: 0, total : 0},
+  {denomination : 1, quantity: 0, total : 0},
+  {denomination : 0.10, quantity: 0, total : 0},
+  {denomination : 0.50, quantity: 0, total : 0},
+]
 
 export default function Report() {
-  const [denoms, setDenoms] = useState([])
-  const { data, isLoading} = useSWR('/api/reports', fetcher, 
-    { 
-      // onSuccess : (data) => setDenoms(data.denoms)
-    })
-  const theme = useTheme();
-  // const colors = tokens(theme.palette.mode);
+  const [denoms, setDenoms] = useState(denomRows)
+  const dataGridRef = useGridApiRef()
 
+  const { data, isLoading} = useSWR('/api/reports', fetcher)
+  const theme = useTheme();
+  const subCash = denoms.reduce((acc, cur) => acc + cur.total, 0)
+  
+  const handleUpdateRow = (newRow, oldRow) => {
+
+    const updateRow = {...newRow, quantity : Number(newRow.quantity), total : Number(newRow.quantity) * newRow.denomination}
+    const updateDenom = denoms.map((v) => {
+      if(v.denomination === updateRow.denomination) {
+        return updateRow
+      }
+      return v
+    })
+    setDenoms(updateDenom)
+    return newRow
+  }
+  
   const denom_column = [
-    { field: "type", headerName: "Type" },
-    { field: "denomination", headerName: "Denomination",  flex : 1 },
-    { field: "quantity", headerName: "Quantity",  flex : 1 },
-    { field: "total", headerName: "Total" ,  flex : 1},
-    { field: "actions",  type: "actions",
-      getActions : (params) => [
-        <GridActionsCellItem 
-          label='Delete'
-          icon={<DeleteOutline color='error' />}
-          onClick={() => {
-            const filter = denoms.filter((val) => val.id != params.id)
-            setDenoms(filter)
-          }}
-        />
-      ]
-      
+    { field: "denomination", headerName: "Denomination",  flex : 1,
+      valueFormatter : ({value}) => {
+       const formatValue = numericFormatter(String(value), { thousandSeparator : ',', decimalScale : 2, fixedDecimalScale : true})
+       return formatValue
+      }
+    },
+    { field: "quantity", headerName: "No. of PCS",  flex : 1 , 
+      ...{...GRID_NUMERIC_COL_DEF, editable: true,  align : 'left', headerAlign : 'left'},
+      valueGetter : ({value}) => {
+        if(!value) return 0
+        return Number(value)
+      }
+    },
+    { field: "total", headerName: "Amount" ,  flex : 1,
+      valueGetter : ({row}) => {
+        return row.denomination * Number(row.quantity)
+      },
+      valueFormatter : ({value}) => {
+        const formatValue = numericFormatter(String(value), { thousandSeparator : ',', decimalScale : 2, fixedDecimalScale : true})
+        return formatValue
+      }
     },
   ]
 
@@ -62,18 +92,21 @@ export default function Report() {
     <div style={{ padding: 20 , height: "90%" }}>
       <Header title='Report' showButton={false} />
       <div style={{display : 'flex', height: '90%', gap : '5px'}}>
-        <DataGrid
-        sx={{ height: "100%" }} 
-        columns={denom_column} 
-        rows={denoms}
-        slots={{
-          toolbar : TollBar,
-          footer : FooterSave
-        }}
-        slotProps={{
-          toolbar: { setDenoms, denoms},
-          footer: { total : denoms.reduce((acc, cur) => acc + cur.total, 0), data : denoms}
-        }}
+        <DataGrid 
+          apiRef={dataGridRef}
+          sx={{ height: "100%" }} 
+          editMode='row'
+          columns={denom_column}
+          rows={denoms}
+          getRowId={(row) => row.denomination} 
+          processRowUpdate={handleUpdateRow}
+          onProcessRowUpdateError={(error) => console.log(error)}
+          slots={{
+            footer : FooterSave
+          }}
+          slotProps={{
+            footer: { sub_total :  subCash}
+          }}
         />
         {!isLoading &&
           <DataGrid
@@ -88,40 +121,6 @@ export default function Report() {
           loading={isLoading} columns={payment_column} rows={data.details} />
         }
       </div>
-        {/* <Box display='flex' height='85%' gap='10px' >
-          <Grid container  spacing={1} >
-            <Grid item xs={6}>
-              <DataGrid
-                sx={{ height: "100%" }} 
-                columns={denom_column} 
-                rows={denoms}
-                slots={{
-                  toolbar : TollBar,
-                  footer : FooterSave
-                }}
-                slotProps={{
-                  toolbar: { setDenoms, denoms},
-                  footer: { total : denoms.reduce((acc, cur) => acc + cur.total, 0), data : denoms}
-                }}
-                />
-            </Grid>
-            <Grid item xs={6}>
-              {!isLoading &&
-                <DataGrid
-
-                sx={{ height: "100%" }} 
-                slots={{
-                  footer : FooterTotal
-                }}
-                slotProps={{
-                  footer: { total : data.total }
-                }}
-                loading={isLoading} columns={payment_column} rows={data.details} />
-              }
-            </Grid>
-
-          </Grid>
-        </Box> */}
     </div>
   )
 }
@@ -149,28 +148,57 @@ async function save(url, {arg}) {
 function FooterSave(props) {
 
   const {trigger, isMutating} = useSWRMutation('api/reports', save )
-
-
+  const [payable, setPayable] = useState(0)
+  const formatCashTotal = numericFormatter(String(props.sub_total), { thousandSeparator : ',', decimalScale : 2, fixedDecimalScale : true})
+  const changeShort = props.sub_total - payable
+  const formatChangeShort = numericFormatter(String(changeShort), { thousandSeparator : ',', decimalScale : 2, fixedDecimalScale : true})
+  
   const handleClickedSave = async () => {
-    const request =  await trigger(props.data)
-    if(!request.ok) {
-      return toastErr('Something went wrong')
-    }
+    console.log(props.total)
+    //   const request =  await trigger(props.data)
+  //   if(!request.ok) {
+  //     return toastErr('Something went wrong')
+  //   }
     
-    const response = await request.json()
+  //   const response = await request.json()
     
-    if(response.success) {
-      return toastSucc('Save Successfully')
-    }
+  //   if(response.success) {
+  //     return toastSucc('Save Successfully')
+  //   }
     
-    return toastErr('Something went wrong')
+  //   return toastErr('Something went wrong')
     
+  // }
   }
-
   return (
-    <Box display='flex' padding={2} justifyContent='space-between' borderTop={1}>
-      <Button size='small' disabled={isMutating} variant='outlined' color='success' style={{ padding : '0px'}} onClick={handleClickedSave}>Save</Button>
-      <Typography>Total : {props.total}</Typography>
+    <Box padding={2} borderTop={1} display='flex' flexDirection='column' gap='2px'>
+      <Box  display='flex' justifyContent='space-between' >
+        <Typography sx={{textTransform : 'uppercase'}}>CASH TOTAL</Typography>
+        <Typography sx={{textTransform : 'uppercase'}}>{formatCashTotal}</Typography>
+      </Box>
+      
+      <Box  display='flex' justifyContent='space-between' alignItems='center' >
+        <Typography sx={{textTransform : 'uppercase'}}>PAYABLE</Typography>
+        <NumericFormat 
+          variant='standard'
+          customInput={TextField}
+          placeholder='PAYABLE'
+          thousandSeparator=","
+          decimalScale={2}
+          fixedDecimalScale
+          InputProps={{
+            sx : {height: '30px', paddingY : '2px' }
+          }}
+          onValueChange={(value) => {
+            const amount = value.floatValue ? value.floatValue : 0
+            setPayable(amount)
+          }}
+          />
+      </Box>
+      <Box  display='flex' justifyContent='space-between' alignItems='center' >
+        <Typography sx={{textTransform : 'uppercase'}}>CHANGE/SHORT</Typography>
+        <Typography sx={{textTransform : 'uppercase'}}>{formatChangeShort}</Typography>
+      </Box>
     </Box>
   )
 }
