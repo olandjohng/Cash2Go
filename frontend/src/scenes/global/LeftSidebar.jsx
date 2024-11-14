@@ -162,13 +162,13 @@ const LeftSidebar = () => {
               selected={selected}
               setSelected={setSelected}
             />
-            {/* <Item
+            <Item
               title="Adjusting Entries"
               to="/adjusting-entries"
               icon={<AccountBalanceWalletOutlined />}
               selected={selected}
               setSelected={setSelected}
-            /> */}
+            />
 
             {!isCollapsed ? (
               <Typography

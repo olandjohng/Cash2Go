@@ -24,7 +24,7 @@ const dateValue = (date) => {
   }
   return null
 }
-export default function ExpensesDetails({onComplete, data, banks, employee, suppliers}) {
+export default function ExpensesDetails({onComplete, data, banks, employee, suppliers, hasTicketNumber= false}) {
   const formik = useFormik({
     initialValues : data,
     validationSchema : validitionSchema,
@@ -37,7 +37,7 @@ export default function ExpensesDetails({onComplete, data, banks, employee, supp
     <form onSubmit={formik.handleSubmit}>
       <Grid container spacing='15px'>
         <Grid item xs={3}>
-          <TextField label='VOUCHER NO.' fullWidth name='voucherNumber' onChange={formik.handleChange} value={formik.values.voucherNumber} />
+          <TextField disabled={hasTicketNumber} label='VOUCHER NUMBER' fullWidth name='voucherNumber' onChange={formik.handleChange} value={formik.values.voucherNumber} />
         </Grid>
         <Grid item xs={5}>
           <Autocomplete 
