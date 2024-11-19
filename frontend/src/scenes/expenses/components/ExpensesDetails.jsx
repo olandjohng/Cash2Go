@@ -2,21 +2,8 @@ import React from 'react'
 import { useFormik } from 'formik'
 import { Autocomplete, Box, Button, Grid, MenuItem, TextField } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import * as yup from 'yup'
+
 import dayjs from 'dayjs';
-
-
-const validitionSchema = yup.object({
-  voucherNumber : yup.string().required(),
-  borrower : yup.object({ name : yup.string().required() }),
-  date: yup.date().required(),
-  bank : yup.object({ name : yup.string().required() }),
-  check_number : yup.string().required(),
-  check_date: yup.date().required(),
-  prepared_by: yup.string().required(),
-  checked_by: yup.string().required(),
-  approved_by: yup.string().required(),
-})
 
 const dateValue = (date) => {
   if(date) {
@@ -24,10 +11,10 @@ const dateValue = (date) => {
   }
   return null
 }
-export default function ExpensesDetails({onComplete, data, banks, employee, suppliers, hasTicketNumber= false}) {
+export default function ExpensesDetails({onComplete, data, banks, employee, suppliers, validationSchema, hasTicketNumber=false}) {
   const formik = useFormik({
     initialValues : data,
-    validationSchema : validitionSchema,
+    validationSchema : validationSchema,
     onSubmit : (values) => {
       onComplete(values)
     }

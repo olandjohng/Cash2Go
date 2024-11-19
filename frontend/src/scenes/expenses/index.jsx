@@ -16,6 +16,7 @@ import useSWRMutation from 'swr/mutation'
 import * as ejs from 'ejs'
 import dayjs from 'dayjs'
 import { toastErr, toastSucc } from '../../utils'
+import * as yup from 'yup'
 
 const initialValues = {
   voucherNumber : '',
@@ -30,9 +31,22 @@ const initialValues = {
   voucher_details : [{ category: '', debit: '0', credit: '0'}] 
 }
 
+const validationSchema = yup.object({
+  voucherNumber : yup.string().required(),
+  borrower : yup.object({ name : yup.string().required() }),
+  date: yup.date().required(),
+  bank : yup.object({ name : yup.string().required() }),
+  check_number : yup.string().required(),
+  check_date: yup.date().required(),
+  prepared_by: yup.string().required(),
+  checked_by: yup.string().required(),
+  approved_by: yup.string().required(),
+})
+
 const fetcher = (url) => {
   return axios.get(url).then(res => res.data)
 }
+
 const fetchDetails = (key, {arg}) => {
   const url = key + '/' +  arg
   return axios.get(url).then(res => res.data)
@@ -250,7 +264,7 @@ export default function ExpensesPage() {
         <Box width={900}>
           <ExpensesParentForm activeStep={activeStep}>
             <FormStep label='Expenses Details'>
-              <ExpensesDetails onComplete={handleStepComplete} suppliers={suppliers} data={details} banks={banks} employee={employee} />
+              <ExpensesDetails validationSchema={validationSchema} onComplete={handleStepComplete} suppliers={suppliers} data={details} banks={banks} employee={employee} />
             </FormStep>
             <FormStep label='Voucher'>
               <ExpensesVoucher titles={expenses_title} data={details.voucher_details} onComplete={handleStepComplete} onPrevious={handlePrevious}/>

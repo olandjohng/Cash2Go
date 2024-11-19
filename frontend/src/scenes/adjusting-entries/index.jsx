@@ -15,15 +15,12 @@ import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import { PrintOutlined } from '@mui/icons-material';
 import adjusting_entries_template from '../../assets/adjusting-entries.html?raw'
 import logo from '../../assets/c2g_logo_nb.png'
+import AdjustingDetails from './components/AdjustingDetails';
 
 
 const initialValues = {
-  voucherNumber: '0000',
   borrower : '',
-  date: null,
-  bank : '',
-  check_number : '',
-  check_date: '',
+  explaination: '',
   prepared_by: '',
   checked_by: '',
   approved_by: '',
@@ -38,9 +35,9 @@ const saveAdjustingEntries = (url, {arg}) => {
 }
 
 const print = (t, data) => {
-  
+  // return console.log(data)
   const tmp = ejs.render(t, data)
-  console.log(tmp)
+  // console.log(tmp)
   const voucherWindow = window.open("", "Print Voucher");
   voucherWindow.document.write(tmp);
 }
@@ -65,9 +62,10 @@ export default function AdjustingEntriesPage() {
     if(!request.status == 200) {
       return console.log(request.statusText)
     }
-
+    
     print(adjusting_entries_template, {...request.data, logo : logo})
   }
+
   const colums = [
     {
       field: 'actions',
@@ -88,11 +86,9 @@ export default function AdjustingEntriesPage() {
     { field : 'ticket_number', headerName: "TICKET NO.", width: 90 },
     { field : 'date', headerName: "DATE",  width: 85 },
     { field : 'borrower_name', headerName: "BORROWER", flex : 1},
-    { field : 'check_details', headerName: "CHECK DETAILS", width: 120},
-    { field : 'check_date', headerName: "CHECK DATE",  width : 90},
-    { field : 'prepared_by', headerName: "PREPARED BY",   width: 110},
-    { field : 'checked_by', headerName: "CHECKED BY",   width: 110},
-    { field : 'approved_by', headerName: "APPROVED BY",  width: 110 },
+    { field : 'prepared_by', headerName: "PREPARED BY",   width: 150},
+    { field : 'checked_by', headerName: "CHECKED BY",   width: 150},
+    { field : 'approved_by', headerName: "APPROVED BY",  width: 150 },
   ]
 
   const handleStepComplete = (data) => {
@@ -117,11 +113,8 @@ export default function AdjustingEntriesPage() {
       header : {
         borrower_name : details.borrower.name,
         borrower_id: details.borrower.id,
-        bank_name: details.bank.name ,
-        bank_id: details.bank.id,
         date: details.date,
-        check_number: details.check_number ,
-        check_date: details.check_date,
+        explaination : details.explaination.trim(),
         prepared_by: details.prepared_by,
         checked_by: details.checked_by,
         approved_by : details.approved_by
@@ -129,6 +122,7 @@ export default function AdjustingEntriesPage() {
       details : formatDetails
     }
     
+
     const request =  await trigger(input)
     if(!request.status == 200) return(toastErr('Something went wrong'))
     
@@ -140,11 +134,9 @@ export default function AdjustingEntriesPage() {
   }
   
   const handlePrintTicket = async (data) => {
-    console.log(logo)
     print(adjusting_entries_template, {...data, logo : logo})
   }
   
-
   return (
     <div style={{ height: "80%", padding: 20 }}>
       <Header title='Adjusting Entries' onAddButtonClick={() => { setOpenPopup(true)}} />
@@ -167,7 +159,7 @@ export default function AdjustingEntriesPage() {
         <Box width={900}>
           <ExpensesParentForm activeStep={activeStep}>
             <FormStep label='Adjusting Ticket Info'>
-              <ExpensesDetails hasTicketNumber data={details} banks={banks} employee={employee} suppliers={suppliers} onComplete={handleStepComplete}/>
+              <AdjustingDetails data={details} employee={employee} suppliers={suppliers} onComplete={handleStepComplete} />
             </FormStep>
             <FormStep label='Details'>
               <ExpensesVoucher titles={expenses_title} data={details.voucher_details} onComplete={handleStepComplete} onPrevious={handlePrevious}/>

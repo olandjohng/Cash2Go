@@ -23,8 +23,7 @@ export default function PrintAdjustingTicket({onSubmit, data, onPrevious, onPrin
       borrower: data.borrower.name,
       date: dayjs(data.date).format('MM-DD-YYYY'),
       details : formatDetails,
-      check_details : `${data.bank.name}-${data.check_number}`,
-      check_date: dayjs(data.check_date).format('MM-DD-YYYY'),
+      explaination: data.explaination.trim(),
       prepared_by: data.prepared_by,
       checked_by : data.checked_by,
       approved_by: data.approved_by

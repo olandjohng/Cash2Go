@@ -25,7 +25,7 @@
       </div>
       <div class="mt-2 flex justify-between gap-2">
         <div class="flex gap-2 w-4/5">
-          <div>PAYEE:</div>
+          <div>BORROWER:</div>
           <div class="border-b-2 flex-1 border-slate-950 font-semibold px-4">
             <%= borrower  %>
           </div>
@@ -69,23 +69,15 @@
       <div class="flex">
         
         <div class="w-[60%]">
-          <div>
-            <div class="flex flex-col gap-1 pr-2 py-2 border-r border-slate-900">
-              <div>
-                <div class="font-semibold text-sm">Received from CASH 2 GO FINANCE, INC. the amout in full</div>
+          <div class="h-full">
+            <div class=" flex flex-col gap-1 h-full pr-2 py-2 border-r border-slate-900">
+              <div style="display: block; line-height: 1;">
+                <span class="uppercase text-base">Explaination: </span>
+                <span class="uppercase font-medium text-sm">
+                  <%= explaination %>
+                </span>
               </div>
-              <div class="flex gap-2 ">
-                <div>Check:</div>
-                <div class="border-b flex-1 border-slate-900 font-semibold italic px-3"><%= check_details %></div>
-                <div>Date:</div>
-                <div class="border-b border-slate-900 font-semibold italic px-1"><%= check_date  %></div>
-              </div>
-              <div class="flex gap-2 ">
-              </div>
-              <div class="mt-5">
-                <div class="border-b flex-1 border-slate-900"></div>
-                <div class="text-center">Printed Name & Signature</div>
-              </div>
+            
             </div>
           </div>
       </div>

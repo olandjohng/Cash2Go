@@ -5,7 +5,7 @@ import { IMaskMixin } from 'react-imask';
 import * as yup from 'yup'
 
 const NumberInput = IMaskMixin(({inputRef, ...props}) => (
-  <TextField {...props}  inputRef={inputRef}/>
+  <TextField {...props} fullWidth  inputRef={inputRef}/>
 ))
 
 const validationSchema = yup.array(
@@ -75,13 +75,12 @@ export default function ExpensesVoucher({onComplete, onPrevious, data, titles}) 
                   return <TextField {...props} label='Category' />
                 }}  
                 onChange={(e, value) => {
-                  console.log(64, value)
                   handleChange(index, 'category', value)
                 }}
               />
             </Grid>
             <Grid item xs={3}>
-              <NumberInput mask={Number} unmask='type' value={v.debit.toString()} thousandsSeparator=',' padFractionalZeros={true} radix="." label='Debit' 
+              <NumberInput mask={Number}  unmask='type' value={v.debit.toString()} thousandsSeparator=',' padFractionalZeros={true} radix="." label='Debit' 
                 onAccept={(value, mask) =>  
                   handleChange(index, 'debit', value)
                 }

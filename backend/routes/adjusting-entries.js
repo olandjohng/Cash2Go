@@ -1,7 +1,6 @@
 const express = require('express')
 const adjustingEntriesRouter = express.Router()
 const builder = require('../builder')
-const { json } = require('body-parser')
 
 const incrementTicketNumber = (ticket) => {
   const incrementTicketNumber = Number(ticket) + 1
@@ -10,14 +9,10 @@ const incrementTicketNumber = (ticket) => {
   return newTicketNumber
 }
 
-
-
 adjustingEntriesRouter.get('/', async (req, res) => {
   try {
     const getAdjustingEntries = await builder('adjusting_entries_header').select('id', 'ticket_number', 'borrower_name', 
-      builder.raw(`CONCAT_WS('-', bank_name, check_number ) as check_details`), 
       builder.raw(`DATE_FORMAT(date, '%m-%d-%Y') as date`),
-      builder.raw(`DATE_FORMAT(check_date, '%m-%d-%Y') as check_date`),
       'checked_by', 'prepared_by', 'approved_by' )
     res.status(200).json(getAdjustingEntries)
   } catch (error) {
@@ -40,12 +35,12 @@ adjustingEntriesRouter.get('/ticket-number', async (req, res) => {
 
 adjustingEntriesRouter.post('/', (req, res) => {
   const {header, details} = req.body
-  // return console.log(details)
+  // return console.log(header)
   try {
     builder.transaction(async (tx) => {
       const getTicketNumber = await tx('adjusting_entries_header').select(tx.raw(`IFNULL(MAX(ticket_number), '00000') as ticket_number`)).first()
       const newTicketNumber = incrementTicketNumber(getTicketNumber.ticket_number)
-      const formatAdjustingHeader = {...header, ticket_number : newTicketNumber}
+      const formatAdjustingHeader = {...header, ticket_number : newTicketNumber, explaination : header.explaination.toUpperCase()}
       const [insertedEntryId] = await tx('adjusting_entries_header').insert(formatAdjustingHeader)
       // console.log(insertedEntries)
       const formatWithId = details.map(v => ({...v, adjusting_header_id: insertedEntryId}))
@@ -62,10 +57,8 @@ adjustingEntriesRouter.post('/', (req, res) => {
 })
 
 const getAdjustingEntryHeader  = async (id) => {
-  const result = await builder('adjusting_entries_header').select('ticket_number', 'borrower_name as borrower', 
+  const result = await builder('adjusting_entries_header').select('ticket_number', 'borrower_name as borrower', 'explaination',
     builder.raw(`DATE_FORMAT(date, '%m-%d-%Y') as date`),
-    builder.raw(`CONCAT_WS('-', bank_name, check_number ) as check_details`),
-    builder.raw(`DATE_FORMAT(check_date, '%m-%d-%Y') as check_date`),
     'prepared_by', 'checked_by', 'approved_by').where('id', id).first()
   return result
 }
