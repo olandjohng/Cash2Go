@@ -149,7 +149,7 @@ const RefreshToolBar = ({refresh}) =>{
   )
 }
 
-const Loan = () => {
+export default function Loan() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -271,7 +271,7 @@ const Loan = () => {
   const [loans, dispatch] = useReducer(reducer, []);
   const [fileAttachment, setFileAttachment]  = useState(null)
   const attachmentId = useRef(null)
-  
+  const gridContainerRef = useRef()
   const formik = useFormik({
     initialValues : {
       type : 'customer_name',
@@ -436,8 +436,9 @@ const Loan = () => {
     }
   }, []);
 
+  
   return (
-    <div style={{ height: "75%", padding: 20 }}>
+    <Box style={{border : 'solid 5px white', overflow : 'auto'}} height='100%' padding={2} flex={1}>
       <Header
         title="LOANS"
         showButton={true}
@@ -462,23 +463,31 @@ const Loan = () => {
           </Box>
         </Box> 
       </form>
-      <DataGrid
-        sx={{ height: "95%" }}
-        loading={loanding}
-        rows={loans}
-        columns={columns}
-        getRowId={(row) => row.loan_header_id}
-        slots={{
-          toolbar : RefreshToolBar
-        }}
-        slotProps = {{
-          toolbar : {
-            refresh : getData
-          }
-        }}
-        onRowDoubleClick={handleRowDoubleClick}
-      />
+      <Box height='100%'>
+          
+            <DataGrid
+              // sx={{overflowX : 'scroll'}}
+              sx={{
+                display: 'grid',
+                gridTemplateRows: '2.5rem auto 0px',
+              }}
+              loading={loanding}
+              rows={loans}
+              columns={columns}
+              getRowId={(row) => row.loan_header_id}
+              slots={{
+                toolbar : RefreshToolBar
+              }}
+              slotProps = {{
+                toolbar : {
+                  refresh : getData
+                }
+              }}
+              onRowDoubleClick={handleRowDoubleClick}
+            />
 
+          
+      </Box>
       <Popups
         title="Loan Details"
         openPopup={openPopup}
@@ -537,8 +546,6 @@ const Loan = () => {
           dispatcher={dispatch}
         />
       </Popups>
-    </div>
+    </Box>
   );
 };
-
-export default Loan;

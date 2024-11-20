@@ -19,7 +19,7 @@ const StlyedDataGrid = styled(DataGrid)({
     '&:hover': {
       backgroundColor : '#15803d'
     }
-  }
+  },
 })
 const options = [
   {value : 'month', label : 'month'},
@@ -45,9 +45,9 @@ const Dashboard = () => {
   ]
 
   const birthday_column = [
-    {field : 'full_name', headerName : 'Name' , flex: 1, },
-    {field : 'label', headerName : 'Desc', flex: 1, },
-    {field : 'phone_number', headerName : 'Contact Number', flex: 1, },
+    {field : 'full_name', headerName : 'Name' , width : 250 },
+    {field : 'label', headerName : 'Desc', width : 200 },
+    {field : 'phone_number', headerName : 'Contact Number', width : 200 },
     {field : 'date', headerName : 'Date', width : 150},
   ]
 
@@ -55,7 +55,7 @@ const Dashboard = () => {
   const [type, setType] = useState(options[0].value)
 
   return (
-    <Box paddingX='20px' height='100%' overflow='auto' >
+    <Box height='100%' overflow='auto' padding={2} >
       <Box display='flex' justifyContent='start' gap={2.5}>
         {incomeLoading ? (
           <>
@@ -73,18 +73,25 @@ const Dashboard = () => {
         )
         }
       </Box>
-      <div >
-        <div style={{height : '25rem'}} >
+      <Box >
+        <Box style={{height : '25rem'}} border='solid orange' display='flex' flexDirection='column'>
           <p style={{ padding : 16 , textTransform : 'uppercase', fontSize : 'medium'}}>Weekly Collection</p>
           {weeklyCollectionLoading ? (
             <Skeleton variant='rectangular' height='100%'/>
           ) : (
-            <StlyedDataGrid loading={weeklyCollectionLoading}  rows={weeklyCollectionData.data} columns={columns} getRowId={(r) => r.loan_detail_id } getRowClassName={(params) => `status--${params.row.payment_status_id}`}/>
+            <Box border='solid blue' height='100%'>
+              <StlyedDataGrid
+                sx={{
+                  display: 'grid',
+                  gridTemplateRows: 'auto',
+                }}
+              loading={weeklyCollectionLoading}  rows={weeklyCollectionData.data} columns={columns} getRowId={(r) => r.loan_detail_id } getRowClassName={(params) => `status--${params.row.payment_status_id}`}/>
+            </Box>
           )}
-        </div>
+        </Box>
         
-        <div style={{height : '25rem', marginTop : 75}} >
-          <div style={{ display : 'flex', justifyContent : 'space-between'}}>
+        <Box border='solid orange'  style={{height : '25rem', marginTop : 75}} >
+          <Box style={{ display : 'flex', justifyContent : 'space-between'}}>
             <p style={{ padding : 16 , textTransform : 'uppercase', fontSize : 'medium'}}>Monthly and Yearly Collections</p>
             <TextField sx={{py : 1.2}}  select size="small" defaultValue={type} value={type} 
               onChange={(e) => {
@@ -96,46 +103,29 @@ const Dashboard = () => {
                 </MenuItem>
               ))}
             </TextField>
-          </div>
+          </Box>
            {type === 'month' ?
               (
-                <MonthlyCollectionsDataGrid columns={columns} isLoading={monthlyCollectionLoading} monthlyCollection={monthlyCollectionData} />
+              
+                <Box border='solid blue' height='100%'>
+                  <MonthlyCollectionsDataGrid columns={columns} isLoading={monthlyCollectionLoading} monthlyCollection={monthlyCollectionData} />
+                </Box>
+              
               ) : (
-                <YearlyCollectionsDataGrid columns={columns} isLoading={yearlyCollectionLoading} yearlyCollection={yearlyCollectionData} />
+                <Box border='solid blue' height='100%'>
+                  <YearlyCollectionsDataGrid columns={columns} isLoading={yearlyCollectionLoading} yearlyCollection={yearlyCollectionData} />
+                </Box>
               )
             }
-        </div>
-        
-        <div style={{height : '25rem', marginTop : 75}} >
-          <p style={{ padding : 16 , textTransform : 'uppercase', fontSize : 'medium'}}>Birthday</p>
-          <BirthdayDataGrid columns={birthday_column} birthdayData={birthdayData} isLoading={birthdayLoading} />
-        </div>
-      </div>
-      {/* <Box display='flex' gap='10px' mt='5px' height='35rem'>
-        <Box flex={1} width='49%'>
-          <p style={{ padding : 16 , textTransform : 'uppercase', fontSize : 'medium'}}>Weekly Collection</p>
-          <StlyedDataGrid  rows={weeklyCollection} columns={columns} getRowId={(r) => r.loan_detail_id } getRowClassName={(params) => `status--${params.row.payment_status_id}`}/>
         </Box>
-        <div style={{ flex : 1, width : '49%',}}>
-          <div style={{ display : 'flex', justifyContent : 'end'}}>
-            <TextField sx={{py : 1.2}}  select size="small" defaultValue={type} value={type} onChange={(e) => setType(e.target.value)}>
-              {options.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
-          </div>
-          {type === 'month' ? (
-            <StlyedDataGrid  columns={columns} rows={ monthlyCollection} getRowId={(r) => r.loan_detail_id } getRowClassName={(params) => `status--${params.row.payment_status_id}`}/>
-
-          ) : (<StlyedDataGrid  columns={columns} rows={ yearlyCollection} getRowId={(r) => r.loan_detail_id } getRowClassName={(params) => `status--${params.row.payment_status_id}`}/>)}
-        </div>
         
-      </Box> */}
-      {/* <DataGrid columns={columns} rows={[]}/> */}
-      {/* <StlyedDataGrid  rows={weeklyCollection} columns={columns} getRowId={(r) => r.loan_detail_id } getRowClassName={(params) => `status--${params.row.payment_status_id}`}/> */}
-      
+        <Box style={{height : '25rem', marginTop : 75}} border='solid orange' display='flex' flexDirection='column' >
+          <p style={{ padding : 16 , textTransform : 'uppercase', fontSize : 'medium'}}>Birthday</p>
+          <Box border='solid blue' height='100%'>
+            <BirthdayDataGrid columns={birthday_column} birthdayData={birthdayData} isLoading={birthdayLoading} />
+          </Box>
+        </Box>
+      </Box>
     </Box>
   )
 }
@@ -148,7 +138,7 @@ function YearlyCollectionsDataGrid ({columns, yearlyCollection, isLoading }) {
 }
 
 function BirthdayDataGrid({columns, birthdayData, isLoading}) {
-  return isLoading ? <Skeleton variant='rectangular' height='100%' /> : <DataGrid columns={columns} rows={birthdayData.data}/> 
+  return isLoading ? <Skeleton variant='rectangular' height='100%' /> : <StlyedDataGrid columns={columns} rows={birthdayData.data}/> 
 }
 
 export default Dashboard
