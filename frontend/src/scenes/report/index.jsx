@@ -1,9 +1,7 @@
 import React, { useRef, useState } from 'react'
 import Header from '../../components/Header'
-import { Box, Button , Grid, MenuItem, TextField, Typography } from '@mui/material'
+import { Box, Button , Grid, MenuItem, Skeleton, TextField, Typography } from '@mui/material'
 import { useTheme } from '@emotion/react';
-import { tokens } from '../../theme';
-import { toastErr, toastSucc } from '../../utils';
 import * as yup from 'yup'
 import { useFormik } from 'formik';
 import { DataGrid, GridActionsCell, GridActionsCellItem, useGridApiRef, GRID_NUMERIC_COL_DEF } from '@mui/x-data-grid';
@@ -62,14 +60,14 @@ export default function Report() {
        return formatValue
       }
     },
-    { field: "quantity", headerName: "No. of PCS",  flex : 1 , 
-      ...{...GRID_NUMERIC_COL_DEF, editable: true,  align : 'left', headerAlign : 'left'},
+    { field: "quantity", headerName: "No. of PCS",
+      ...{...GRID_NUMERIC_COL_DEF, editable: true,  align : 'left', headerAlign : 'left', flex : 1},
       valueGetter : ({value}) => {
         if(!value) return 0
         return Number(value)
       }
     },
-    { field: "total", headerName: "Amount" ,  flex : 1,
+    { field: "total", headerName: "Amount" , flex : 1,
       valueGetter : ({row}) => {
         return row.denomination * Number(row.quantity)
       },
@@ -81,33 +79,64 @@ export default function Report() {
   ]
 
   const payment_column = [
-    { field: "payment_type", headerName: "Type" },
+    { field: "payment_type", headerName: "Type", width : 80 },
     { field: "receipt_num",  headerName: "Receipt Num" },
     { field: "full_name", headerName: "Full Name", flex : 1 },
-    { field: "total",  headerName: "Total" },
+    { field: "total",  headerName: "Total" ,
+      valueFormatter : ({value}) => 
+        numericFormatter(String(value), { thousandSeparator : ',', decimalScale : 2, fixedDecimalScale : true})
+    },
     
   ] 
 
   return (
-    <div style={{ padding: 20 , height: "90%" }}>
+    <div style={{ padding: 20 , height: "100%" }}>
       <Header title='Report' showButton={false} />
-      <div style={{display : 'flex', height: '90%', gap : '5px'}}>
-        <DataGrid 
-          apiRef={dataGridRef}
-          sx={{ height: "100%" }} 
-          editMode='row'
-          columns={denom_column}
-          rows={denoms}
-          getRowId={(row) => row.denomination} 
-          processRowUpdate={handleUpdateRow}
-          onProcessRowUpdateError={(error) => console.log(error)}
-          slots={{
-            footer : FooterSave
-          }}
-          slotProps={{
-            footer: { sub_total :  subCash}
-          }}
-        />
+      <Box style={{display : 'flex', height: '90%', gap : '5px'}}>
+        
+        <Box border='solid red' flex={1} display='flex' gap={1}>
+          <Box flex={1} border='solid blue' position='relative'>
+            <Box sx={{position : 'absolute', inset : 0}}>
+              <DataGrid 
+                apiRef={dataGridRef}
+                // sx={{ height: "100%" }} 
+                editMode='row'
+                columns={denom_column}
+                rows={denoms}
+                getRowId={(row) => row.denomination} 
+                processRowUpdate={handleUpdateRow}
+                onProcessRowUpdateError={(error) => console.log(error)}
+                slots={{
+                  footer : FooterSave
+                }}
+                slotProps={{
+                  footer: { sub_total :  subCash}
+                }}
+              />
+            </Box>
+          </Box>
+          <Box flex={1} border='solid orange' position='relative'>
+          <Box sx={{position: 'absolute', inset : 0}}>
+            {isLoading ? 
+              (
+                <Skeleton variant='rectangular' height='100%' />
+              ) : (
+              <DataGrid
+                slots={{
+                  footer : FooterTotal
+                }}
+                slotProps={{
+                  footer: { total : data.total }
+                }}
+                loading={isLoading} columns={payment_column} rows={data.details} 
+              />
+              )
+            } 
+
+          </Box>
+          </Box>
+        </Box>
+{/* 
         {!isLoading &&
           <DataGrid
 
@@ -119,8 +148,8 @@ export default function Report() {
             footer: { total : data.total }
           }}
           loading={isLoading} columns={payment_column} rows={data.details} />
-        }
-      </div>
+        } */}
+      </Box>
     </div>
   )
 }
@@ -129,7 +158,7 @@ function FooterTotal(props) {
   
   return (
     <Box display='flex' padding={2} justifyContent='end' borderTop={1}>
-      <Typography>Total : {props.total}</Typography>
+      <Typography>Total : {numericFormatter(String(props.total), { thousandSeparator : ',', decimalScale : 2, fixedDecimalScale : true})}</Typography>
     </Box>
   )
 }

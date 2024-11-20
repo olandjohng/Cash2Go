@@ -145,31 +145,30 @@ export default function ExpensesPage() {
       field : 'payee',
       headerName: "Payee",
       flex: 1
-      
+      // width : 200
     },
     
     {
       field : 'check_details',
       headerName: "Check Details",
       flex: 1
-      // width : 
     },
     {
       field : 'prepared_by',
       headerName: "Prepared By",
-      width : 120
+      width : 110
     },
     {
       field : 'checked_by',
       headerName: "Checked By",
-      width : 120
+      width : 110
     },
     {
       field : 'approved_by',
       headerName: "Approved By",
-      width : 120
+      width : 110
     },
-  ]
+  ] 
 
   const handleSuccess = () => {
     mutate()
@@ -247,11 +246,15 @@ export default function ExpensesPage() {
 
 
   return (
-    <div style={{ height: "80%", padding: 20,  }}>
+    <Box padding={2} height='100%' display='flex' flexDirection='column'>
       <Header title='Expenses' onAddButtonClick={ () => setOpenExpensesForm(true)}/>
-        {!isLoading && 
-          <DataGrid sx={{ height: "100%" }} columns={column} rows={expenses} rowSelection={false}/>
-        }
+        <Box border='solid red' flex={1} position='relative'>
+          <Box sx={{position : 'absolute', inset: 0}}>
+            {!isLoading && 
+              <DataGrid columns={column} rows={expenses} rowSelection={false}/>
+            }
+          </Box>
+        </Box>
       <Popups
         title="Expenses Form"
         openPopup={openExpesesForm}
@@ -300,7 +303,7 @@ export default function ExpensesPage() {
         </Box>
       </Popups>
       
-    </div>
+    </Box>
   )
 }
 

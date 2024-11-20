@@ -271,7 +271,8 @@ export default function Loan() {
   const [loans, dispatch] = useReducer(reducer, []);
   const [fileAttachment, setFileAttachment]  = useState(null)
   const attachmentId = useRef(null)
-  const gridContainerRef = useRef()
+
+
   const formik = useFormik({
     initialValues : {
       type : 'customer_name',
@@ -438,7 +439,7 @@ export default function Loan() {
 
   
   return (
-    <Box style={{border : 'solid 5px white', overflow : 'auto'}} height='100%' padding={2} flex={1}>
+    <Box height='100%' padding={2} display='flex' flexDirection='column'>
       <Header
         title="LOANS"
         showButton={true}
@@ -463,30 +464,25 @@ export default function Loan() {
           </Box>
         </Box> 
       </form>
-      <Box height='100%'>
-          
-            <DataGrid
-              // sx={{overflowX : 'scroll'}}
-              sx={{
-                display: 'grid',
-                gridTemplateRows: '2.5rem auto 0px',
-              }}
-              loading={loanding}
-              rows={loans}
-              columns={columns}
-              getRowId={(row) => row.loan_header_id}
-              slots={{
-                toolbar : RefreshToolBar
-              }}
-              slotProps = {{
-                toolbar : {
-                  refresh : getData
-                }
-              }}
-              onRowDoubleClick={handleRowDoubleClick}
-            />
+      <Box border='solid red' flex={1} position='relative' >
+        <Box sx={{position: 'absolute', inset : 0}} >
+          <DataGrid
+            loading={loanding}
+            rows={loans}
+            columns={columns}
+            getRowId={(row) => row.loan_header_id}
+            slots={{
+              toolbar : RefreshToolBar
+            }}
+            slotProps = {{
+              toolbar : {
+                refresh : getData
+              }
+            }}
+            onRowDoubleClick={handleRowDoubleClick}
+          />
 
-          
+        </Box>
       </Box>
       <Popups
         title="Loan Details"

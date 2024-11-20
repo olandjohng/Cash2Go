@@ -1,4 +1,4 @@
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { Route, RouterProvider, Routes, createBrowserRouter } from "react-router-dom";
 import Topbar from "./scenes/global/Topbar";
 import { ColorModeContext, useMode } from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
@@ -42,8 +42,25 @@ function App() {
         {
           path : 'loans',
           element : <Loan />
-        }
+        },
+        {
+          path : 'payments',
+          element : <LoanPayment />
+        },
+        {
+          path : 'report',
+          element : <Report /> 
+        },
+        {
+          path : 'report',
+          element : <Report /> 
+        },
+        
       ]
+    },
+    {
+      path: '/auth/login',
+      element: <Signin />
     }
   ])
 
@@ -52,26 +69,25 @@ function App() {
       <ThemeProvider theme={theme}>
         <AuthContextProvider>
           <CssBaseline />
-          <RouterProvider router={router} />
+          {/* <RouterProvider router={router} /> */}
 
-          {/* <div className='app' > */}
+          
             {/* <LeftSidebar /> */}
             {/* <main className="content"> */}
               {/* <Topbar /> */}
-              {/* <Routes >
-                <Route path="/" element={<Dashboard />} />
+              <Routes>
+                {/* <Route path="/" element={<Dashboard />} /> */}
                 <Route path="/auth/login" element={<Signin />} />
 
-                <Route path="/" element={<LeftSidebar />}> 
-                  <Route   element={<Dashboard />} /> 
-                  <Route index element={<Loan />} />
+                <Route path="/" element={<RootLayout />}> 
+                  <Route index element={<Dashboard />} /> 
+                  <Route path='loans'element={<Loan />} />
                   
-                  <Route path="/auth/signin" element={<Signin />} />
 
-                  <Route path="/report" element={<Report />} />
+                  <Route path="report" element={<Report />} />
                   
                   <Route path="/payments" element={<LoanPayment />} />
-                  <Route path="/payments/:id" element={<LoanPayment />} />
+                  {/* <Route path="/payments/:id" element={<LoanPayment />} /> */}
                   <Route path="/borrowers" element={<Borrowers />}/>
 
                   <Route path="/customers" element={<Customers />}/>
@@ -114,7 +130,7 @@ function App() {
                   <Route path="/employee/new" element={<Employee />} />
                   <Route path="/employee/:id" element={<Employee />} />
                 </Route>
-              </Routes> */}
+              </Routes>
               <ToastContainer />
             {/* </main> */}
           {/* </div> */}
