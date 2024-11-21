@@ -108,7 +108,7 @@ export default function LoanRestructureForm({popup, dispatcher, loanInitialValue
   const handleSubmit = async () => {
 
     const data = formatRequest(formValue, banks)
-    const request = await fetch(`${import.meta.env.VITE_API_URL}/loans/recalculate/`,  {
+    const request = await fetch(`/api/loans/recalculate/`,  {
       method : 'post',
       headers: {
         "Content-Type": "application/json",

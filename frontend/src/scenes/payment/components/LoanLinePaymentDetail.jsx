@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { tokens } from "../../../theme";
 import { useTheme } from "@emotion/react";
 
-const LoanLinePaymentDetail = ({id}) => {
+const LoanLinePaymentDetail = ({id, paymentDataSetter}) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
@@ -13,9 +13,12 @@ const LoanLinePaymentDetail = ({id}) => {
     useEffect(() => {
         const getDetail = async () => {
           const req = await fetch(
-            `${import.meta.env.VITE_API_URL}/payments/paymentDue/${id}`
+            `/api/payments/paymentDue/${id}`
           );
-          const resJson = await req.json();
+          const resJson = await req.json(); // array
+          // const { loan_detail_id, Principal_Due, Interest_Due, Penalty_Due } = resJson
+          // paymentDataSetter((old) => ({...old, loan_detail_id}))
+          console.log(resJson)
           setDetails(resJson);
         };
         getDetail();
@@ -23,7 +26,7 @@ const LoanLinePaymentDetail = ({id}) => {
   return (
     <main>
         {details.map((detail) => (
-            <Grid container spacing={2} key={detail.loan_detail_id}>
+            <Grid container spacing={2} my={1.5} key={detail.loan_detail_id}>
               <Grid item xs={12}>
                 <Card
                   variant="outlined"
@@ -68,7 +71,7 @@ const LoanLinePaymentDetail = ({id}) => {
                     <Grid container spacing={2}>
                       <Grid item xs={6}>
                         <Typography variant="h4" component="div">
-                          {dayjs(detail.check_date).format("MMMM DD, YYYY")}
+                          {dayjs(detail.due_date).format("MMMM DD, YYYY")}
                         </Typography>
                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                           Due Date
@@ -103,7 +106,8 @@ const LoanLinePaymentDetail = ({id}) => {
                         <Typography variant="h4" component="div">
                           {(
                             Number(detail.Principal_Due) +
-                            Number(detail.Interest_Due)
+                            Number(detail.Interest_Due) +
+                            Number(detail.Penalty_Due)
                           ).toLocaleString("en", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,

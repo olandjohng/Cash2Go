@@ -50,9 +50,7 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
       //   setSubmitButtonState(true)
       //   onSubmit();
       // } else {
-        
-          next(initialFormValues)
-        
+      next(initialFormValues)
       // }
     }
 
@@ -60,6 +58,7 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
     
     if(isLastStep) {
       onSubmit()
+      setIsFormSubmitted(true)
     }
     
     if(!schema && !isLastStep) next(initialFormValues);
@@ -74,14 +73,32 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
               const label = currentStep.props.stepName;
               const isStepCompleted = completedSteps[label];
               return (
-                <Step key={label} completed={isStepCompleted}>
-                  <StepLabel>{label}</StepLabel>
+                <Step key={label} completed={isStepCompleted} sx={{
+                  '& .MuiStepLabel-root .Mui-completed': {
+                    color: 'secondary.dark', // circle color (COMPLETED)
+                  },
+                  '& .MuiStepLabel-label.Mui-completed.MuiStepLabel-alternativeLabel':
+                    {
+                      color: 'grey.500', // Just text label (COMPLETED)
+                    },
+                  '& .MuiStepLabel-root .Mui-active': {
+                    color: 'secondary.main', // circle color (ACTIVE)
+                  },
+                  '& .MuiStepLabel-label.Mui-active.MuiStepLabel-alternativeLabel':
+                    {
+                      color: 'common.white', // Just text label (ACTIVE)
+                    },
+                  '& .MuiStepLabel-root .Mui-active .MuiStepIcon-text': {
+                    fill: 'black', // circle's number (ACTIVE)
+                  },
+                }}>
+                  <StepLabel >{label}</StepLabel>
                 </Step>
               );
             })}
           </Stepper>
         </div>
-        {!isFormSubmitted && (
+        {!isFormSubmitted ? (
         // ? (
           // <SuccessComponent />
         // ) : (
@@ -95,6 +112,8 @@ const MultiStepForm1 = ({ children, initialFormValues, onSubmit }) => {
               submit={submit}
             />
           </>
+        ) : (
+          <SuccessComponent/>
         )}           
     
     </div>

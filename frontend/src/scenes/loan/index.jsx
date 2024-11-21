@@ -2,31 +2,33 @@ import {
   DataGrid,
   GridActionsCell,
   GridActionsCellItem,
+  GridToolbarContainer,
 } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
-import { mockDataTeam } from "../../data/mockData";
 import { useTheme } from "@emotion/react";
-import { Box, IconButton, InputBase, TextField } from "@mui/material";
+import { Box, Button, IconButton, Input, InputBase, MenuItem, TextField } from "@mui/material";
 import Header from "../../components/Header";
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import Popups from "../../components/Popups";
 import DetailsModal from "./components/DetailsModal";
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import LoanForm1 from "./components/LoanForm1";
-import { AccountTreeOutlined, AutorenewOutlined, PrintOutlined } from "@mui/icons-material";
+import { AccountTreeOutlined, AutorenewOutlined, PrintOutlined, RefreshOutlined, DeleteOutline, UploadFile, AttachFile, SearchOutlined } from "@mui/icons-material";
 import voucherTemplateHTML from "../../assets/voucher.html?raw";
 import c2gImage from "../../assets/c2g_logo_nb.png";
 import * as ejs from "ejs";
 import dayjs from "dayjs";
 import LoanRenewForm from "./components/LoanRenewForm";
 import LoanRestructureForm from "./components/LoanRestructureForm";
+import { MuiFileInput } from "mui-file-input";
+import { toastErr, toastSucc } from "../../utils";
+import { useFormik } from "formik";
 
 function reducer(state, action) {
   switch (action.type) {
     case "INIT":
       return action.loans;
     case "ADD":
-      return [...state, action.loans];
+      return [action.loans, ...state];
     case "RENEW":
       const updateLoan = state.map((v) => {
         console.log(action)
@@ -35,7 +37,7 @@ function reducer(state, action) {
         }
         return v
      })
-     return [...updateLoan, action.loan];
+      return [...updateLoan, action.loan];
     case "RECAL": 
       const recal = state.map((v) => {
         console.log(action)
@@ -44,7 +46,10 @@ function reducer(state, action) {
         }
         return v
      })
-    return [...recal, action.loan]
+      return [...recal, action.loan]
+    case "DELETE": 
+     return state.filter(v => v.loan_header_id != action.id)
+     
   }
 }
 
@@ -52,6 +57,8 @@ export const LOAN_INITIAL_VALUES = {
   customer_id: "",
   customer_name: "",
   transaction_date: new Date().toISOString().split("T")[0],
+  co_maker_name : "",
+  co_maker_id : "",
   bank_account_id: "",
   term_type: "months",
   bank_name: "",
@@ -67,7 +74,7 @@ export const LOAN_INITIAL_VALUES = {
   interest_rate: "",
   total_interest: 0,
   term_month: 0,
-  date_granted: new Date().toISOString().split("T")[0],
+  date_granted: null,
   check_issued_name: "",
   voucher_number: "",
   renewal_id: 0,
@@ -78,7 +85,31 @@ export const LOAN_INITIAL_VALUES = {
   prepared_by: "",
   approved_by: "",
   checked_by: "",
+  isCash : {
+    value : false,
+    pr_number : '',
+  },
+
 };
+
+const searchType = [
+  {
+    label : 'Customer Name',
+    value : 'customer_name'
+  },
+  {
+    label : 'PN Number',
+    value : 'pn_number'
+  },
+  {
+    label : 'Loan Category',
+    value : 'loan_category'
+  },
+  {
+    label : 'Loan Facility',
+    value : 'loan_facility'
+  }
+]
 
 const formatNumber = (value) => {
   const format = Number(value).toLocaleString("en", {
@@ -91,8 +122,10 @@ const formatNumber = (value) => {
 const getVoucher = async (id) => {
   
   try {
-    const fetchData = await fetch(`${import.meta.env.VITE_API_URL}/loans/voucher/${id}`);
+    const fetchData = await fetch(`/api/loans/voucher/${id}`);
     const voucherJSON = await fetchData.json();
+    console.log(voucherJSON)
+    // return 
     const format = {
       ...voucherJSON,
       logo: c2gImage,
@@ -108,15 +141,22 @@ const getVoucher = async (id) => {
 
 };
 
-const Loan = () => {
+const RefreshToolBar = ({refresh}) =>{
+  return (
+      <Box display='flex' justifyContent='end' onClick={refresh} >
+        <Button color='success' size="large" sx={{py : 0.5}} endIcon={<RefreshOutlined />}> Refresh</Button>
+      </Box>
+  )
+}
+
+export default function Loan() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  let timeOut = null;
+
   const columns = [
     // {field: "loan_header_id", headerName: "ID" },
     {
       field: "voucher",
-      // headerName: "Actions",
       type: "actions",
       width: 100,
       getActions: ({ id }) => {
@@ -150,6 +190,22 @@ const Loan = () => {
             disabled={isLoanOnGoing}
             showInMenu
             onClick={() => restructureLoan(id)}
+          />,
+          <GridActionsCellItem
+            icon={<DeleteOutline />}
+            color="success"
+            label="Delete"
+            disabled={isLoanOnGoing}
+            showInMenu
+            onClick={() => handleDeleteLoanHeader(id)}
+          />,
+          <GridActionsCellItem
+            icon={<UploadFile />}
+            color="success"
+            label="Upload Attachment"
+            disabled={isLoanOnGoing}
+            showInMenu
+            onClick={() => handleOpenPopup(id) }
           />,
         ];
       },
@@ -196,6 +252,7 @@ const Loan = () => {
     { field: "loanfacility", headerName: "Facility", width: 150 },
     { field: "status_code", headerName: "Status", width: 150 },
   ];
+  
   const [renewFormValue,setRenewFormValue] = useState(LOAN_INITIAL_VALUES)
   const [restructureFormValue, setRestructureFormValue] = useState(LOAN_INITIAL_VALUES)
   const [facilities, setFacilities] = useState([]);
@@ -206,11 +263,26 @@ const Loan = () => {
   const [accountTitle, setAccountTitle] = useState([]);
   const [loanding, setLoading] = useState(false)
   const [openPopup, setOpenPopup] = useState(false);
+  const [openAttachmentPopup, setOpenAttachmentPopup] = useState(false);
   const [openRenewPopup, setOpenRenewPopup] = useState(false);
   const [openRestructurePopup, setOpenRestructurePopup] = useState(false);
   const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState(null);
   const [loans, dispatch] = useReducer(reducer, []);
+  const [fileAttachment, setFileAttachment]  = useState(null)
+  const attachmentId = useRef(null)
+
+
+  const formik = useFormik({
+    initialValues : {
+      type : 'customer_name',
+      value: ''
+    },
+    onSubmit : (data) => {
+      handleSearch(data)
+    }
+  })
+
 
   const handleRowDoubleClick = (params) => {
     setSelectedLoanId(params.row.loan_header_id);
@@ -218,7 +290,7 @@ const Loan = () => {
   };
 
   const renewLoan = async (id) =>{
-    const request = await fetch(`${import.meta.env.VITE_API_URL}/loans/renew/${id}`)
+    const request = await fetch(`/api/loans/renew/${id}`)
     const responseJSON = await request.json()
     setRenewFormValue((old) => ({...old , ...responseJSON}))
     setOpenRenewPopup(true)
@@ -226,98 +298,192 @@ const Loan = () => {
 
   const restructureLoan = async (id) => {
     try {
-      const request = await fetch(`${import.meta.env.VITE_API_URL}/loans/recalculate/${id}`)
+      const request = await fetch(`/api/loans/recalculate/${id}`)
       const responseJSON = await request.json()
       console.log(responseJSON)
       setRestructureFormValue((old) => ({...old, ...responseJSON}))
-      // console.log(resJSON)
+      
       setOpenRestructurePopup(true);
     } catch (error) {
       console.log(error)
     }
   }
 
+  const handleDeleteLoanHeader = async (id) => {
+    try {
+      const request = await fetch('/api/loans', {
+        method : 'DELETE',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({id : id})
+      })
+      if(!request.ok) { return } // error handling
 
-  const handleSearch = (e) => {
-    clearTimeout(timeOut);
-    timeOut = setTimeout(() => {
-      fetch(`${import.meta.env.VITE_API_URL}/loans?search=${e.target.value}`)
-        .then((res) => res.json())
-        .then((val) => dispatch({ type: "INIT", loans: val }));
-    }, 1000);
+      const response  = await request.json()
+      
+      dispatch({ type: "DELETE", id: response.id })
+      
+    } catch (error) {
+      console.log("Something went Wrong!")
+    }
+  }
+
+  const handleSearch = async (data) => {
+
+    const params = new URLSearchParams(data).toString()
+    // console.log(params)
+    setLoading(true)
+    try {
+    const request = await fetch('/api/loans?' + params)
+    const loanSearchJSON = await request.json()
+    
+    dispatch({ type: "INIT", loans: loanSearchJSON })
+
+    setLoading(false)
+  } catch (error) {
+    console.log(error)
+    setLoading(false)
+    }
   };
 
-  useEffect(() => {
-    const getData = async () => {
-      setLoading(true)
-      const urls = [
-        fetch(`${import.meta.env.VITE_API_URL}/loans`),
-        fetch(`${import.meta.env.VITE_API_URL}/collateral`),
-        fetch(`${import.meta.env.VITE_API_URL}/loans/facility`),
-        fetch(`${import.meta.env.VITE_API_URL}/banks`),
-        fetch(`${import.meta.env.VITE_API_URL}/loans/category`),
-        fetch(`${import.meta.env.VITE_API_URL}/deductions`),
-        fetch(`${import.meta.env.VITE_API_URL}/account-title`),
-      ];
+  const handleAttachmentSubmit = async () => {
+    if(!fileAttachment) {
+      return toastErr('Please Select a file')
+    }
+    const formData = new FormData()
+    formData.set('loan_attachment', fileAttachment)
+    
+    try {
+      if(!attachmentId.current) return toastErr('Something went wrong!');
 
-      try {
-        const req = await Promise.all(urls);
-
-        const loanData = await req[0].json();
-        // const customerData = await req[1].json()
-        const collateralData = await req[1].json();
-        const facilityData = await req[2].json();
-        const banksData = await req[3].json();
-        const categoryData = await req[4].json();
-        const deductionData = await req[5].json();
-        const accountTitleData = await req[6].json();
-
-        dispatch({ type: "INIT", loans: loanData });
-        // console.log('173', banksData)
-        setCollaterals(collateralData);
-
-        setFacilities(facilityData);
-        setBanks(banksData);
-        setCategories(categoryData);
-        setDeductions(deductionData);
-        setAccountTitle(accountTitleData);
-        setLoading(false)
-      } catch (error) {
-        console.log("error", error);
+      const request = await fetch(`/api/loans/attachment/${attachmentId.current}`, {
+        method : 'POST',
+        body : formData
+      })
+      
+      if(!request.ok) {
+        return toastErr('Something went wrong!')
       }
-    };
-    getData();
+      
+      const response = await request.json()
+      if(!response.success) {
+        return toastErr('Something went wrong!')
+      }
+      toastSucc('File Uploaded')
+      attachmentId.current = null
+      setOpenAttachmentPopup(false)
+    } catch (error) {
+      toastErr('Something went wrong!')
+    }
+
+  }
+
+  const getData = async (signal) => {
+    setLoading(true)
+    const urls = [
+      fetch("/api/loans"),
+      fetch("/api/loans/collateral" ),
+      fetch("/api/loans/facility" ),
+      fetch("/api/banks"  ),
+      fetch("/api/loans/category"  ),
+      fetch("/api/deductions" ),
+      fetch("/api/account-title"),
+    ];
+
+    try {
+      const req = await Promise.all(urls);
+
+      const loanData = await req[0].json();
+      // const customerData = await req[1].json()
+      const collateralData = await req[1].json();
+      const facilityData = await req[2].json();
+      const banksData = await req[3].json();
+      const categoryData = await req[4].json();
+      const deductionData = await req[5].json();
+      const accountTitleData = await req[6].json();
+
+      dispatch({ type: "INIT", loans: loanData });
+      // console.log('173', banksData)
+      setCollaterals(collateralData);
+
+      setFacilities(facilityData);
+      setBanks(banksData);
+      setCategories(categoryData);
+      setDeductions(deductionData);
+      setAccountTitle(accountTitleData);
+      setLoading(false)
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  const handleOpenPopup = (id) => {
+    attachmentId.current = id
+    setOpenAttachmentPopup(true)
+  }
+
+  useEffect(() => {
+    let active = true;
+    try {
+      if(active)  {
+        getData();
+      }
+    } catch (error) {
+      // console.dir(error)
+    }
+    return () => {
+      active = false;
+    }
   }, []);
 
+  
   return (
-    <div style={{ height: "75%", padding: 20 }}>
+    <Box height='100%' padding={2} display='flex' flexDirection='column'>
       <Header
         title="LOANS"
         showButton={true}
         onAddButtonClick={() => setOpenNewLoanPopup(true)}
       />
+      <form onSubmit={formik.handleSubmit} >
+        <Box display='flex' justifyContent='end' mb={1} gap={2} >
+          <TextField select label="type" sx={{ width :180}} size="small" name='type' value={formik.values.type} onChange={formik.handleChange}>
+            {searchType.map(v => (
+              <MenuItem value={v.value} key={v.value}>{v.label}</MenuItem>
+            ))}
+          </TextField>
+          <Box style={{
+            display : 'inline-block',
+            background : colors.greenAccent[800],
+            borderRadius : 3
+          }}>
+            <InputBase placeholder="Search" sx={{paddingX : 1}} name='value' value={formik.values.value} onChange={formik.handleChange}/>
+              <IconButton type='submit'>
+              <SearchOutlined />
+            </IconButton>
+          </Box>
+        </Box> 
+      </form>
+      <Box border='solid red' flex={1} position='relative' >
+        <Box sx={{position: 'absolute', inset : 0}} >
+          <DataGrid
+            loading={loanding}
+            rows={loans}
+            columns={columns}
+            getRowId={(row) => row.loan_header_id}
+            slots={{
+              toolbar : RefreshToolBar
+            }}
+            slotProps = {{
+              toolbar : {
+                refresh : getData
+              }
+            }}
+            onRowDoubleClick={handleRowDoubleClick}
+          />
 
-      <Box
-        display="flex"
-        alignItems="flex-start"
-        marginBottom={2}
-        backgroundColor={colors.greenAccent[800]}
-        borderRadius="3px"
-      >
-        <InputBase sx={{ ml: 2, mt: 0.5, flex: 1 }} onChange={handleSearch} />
-        <IconButton type="button" sx={{ p: 1 }}>
-          <SearchOutlinedIcon />
-        </IconButton>
+        </Box>
       </Box>
-      <DataGrid
-        sx={{ height: "95%" }}
-        loading={loanding}
-        rows={loans}
-        columns={columns}
-        getRowId={(row) => row.loan_header_id}
-        onRowDoubleClick={handleRowDoubleClick}
-      />
-
       <Popups
         title="Loan Details"
         openPopup={openPopup}
@@ -340,6 +506,26 @@ const Loan = () => {
         <LoanRestructureForm dispatcher={dispatch} popup={setOpenRestructurePopup} loanInitialValue={restructureFormValue} accountTitle={accountTitle}  banks={banks} collaterals={collaterals} categories={categories} facilities={facilities}/>
       </Popups>
       <Popups
+        title='Upload Attachment'
+        openPopup={openAttachmentPopup}
+        setOpenPopup={setOpenAttachmentPopup}
+      >
+        <div style={{ display : "flex", gap : 10}}>
+          <MuiFileInput 
+            label='Attachment'
+            placeholder="Upload Attachment"
+            hideSizeText 
+            value={fileAttachment}
+            InputProps={{ startAdornment : <AttachFile /> }}
+            getInputText={(value) => value ? value.name : ''}
+            onChange={setFileAttachment}
+          />
+          <Button variant="outlined" color='success' onClick={handleAttachmentSubmit} >Save</Button>
+        </div>
+      </Popups>
+
+
+      <Popups
         title="New Loan"
         openPopup={openNewLoanPopup}
         setOpenPopup={setOpenNewLoanPopup}
@@ -356,8 +542,6 @@ const Loan = () => {
           dispatcher={dispatch}
         />
       </Popups>
-    </div>
+    </Box>
   );
 };
-
-export default Loan;

@@ -18,7 +18,7 @@ export default function NewCollateral({ onCollateralAdded, onClosePopup }) {
     // Start useEffect
     useEffect(() => {
         if (id) {
-            axios.get(`${import.meta.env.VITE_API_URL}/collateral/read/${id}`)
+            axios.get(`/api/collateral/read/${id}`)
             .then((res) => {
                 console.log('API Response:', res.data);
                 
@@ -48,7 +48,7 @@ export default function NewCollateral({ onCollateralAdded, onClosePopup }) {
       
     const handleSubmit = async (e) => {
       e.preventDefault();
-      const apiURL = id ? `${import.meta.env.VITE_API_URL}/collateral/edit/${id}` : `${import.meta.env.VITE_API_URL}/collateral/new`
+      const apiURL = id ? `/api/collateral/edit/${id}` : '/api/collateral/new'
       console.log({collateral});
       const axiosMethod = id ? axios.put : axios.post;
   

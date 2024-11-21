@@ -4,7 +4,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import Popups from '../../components/Popups'
 import NewDeduction from './components/NewDeduction'
 import { DeleteOutlined, EditCalendarOutlined } from '@mui/icons-material'
-import { Button, Tooltip } from '@mui/material'
+import { Box, Button, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import { tokens } from '../../theme'
 import { Bounce, toast } from 'react-toastify';
@@ -24,7 +24,7 @@ function DeductionType() {
   
     const loadDeductionData = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/deductions`);
+        const response = await axios.get('/api/deductions');
         setDeduction(response.data);
       } catch (error) {
         console.error('Error loading deduction data:', error);
@@ -77,7 +77,7 @@ function DeductionType() {
       }
   
       try {
-        const response = await axios.delete(`${import.meta.env.VITE_API_URL}/deductions/delete/${id}`);
+        const response = await axios.delete(`/api/deductions/delete/${id}`);
         console.log(response.data);
         loadDeductionData();
         toast.success('Deduction Successfully Deleted!', {
@@ -117,18 +117,21 @@ function DeductionType() {
     }, []);
 
   return (
-    <div style={ {height : '75%', padding : 20}}>
+    <Box display='flex' height='100%' flexDirection='column' padding={2}>
       <Header 
         title={'Deduction Types'} 
         showButton={true} 
         onAddButtonClick={()=> setOpenPopup(true)} 
         toURL={loc.pathname + '/new'}
         />
-      <DataGrid 
-        columns={columns}
-        rows={deduction}
-        
-      />
+      <Box flex={1} position='relative' border='solid red'>
+        <Box sx={{position : 'absolute', inset : 0 }}>
+          <DataGrid 
+            columns={columns}
+            rows={deduction}
+          />
+        </Box>
+      </Box>
 
         <Popups
             title="Deduction"
@@ -141,7 +144,7 @@ function DeductionType() {
               onClosePopup={handleClosePopup}
             />
         </Popups>
-    </div>
+    </Box>
   )
 }
 

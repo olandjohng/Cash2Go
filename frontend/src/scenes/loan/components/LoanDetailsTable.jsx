@@ -1,8 +1,8 @@
 import { useTheme } from '@emotion/react';
 import { DeleteOutlined } from '@mui/icons-material';
-import { Button, InputBase, TextField, Tooltip, styled, tooltipClasses } from '@mui/material';
+import { Box, Button, InputBase, TextField, Grid, Tooltip, Typography, styled, tooltipClasses, Autocomplete } from '@mui/material';
 import { DataGrid, GridActionsCellItem, GridEditInputCell, GridRowEditStopReasons, GridRowModes, GridToolbarContainer, GRID_DATE_COL_DEF, useGridApiContext } from '@mui/x-data-grid';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { tokens } from '../../../theme';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
@@ -13,7 +13,7 @@ function EditToolbar(props) {
   
   const handleClick = () =>{
     const id = rows.length + 1
-    setRows((oldRows) => [...oldRows, {id , dueDate: null,  principal : '', interest : '', amortization : '', bank : null, checkNumber: '', isNew : true}])
+    setRows((oldRows) => [...oldRows, {id , dueDate: null,  principal : '', interest : '', amortization : '', bank_name : '', checkNumber: '',  isNew : true}])
     setRowModesModel((oldModel) => ({
       ...oldModel,
       [id] : { mode: GridRowModes.Edit, fieldToFocus: 'dueDate' }
@@ -104,12 +104,50 @@ const GridCurrency = (params) => {
   return <CurrencyInput sx={{ px : 1.5}} value={value} customInput={InputBase} onValueChange={handleChange}/>
 }
 
+const CustomFooter  = (props) => {
+  return (
+    <Box margin={1} >
+      <Box display='flex'>
+        <Box display='flex' alignItems='center' width={'20%'}> 
+          <Typography >Total</Typography>
+        </Box>
+        <Box flex={1}>
+          <Box mx={1} display='flex' alignItems='center'>
+            <Typography flex={1}>Principal</Typography>
+            <Typography flex={1}>Interest</Typography>
+            <Typography flex={1}>Amortization</Typography>
+          </Box>
+          <Box mx={1} display='flex' alignItems='center'>
+            <CurrencyInput displayType='text' value={props.principal_total} 
+              renderText={
+                (val) => <Typography flex={1}>{val}</Typography>
+              } /> 
+            <CurrencyInput value={props.interest_total} displayType='text' 
+              renderText={
+                (val) => <Typography flex={1}>{val}</Typography>
+              } />
+            <CurrencyInput value={props.amortization_total} displayType='text' 
+              renderText={
+                (val) => <Typography flex={1}>{val}</Typography>
+              } />
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+
+  )
+}
+
+
 export default function LoanDetailsTable({banks, rows, setRows}) {
 
   const theme = useTheme()
   const colors =  tokens(theme.palette.mode)
   const [rowModesModel, setRowModesModel] = useState({})
-
+  const [pricipalTotal, setPricipalTotal] = useState(0)
+  const [interestTotal, setInterestTotal] = useState(0)
+  const [amortizationTotal, setAmortizationTotal] = useState(0)
+  
   const handleDelete = (id) => {
     const filterRows = rows.filter((row) => row.id !== id).map((r,i) =>  ({...r, id : i + 1}) )
     setRows(filterRows)
@@ -120,7 +158,7 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
   };
 
   const handleRowInputChange = (newRow) => {
-    const updatedRow = { ...newRow, isNew : false}
+    const updatedRow = { ...newRow,  isNew : false}
     setRows(rows.map((row)=> (row.id === newRow.id ? updatedRow : row)))
     return updatedRow
   }
@@ -130,6 +168,13 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
       event.defaultMuiPrevented = true;
     }
   };
+  
+  useEffect(() => {
+      setPricipalTotal(rows.reduce((acc, cur) => acc + cur.principal, 0))
+      setInterestTotal(rows.reduce((acc, cur) => acc + cur.interest, 0))
+      setAmortizationTotal(rows.reduce((acc, cur) => acc + cur.amortization, 0))
+    
+  }, [rows])
 
   const columns = [
     { field: 'id', headerName: 'Count', editable: false,  width: 70 },
@@ -144,6 +189,17 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
       }
       
     },
+    // { field: 'check_date', headerName: 'Check Date', editable: true, width: 150,
+    //   GRID_DATE_COL_DEF, 
+    //   renderEditCell : (params) => { return <GridDatePicker {...params} />} ,
+    //   valueFormatter : (params) => {
+    //     if(params.value){
+    //       return dayjs(params.value).format('MM/DD/YYYY')
+    //     }
+    //     return ''
+    //   }
+      
+    // },
     { field: 'principal', headerName: 'Principal', width: 150, editable: true,
       
       valueFormatter : (params) => {
@@ -171,7 +227,10 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
         return {...params.row, amortization : (principal + interest)}
       }
     },
-    { field: 'bank', headerName: 'Bank', width: 120, editable: true, type : 'singleSelect', valueOptions : banks.map(b => b.name),},
+    { field: 'bank_name', headerName: 'Bank', width: 120, editable: true, type: 'singleSelect', valueOptions : banks.filter(b => +b.owner == 0),
+      getOptionValue: (value) => value.bank_branch,
+      getOptionLabel: (value) => value.bank_branch,
+    },
     { field: 'checkNumber', headerName: 'Check Number', width: 120, editable: true,   },
     { field: 'action', type : 'actions',
       getActions : ({id}) => {
@@ -200,9 +259,15 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
       processRowUpdate={handleRowInputChange}
       slots={{
         toolbar: EditToolbar,
+        footer : CustomFooter
       }}
       slotProps={{
         toolbar: {setRows, rows, setRowModesModel},
+        footer : {
+          principal_total : pricipalTotal,
+          interest_total : interestTotal,
+          amortization_total : amortizationTotal
+        }
       }}
     />
   )

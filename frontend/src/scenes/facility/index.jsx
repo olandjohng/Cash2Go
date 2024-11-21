@@ -5,7 +5,7 @@ import axios from 'axios'
 import Popups from '../../components/Popups'
 import NewFacility from './components/NewFacility'
 import { DeleteOutlined, EditCalendarOutlined } from '@mui/icons-material'
-import { Button, Tooltip } from '@mui/material'
+import { Box, Button, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import { tokens } from '../../theme'
 import { Bounce, toast } from 'react-toastify';
@@ -22,7 +22,7 @@ export default function Facility() {
 
   const loadFacilityData = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/facility`);
+      const response = await axios.get('/api/facility');
       setFacility(response.data);
     } catch (error) {
       console.error('Error loading facility data:', error);
@@ -76,7 +76,7 @@ export default function Facility() {
     }
 
     try {
-      const response = await axios.delete(`${import.meta.env.VITE_API_URL}/facility/delete/${id}`);
+      const response = await axios.delete(`/api/facility/delete/${id}`);
       console.log(response.data);
       loadFacilityData();
       toast.success('Facility Successfully Deleted!', {
@@ -114,18 +114,26 @@ export default function Facility() {
   useEffect(() =>{ 
     loadFacilityData();
   }, [])
+
+
   return (
-    <div style={ {height : '75%', padding : 20}}>
+    <Box padding={2} height='100%' display='flex' flexDirection='column'>
       <Header 
         title={'Facilities'} 
         showButton={true}
         onAddButtonClick={()=> setOpenPopup(true)} 
         toURL={loc.pathname + '/new'}
       />
-      <DataGrid 
-        columns={columns}
-        rows={facility}
-      />
+      <Box flex={1} border='solid red' position='relative'>
+        <Box sx={{position : 'absolute', inset : 0}}>
+          <DataGrid 
+            columns={columns}
+            rows={facility}
+          />
+
+        </Box>
+
+      </Box>
 
       <Popups
             title="Facility"
@@ -139,6 +147,6 @@ export default function Facility() {
             />
         </Popups>
 
-    </div>
+    </Box>
   )
 }

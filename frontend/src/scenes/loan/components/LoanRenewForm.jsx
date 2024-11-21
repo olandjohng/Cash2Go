@@ -84,7 +84,7 @@ export default function LoanRenewForm({dispatcher, popup, loanInitialValue, bank
     
     data = {...data , loan_details : mapLoanDetails} 
     console.log(data)
-    const request = await fetch(`${import.meta.env.VITE_API_URL}/loans/renew/`, {
+    const request = await fetch('/api/loans/renew/', {
       method : 'post',
       headers: {
         "Content-Type": "application/json",

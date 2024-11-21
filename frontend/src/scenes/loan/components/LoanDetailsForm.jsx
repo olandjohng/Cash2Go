@@ -1,10 +1,11 @@
-import { Autocomplete, Grid, InputAdornment, TextField, Button } from '@mui/material'
+import { Autocomplete, Grid, InputAdornment, TextField, Button, Typography } from '@mui/material'
 import React, { useContext, useState } from 'react'
 import { LoanFormContext, TextInput } from './LoanForm1'
 import { Box } from '@mui/system'
 import { MuiFileInput } from 'mui-file-input'
 import dayjs from 'dayjs'
 import LoanDetailsTable from './LoanDetailsTable'
+import LoanDetailsDaysTable from './LoanDetailsDaysTable'
 import { AttachFile } from '@mui/icons-material'
 import Papa, { parse } from 'papaparse';
 import CurrencyInput from './fields/CurrencyInput'
@@ -50,21 +51,25 @@ export default function LoanDetailsForm({banks, rows, setRows}) {
             InputProps={{ startAdornment : <AttachFile /> }}
             inputProps={{ accept : '.csv'}}
             onChange={ async (file) => { setFile(file) }}/>
+            
           <Button color='success' variant='outlined' 
             onClick={ async () => {
-              if(file){
+              if(file) {
                 Papa.parse(file, {
                   header : true,
                   skipEmptyLines : true,
                   complete : (result, file) => {
-                    console.log(result)
                     const data = result.data.map((v, i) => ({
                       ...v, id : i + 1
                     }))
+                    console.log(64, result)
                     setRows(data)
                   },
                   transform : (value, field) => {
                     if(field === 'dueDate') {
+                      return dayjs(value)
+                    }
+                    if(field === 'check_date'){
                       return dayjs(value)
                     }
 
@@ -78,6 +83,7 @@ export default function LoanDetailsForm({banks, rows, setRows}) {
             }}
           >Generate</Button>
         </Box>
+        <Box display='flex' alignItems='center' gap={3}>
           <Autocomplete sx={{mt : 2 , width : 150}} 
             options={['months', 'days']} 
             value={formValue.term_type}
@@ -87,11 +93,23 @@ export default function LoanDetailsForm({banks, rows, setRows}) {
             }}
             renderInput={(params) => <TextField {...params} label='Term Type' size='small'/>}
           />
+          {formValue.term_type == 'months' && (
+            
+            <Typography mt={2}>{rows.length} month's</Typography>
+          )}
+
+        </Box>
       </Grid>
-      
-      <Grid item xs={12}>
-        <LoanDetailsTable banks={banks} rows={rows} setRows={setRows}/>
-      </Grid>
+      { formValue.term_type == 'months' && (
+        <Grid item xs={12}>
+          <LoanDetailsTable banks={banks} rows={rows} setRows={setRows}/>
+        </Grid>
+      )} 
+      { formValue.term_type == 'days' && (
+        <Grid item xs={12}>
+          <LoanDetailsDaysTable banks={banks} rows={rows} setRows={setRows} formValue={formValue} />
+        </Grid>
+      )}
     </Grid>
   )
 }

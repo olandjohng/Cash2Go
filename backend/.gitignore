@@ -3,3 +3,4 @@
 /sqlitedata
 cash2go.sqlite
 .env
+/public/images/*

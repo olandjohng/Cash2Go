@@ -18,7 +18,7 @@ export default function NewDeduction({ onDeductionAdded, onClosePopup }) {
 
     useEffect(() => {
       if (id) {
-        axios.get(`${import.meta.env.VITE_API_URL}/deductions/read/${id}`)
+        axios.get(`/api/deductions/read/${id}`)
           .then((res) => {
             console.log('API Response:', res.data);
     
@@ -43,7 +43,7 @@ export default function NewDeduction({ onDeductionAdded, onClosePopup }) {
     
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const apiURL = id ? `${import.meta.env.VITE_API_URL}/deductions/edit/${id}` : `${import.meta.env.VITE_API_URL}/deductions/new`
+    const apiURL = id ? `/api/deductions/edit/${id}` : '/api/deductions/new'
     console.log({deductionType});
     const axiosMethod = id ? axios.put : axios.post;
 

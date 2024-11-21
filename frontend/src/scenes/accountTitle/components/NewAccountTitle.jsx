@@ -21,7 +21,7 @@ export default function NewAccountTitle({ onAccountTitleAdded, onClosePopup }) {
     // Start useEffect
     useEffect(() => {
       if (id) {
-        axios.get(`${import.meta.env.VITE_API_URL}/account-title/read/${id}`)
+        axios.get(`/api/account-title/read/${id}`)
           .then((res) => {
             console.log('API Response:', res.data);
     
@@ -52,7 +52,7 @@ export default function NewAccountTitle({ onAccountTitleAdded, onClosePopup }) {
     // End useEffect
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL}/account-category`)
+    axios.get('/api/account-category')
       .then(response => {
         setCategories(response.data);
         console.log('Categories:', response.data);
@@ -91,7 +91,7 @@ export default function NewAccountTitle({ onAccountTitleAdded, onClosePopup }) {
   
 const handleSubmit = async (e) => {
   e.preventDefault();
-  const apiURL = id ? `${import.meta.env.VITE_API_URL}/account-title/edit/${id}` : `${import.meta.env.VITE_API_URL}/account-title/new`
+  const apiURL = id ? `/api/account-title/edit/${id}` : '/api/account-title/new'
   console.log({accountTitle});
   const axiosMethod = id ? axios.put : axios.post;
 

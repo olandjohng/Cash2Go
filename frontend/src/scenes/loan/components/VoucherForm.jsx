@@ -13,7 +13,7 @@ export default function VoucherForm({accountTitle, voucher, setVoucher }) {
   useEffect(() => {
     const getEmployees = async () =>{
       try {
-        const request = await fetch(`${import.meta.env.VITE_API_URL}/employee`)
+        const request = await fetch('/api/employee')
         const responseJSON = await request.json()
         setEmployees(responseJSON)
       } catch (error) {
@@ -35,7 +35,7 @@ export default function VoucherForm({accountTitle, voucher, setVoucher }) {
           label='Prepared By'
           options={employees}
           err= {validationError}
-          getOptionLabel={(option) => option.name || option ||"" }
+          getOptionLabel={(option) => option.name || option || "" }
           renderOption={(props, option) => 
             <Box {...props} component='li' key={option.employee_id} id={option.employee_id}>
               {option.name}
@@ -117,13 +117,13 @@ export default function VoucherForm({accountTitle, voucher, setVoucher }) {
             </Grid>
             <Grid item>
               <CurrencyInput
-                label="Credit"
+                label="Debit"
                 sx={{width : 150}}
-                value={v.credit}
+                value={v.debit}
                 customInput={TextField}
                 onValueChange={(value) => {
                   const newValue = voucher.map((val, index) => {
-                    return i === index ? {...val, credit : value.value} : val
+                    return i === index ? {...val, debit : value.value} : val
                   })
                   setVoucher(newValue)
                   setFormValue({...formValue, voucher : newValue })
@@ -132,14 +132,13 @@ export default function VoucherForm({accountTitle, voucher, setVoucher }) {
             </Grid>
             <Grid item >
               <CurrencyInput 
-                label="Debit"
+                label="Credit"
                 sx={{width : 150}}
-                value={v.debit}
+                value={v.credit}
                 customInput={TextField}
                 onValueChange={(value)=>{
                   const newValue = voucher.map((val, index) => {
-                    console.log(index)
-                    return i === index ? {...val, debit : value.value} : val
+                    return i === index ? {...val, credit : value.value} : val
                   })
                   setVoucher(newValue)
                   setFormValue({...formValue, voucher : newValue})
