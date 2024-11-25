@@ -73,9 +73,9 @@ function Customers() {
       sortable: false,
       filterable: false,
     },
-    { field: "fullname", width: 280, headerName: "Fullname" },
-    { field: "contactNo", width: 100, headerName: "Contact" },
-    { field: "address", flex: 1, headerName: "Address" },
+    { field: "fullname", width : 220, headerName: "Fullname" },
+    { field: "contactNo", width: 120, headerName: "Contact" },
+    { field: "address", width: 120, headerName: "Address" },
     { field: "gender", width: 100, headerName: "Gender" },
     { field: "tin", width: 120, headerName: "TIN" },
     {
@@ -198,7 +198,7 @@ function Customers() {
   };
 
   return (
-    <div style={{ height: "75%", padding: 20 }}>
+    <Box padding={2} height='100%' display='flex' flexDirection='column'>
       <Header
         title={"Customer"}
         showButton={true}
@@ -221,17 +221,18 @@ function Customers() {
           <SearchOutlined />
         </IconButton>
       </Box>
-      <DataGrid
-        sx={{ height: "92%" }}
-        columns={columns}
-        rows={rows}
-        loading={isLoading}
-        rowCount={rowCount}
-        pageSizeOptions={[5, 10, 20]}
-        paginationMode="server"
-        paginationModel={paginationModel}
-        onPaginationModelChange={handlePaginationModelChange}
-      />
+      <Box flex={1} position='relative'>
+        <Box sx={{position : 'absolute', inset : 0}}></Box>
+        <DataGrid
+          columns={columns}
+          rows={rows}
+          loading={isLoading}
+          rowCount={rowCount}
+          paginationMode="server"
+          paginationModel={paginationModel}
+          onPaginationModelChange={handlePaginationModelChange}
+        />
+      </Box>
 
       <Popups
         title="Customer"
@@ -244,7 +245,7 @@ function Customers() {
           onClosePopup={handleClosePopup}
         />
       </Popups>
-    </div>
+    </Box>
   );
 }
 

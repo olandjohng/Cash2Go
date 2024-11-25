@@ -8,7 +8,7 @@ import axios from 'axios'
 import NewBank from './components/NewBank'
 import Popups from '../../components/Popups'
 import { DeleteOutlined, EditCalendarOutlined } from '@mui/icons-material'
-import { Button, Tooltip } from '@mui/material'
+import { Box, Button, Tooltip } from '@mui/material'
 import { Bounce, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BankForm from './components/BankForm'
@@ -42,7 +42,6 @@ export default function Banks() {
     { field: 'bank_branch', flex : 1, headerName : 'Bank/Branch'},
     {
       field: 'actions',
-      headerName: '',
       sortable: false,
       width: 150,
       renderCell: (params) => (
@@ -129,7 +128,7 @@ export default function Banks() {
   }, [loc]);
 
   return (
-    <div style={{height : '75%', padding : 20}}>
+    <Box height='100%' display='flex' flexDirection='column' padding={2}>
       <Header 
         title={'Bank'} 
         showButton= {true}
@@ -138,12 +137,14 @@ export default function Banks() {
           setOpenPopup(true)
         }} 
       />
-    
-        <DataGrid 
-          columns={columns}
-          rows={bank}
-        />
-
+      <Box flex={1} position='relative'>
+        <Box sx={{position: 'absolute', inset : 0}} >
+          <DataGrid 
+            columns={columns}
+            rows={bank}
+          />
+        </Box>
+      </Box>
       <Popups
             title="Bank"
             openPopup={openPopup}
@@ -157,6 +158,6 @@ export default function Banks() {
             />
       </Popups>
       
-    </div>
+    </Box>
   )
 }

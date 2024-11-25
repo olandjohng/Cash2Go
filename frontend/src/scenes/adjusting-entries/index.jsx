@@ -85,7 +85,7 @@ export default function AdjustingEntriesPage() {
     },
     { field : 'ticket_number', headerName: "TICKET NO.", width: 90 },
     { field : 'date', headerName: "DATE",  width: 85 },
-    { field : 'borrower_name', headerName: "BORROWER", flex : 1},
+    { field : 'borrower_name', headerName: "BORROWER", flex : 1,},
     { field : 'prepared_by', headerName: "PREPARED BY",   width: 150},
     { field : 'checked_by', headerName: "CHECKED BY",   width: 150},
     { field : 'approved_by', headerName: "APPROVED BY",  width: 150 },
@@ -138,15 +138,21 @@ export default function AdjustingEntriesPage() {
   }
   
   return (
-    <div style={{ height: "80%", padding: 20 }}>
+    <Box padding={2} height='100%' display='flex' flexDirection='column'>
       <Header title='Adjusting Entries' onAddButtonClick={() => { setOpenPopup(true)}} />
-        {isLoading ? 
-          (
-            <Skeleton variant="rounded" width='100%' height='100%' />
-          ) : (
-            <DataGrid rows={adjustingEntries} columns={colums}/>
-          )
-        }
+        <Box flex={1} position='relative'>
+          <Box sx={{position : 'absolute', inset : 0}}>
+            {isLoading ? 
+              (
+                <Skeleton variant="rounded" width='100%' height='100%' />
+              ) : (
+                <DataGrid rows={adjustingEntries} columns={colums}/>
+              )
+            }
+
+          </Box>
+
+        </Box>
       <Popups 
         title="Adjusting Entries Form"
         openPopup={openPopup}
@@ -170,6 +176,6 @@ export default function AdjustingEntriesPage() {
           </ExpensesParentForm>
         </Box>
       </Popups>
-    </div>
+    </Box>
   )
 }

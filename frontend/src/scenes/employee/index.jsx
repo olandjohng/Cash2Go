@@ -3,7 +3,7 @@ import Header from "../../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
 import Popups from "../../components/Popups";
 import { DeleteOutlined, EditCalendarOutlined } from "@mui/icons-material";
-import { Button, Tooltip } from "@mui/material";
+import { Box, Button, Tooltip } from "@mui/material";
 import { useTheme } from "@emotion/react";
 import { tokens } from "../../theme";
 import { Bounce, toast } from "react-toastify";
@@ -115,18 +115,25 @@ function Employee() {
   }, []);
 
   return (
-    <div style={ {height : '75%', padding : 20}}>
+    <Box height='100%' padding={2} display='flex' flexDirection='column'>
     <Header 
       title={'Employee'} 
       showButton={true} 
       onAddButtonClick={()=> setOpenPopup(true)} 
       toURL={loc.pathname + '/new'}
       />
-    <DataGrid 
-      columns={columns}
-      rows={employee}
-      
-    />
+    <Box position='relative' flex={1}>
+      <Box sx={{position: 'absolute', inset : 0}}>
+        <DataGrid 
+          sx={{
+            display: 'grid',
+            gridTemplateRows: 'auto 4rem',
+          }}
+          columns={columns}
+          rows={employee}
+        />
+      </Box>
+    </Box>
 
       <Popups
           title="Employee"
@@ -139,7 +146,7 @@ function Employee() {
             onClosePopup={handleClosePopup}
           />
       </Popups>
-  </div>
+  </Box>
   );
 }
 

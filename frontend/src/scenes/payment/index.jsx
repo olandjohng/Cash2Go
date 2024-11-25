@@ -190,7 +190,13 @@ export default function LoanPayment() {
   };
 
   return (
-    <div style={{ height: "75%", padding: 20 }}>
+    <Box 
+      // style={{ height: "75%", padding: 20 }}
+      height={'100%'}
+      display={'flex'}
+      flexDirection={'column'}
+      padding={2}
+    >
       <Header title="LOAN PAYMENTS" onAddButtonClick={() => setOpenPopup(true)} />
       <Box
         display="flex"
@@ -240,25 +246,29 @@ export default function LoanPayment() {
 
         </Box>
       </Box>
-      { isDeductionView ? 
-        (
-          <DeductionDataGrid 
-            sx={{ height: "89%" }}
-            // columns={deduction_col}
-            rows={deductionRows}
-            // handleCsv={handleCsvDeduction}
-            // handlePrint={handlePrintDeduction}
-          />
-        )
-      : 
-        (
-          <PaymentDataGrid 
-            sx={{ height: "89%" }}
-            columns={payment_col}
-            rows={paymentRows}
-          />
-        )
-      }
+      <Box flex={1} position='relative'>
+        <Box sx={{position: 'absolute', inset : 0}} >
+          { isDeductionView ? 
+            (
+              <DeductionDataGrid 
+                // columns={deduction_col}
+                rows={deductionRows}
+                // handleCsv={handleCsvDeduction}
+                // handlePrint={handlePrintDeduction}
+              />
+            )
+          : 
+            (
+              <PaymentDataGrid 
+
+                columns={payment_col}
+                rows={paymentRows}
+              />
+            )
+          }
+
+        </Box>
+      </Box>
 
       <Popups
         title="Loan Payment Details"
@@ -268,6 +278,6 @@ export default function LoanPayment() {
       >
           <PaymentForm popup={setOpenPopup} paymentDispacher={paymentRowDispatch}/>
       </Popups>
-    </div>
+    </Box>
   );
 }

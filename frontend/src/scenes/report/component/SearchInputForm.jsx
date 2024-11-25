@@ -18,6 +18,7 @@ export default function SearchInputForm({submit, name, ...props}) {
     }}
       style={{
         display : 'inline-block',
+        width: 'auto',
         background : colors.greenAccent[800],
         borderRadius : 3
       }}

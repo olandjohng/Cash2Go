@@ -149,7 +149,7 @@ const RefreshToolBar = ({refresh}) =>{
   )
 }
 
-const Loan = () => {
+export default function Loan() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -271,7 +271,8 @@ const Loan = () => {
   const [loans, dispatch] = useReducer(reducer, []);
   const [fileAttachment, setFileAttachment]  = useState(null)
   const attachmentId = useRef(null)
-  
+
+
   const formik = useFormik({
     initialValues : {
       type : 'customer_name',
@@ -436,8 +437,9 @@ const Loan = () => {
     }
   }, []);
 
+  
   return (
-    <div style={{ height: "75%", padding: 20 }}>
+    <Box height='100%' padding={2} display='flex' flexDirection='column'>
       <Header
         title="LOANS"
         showButton={true}
@@ -462,23 +464,26 @@ const Loan = () => {
           </Box>
         </Box> 
       </form>
-      <DataGrid
-        sx={{ height: "95%" }}
-        loading={loanding}
-        rows={loans}
-        columns={columns}
-        getRowId={(row) => row.loan_header_id}
-        slots={{
-          toolbar : RefreshToolBar
-        }}
-        slotProps = {{
-          toolbar : {
-            refresh : getData
-          }
-        }}
-        onRowDoubleClick={handleRowDoubleClick}
-      />
+      <Box flex={1} position='relative' >
+        <Box sx={{position: 'absolute', inset : 0}} >
+          <DataGrid
+            loading={loanding}
+            rows={loans}
+            columns={columns}
+            getRowId={(row) => row.loan_header_id}
+            slots={{
+              toolbar : RefreshToolBar
+            }}
+            slotProps = {{
+              toolbar : {
+                refresh : getData
+              }
+            }}
+            onRowDoubleClick={handleRowDoubleClick}
+          />
 
+        </Box>
+      </Box>
       <Popups
         title="Loan Details"
         openPopup={openPopup}
@@ -537,8 +542,6 @@ const Loan = () => {
           dispatcher={dispatch}
         />
       </Popups>
-    </div>
+    </Box>
   );
 };
-
-export default Loan;

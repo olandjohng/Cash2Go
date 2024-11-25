@@ -6,18 +6,18 @@
 html,
 body,
 #root{
-  height: 100vh;
+  /* height: 100vh; */
   height: 100%;
   width: 100%; 
   font-family: 'Poppins', sans-serif;
 }
 
-.app {
+/* .app {
   display: flex;
   height: 100%;
-}
+} */
 
-.content {
+/* .content {
   flex: 1;
   overflow: hidden;
   display: flex;
@@ -29,7 +29,7 @@ body,
   flex: 1;
   overflow-y: auto;
   height: 80%;
-}
+} */
 
 ::-webkit-scrollbar {
     width: 2px;

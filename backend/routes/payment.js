@@ -94,7 +94,8 @@ const formatName = (item) => {
 
 paymentRouter.get('/', async (req, res) => {
   
-  const {date, search, from, to} = req.query
+  const {date, search, } = req.query
+  console.log(req.query)
   // return
   const fields = [
     {id : 'p_h.payment_history_id'},
@@ -137,7 +138,7 @@ paymentRouter.get('/', async (req, res) => {
       else if (req.query['check_number'])
         sub.whereILike(builder.raw('p.checkno'), `%${req.query['check_number'].trim()}%`)
       else 
-        sub.havingBetween('p_h.payment_date', [from , to])
+        sub.havingBetween('p_h.payment_date', [date.from , date.to])
     })
     
   const result = payments.map((payment) => {
