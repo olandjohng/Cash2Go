@@ -136,7 +136,7 @@ export default function Category() {
         onAddButtonClick={()=> setOpenPopup(true)} 
         toURL={loc.pathname + '/new'}
       />
-      <Box border='solid red' flex={1} position='relative'>
+      <Box flex={1} position='relative'>
         <Box sx={{position : 'absolute', inset : 0}}>
           <DataGrid 
             columns={columns}

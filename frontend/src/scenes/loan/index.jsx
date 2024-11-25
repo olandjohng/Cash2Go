@@ -464,7 +464,7 @@ export default function Loan() {
           </Box>
         </Box> 
       </form>
-      <Box border='solid red' flex={1} position='relative' >
+      <Box flex={1} position='relative' >
         <Box sx={{position: 'absolute', inset : 0}} >
           <DataGrid
             loading={loanding}

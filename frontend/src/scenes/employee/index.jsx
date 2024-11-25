@@ -122,7 +122,7 @@ function Employee() {
       onAddButtonClick={()=> setOpenPopup(true)} 
       toURL={loc.pathname + '/new'}
       />
-    <Box position='relative' flex={1} border='solid red'>
+    <Box position='relative' flex={1}>
       <Box sx={{position: 'absolute', inset : 0}}>
         <DataGrid 
           sx={{

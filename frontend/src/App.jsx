@@ -70,7 +70,6 @@ function App() {
         <AuthContextProvider>
           <CssBaseline />
             <Routes>
-              
               <Route path="/auth/login" element={<Signin />} />
 
               <Route path="/" element={<RootLayout />}> 

@@ -27,12 +27,11 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
   };
 
 const LeftSidebar = () => {
-  const {getUser} = useAuthContext()
+  const {user} = useAuthContext()
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState('Dashboard');
-
   return (
 
       <Box
@@ -102,10 +101,10 @@ const LeftSidebar = () => {
                     fontWeight="bold"
                     sx={{ m: "10px 0 0 0" }}
                   >
-                    
+                    {user && user.full_name}
                   </Typography>
-                  <Typography variant="h5" color={colors.greenAccent[500]}>
-                    Administrator
+                  <Typography sx={{textTransform : 'capitalize'}} variant="h5" color={colors.greenAccent[500]}>
+                    {user && user.account_type}
                   </Typography>
                 </Box>
               </Box>

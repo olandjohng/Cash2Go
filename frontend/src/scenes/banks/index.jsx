@@ -137,7 +137,7 @@ export default function Banks() {
           setOpenPopup(true)
         }} 
       />
-      <Box flex={1} position='relative' border='solid red'>
+      <Box flex={1} position='relative'>
         <Box sx={{position: 'absolute', inset : 0}} >
           <DataGrid 
             columns={columns}

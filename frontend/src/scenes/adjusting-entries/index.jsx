@@ -140,7 +140,7 @@ export default function AdjustingEntriesPage() {
   return (
     <Box padding={2} height='100%' display='flex' flexDirection='column'>
       <Header title='Adjusting Entries' onAddButtonClick={() => { setOpenPopup(true)}} />
-        <Box flex={1} border='solid red' position='relative'>
+        <Box flex={1} position='relative'>
           <Box sx={{position : 'absolute', inset : 0}}>
             {isLoading ? 
               (
