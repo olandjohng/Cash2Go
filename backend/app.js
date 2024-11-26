@@ -57,6 +57,7 @@ app.use('/api/employee', employeeRouter)
 app.use('/api/expenses', expensesRouter)
 app.use('/api/adjusting-entries', adjustingEntriesRouter)
 app.use('/api/auth', auth)
+
 app.use('*', express.static('dist'))
 
 app.listen(PORT, () => { console.log(`Server running at  \n${getIPv4(PORT)}`) })

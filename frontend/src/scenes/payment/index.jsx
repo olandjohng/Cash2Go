@@ -251,10 +251,7 @@ export default function LoanPayment() {
           { isDeductionView ? 
             (
               <DeductionDataGrid 
-                // columns={deduction_col}
                 rows={deductionRows}
-                // handleCsv={handleCsvDeduction}
-                // handlePrint={handlePrintDeduction}
               />
             )
           : 
