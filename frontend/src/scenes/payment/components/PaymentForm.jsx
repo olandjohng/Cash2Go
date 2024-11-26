@@ -167,7 +167,7 @@ export default function PaymentForm({paymentDispacher, popup}) {
       const k = keys[key]
       fData.append(k, formatData[k])
     }
-
+    
     try {
       const req = await fetch('/api/payments', {
         method : 'post',

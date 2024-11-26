@@ -74,10 +74,10 @@ function App() {
 
               <Route path="/" element={<RootLayout />}> 
                 <Route index element={<Dashboard />} /> 
-                <Route path='loans'element={<Loan />} />
+                <Route path='/loans'element={<Loan />} />
                 
 
-                <Route path="report" element={<Report />} />
+                <Route path="/report" element={<Report />} />
                 
                 <Route path="/payments" element={<LoanPayment />} />
                 {/* <Route path="/payments/:id" element={<LoanPayment />} /> */}
