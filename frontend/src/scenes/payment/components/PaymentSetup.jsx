@@ -58,7 +58,6 @@ const TextInput = ({name, onValueChange, ...props }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const handleChange = (e) => {
-    console.log(e.target.value, name )
     onValueChange(e.target.value, name, e)
   }
   return(

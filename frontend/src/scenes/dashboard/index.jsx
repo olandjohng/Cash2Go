@@ -79,15 +79,10 @@ const Dashboard = () => {
           {weeklyCollectionLoading ? (
             <Skeleton variant='rectangular' height='100%'/>
           ) : (
-            <Box  height='100%' position='relative'>
+            <Box flex={1} position='relative'>
               <Box sx={{position : 'absolute', inset : 0}}>
                 <StlyedDataGrid
-                  sx={{
-                    display: 'grid',
-                    gridTemplateRows: 'auto',
-                  }}
                 loading={weeklyCollectionLoading}  rows={weeklyCollectionData.data} columns={columns} getRowId={(r) => r.loan_detail_id } getRowClassName={(params) => `status--${params.row.payment_status_id}`}/>
-
               </Box>
             </Box>
           )}

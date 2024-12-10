@@ -182,9 +182,13 @@ paymentRouter.post('/', upload.single('attachment'), async (req, res) => {
   // get payment status
 
   const data = req.body
-  const {principal_payment, interest_payment, penalty_amount} = data 
-  let statusId = 0;
+  const { principal_payment, interest_payment, penalty_amount } = data 
   
+  const bankJSON = JSON.parse(data.bank)
+  const accountTitlesJSON = JSON.parse(data.account_titles)
+
+  let statusId = 0;
+
   const formatStatus = (statusList) => {
     const status = {}
     for (const item of statusList) {
@@ -226,9 +230,9 @@ paymentRouter.post('/', upload.single('attachment'), async (req, res) => {
         const totalInterestPayment = Number(partialPaymentInfo.interest_payment) + interest_payment
 
         if(totalPrincipalPayment == monthly_principal && totalInterestPayment == monthly_interest)
-         { statusId = status['paid']; }
+          { statusId = status['paid']; }
         else 
-        { statusId = status['partialy_paid']; } 
+          { statusId = status['partialy_paid']; } 
 
         await t('paymenttbl').where({loan_detail_id : data.loan_detail_id}).update({
           // loan_detail_id : data.loan_detail_id,
@@ -242,7 +246,7 @@ paymentRouter.post('/', upload.single('attachment'), async (req, res) => {
           receiptno : data.pr_number,
           OR_no : data.or_number,
           remarks : data.remarks,
-          bank : data.bank_name,
+          bank : bankJSON.name,
           checkno : data.check_number 
         })
 
@@ -259,13 +263,13 @@ paymentRouter.post('/', upload.single('attachment'), async (req, res) => {
           receiptno : data.pr_number,
           OR_no : data.or_number,
           remarks : data.remarks,
-          bank : data.bank_name,
+          bank : bankJSON.name,
           checkno : data.check_number
         })
       }
       
       const payment_data = () => {
-         payment_info = {
+        payment_info = {
           loan_detail_id : data.loan_detail_id,
           payment_principal : principal_payment,
           payment_interest : interest_payment,
@@ -276,6 +280,7 @@ paymentRouter.post('/', upload.single('attachment'), async (req, res) => {
           attachment : fileName
           // check_date : data.check_date
         }
+
         if(data.payment_type.toLowerCase() === 'check') {
           
           return {
@@ -287,6 +292,22 @@ paymentRouter.post('/', upload.single('attachment'), async (req, res) => {
       }
 
       const paymentId = await t('payment_historytbl').insert(payment_data())
+
+      //
+      if(accountTitlesJSON.length > 0) {
+      
+        const formatAccountTitles = accountTitlesJSON.map((v) => ({
+          account_title_id : v.category.id,
+          credit: Number(v.credit),
+          debit : Number(v.debit),
+          payment_id: paymentId[0]
+        })) 
+      
+        await t('payment_voucher').insert(formatAccountTitles)
+      
+      }
+      
+
 
       if(data.payment_type.toLowerCase() === 'check'){
         await builder('loan_detail').where({loan_detail_id : data.loan_detail_id}).update({check_number : data.check_number});
@@ -305,9 +326,6 @@ paymentRouter.post('/', upload.single('attachment'), async (req, res) => {
       const loanInfo = await t(t.raw('loan_headertbl as l_h')).where('loan_header_id', data.loan_header_id).select(
         'pn_number',
         { fullName : builder.raw(`CONCAT_WS(', ', clname, cfname, cmname)`) }
-        // 'cfname',
-        // 'cmname',
-        // 'clname',
       ).innerJoin(builder.raw('customertbl as c'), 'c.customerid', 'l_h.customer_id').first()
 
       res.status(200).json({
@@ -317,7 +335,7 @@ paymentRouter.post('/', upload.single('attachment'), async (req, res) => {
         fullName : loanInfo.fullName,
         pn_number : loanInfo.pn_number,
         payment_type : data.payment_type,
-        bank : data.bank_name,
+        bank : bankJSON.name,
         check_number : data.check_number,
         check_date : data.check_date ? data.check_date : null,
         payment_principal : data.principal_payment,
