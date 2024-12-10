@@ -94,8 +94,8 @@ export default function Report() {
       <Header title='Report' showButton={false} />
       <Box style={{display : 'flex', height: '90%', gap : '5px'}}>
         
-        <Box border='solid red' flex={1} display='flex' gap={1}>
-          <Box flex={1} border='solid blue' position='relative'>
+        <Box flex={1} display='flex' gap={1}>
+          <Box flex={1} position='relative'>
             <Box sx={{position : 'absolute', inset : 0}}>
               <DataGrid 
                 apiRef={dataGridRef}
@@ -115,7 +115,7 @@ export default function Report() {
               />
             </Box>
           </Box>
-          <Box flex={1} border='solid orange' position='relative'>
+          <Box flex={1} position='relative'>
           <Box sx={{position: 'absolute', inset : 0}}>
             {isLoading ? 
               (

@@ -58,7 +58,6 @@ const TextInput = ({name, onValueChange, ...props }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const handleChange = (e) => {
-    console.log(e.target.value, name )
     onValueChange(e.target.value, name, e)
   }
   return(
@@ -158,13 +157,19 @@ const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter, 
         {paymentData.payment_type === "CHECK" && (
           <Grid container columnSpacing={1}  >
             <Grid item xs={4} marginBottom={2}>
-              <Autocomplete options={banks}
-                getOptionLabel={(option) => option.name || "" || option}
-                value={paymentData.bank}
-                onInputChange={(event, value) => {
-                  selectedBankSetter(value)
-                  paymentDataSetter((old) => ({...old, bank : value}))
+              <Autocomplete 
+                options={banks}
+                getOptionLabel={(option) => option.name }
+                value={paymentData.bank || null}
+                onChange={(_, value) => {
+                  console.log(value)
+                  paymentDataSetter((old) => ({...old, bank_name : value.name, bank_id: value.id, bank : value}))
                 }}
+                // onInputChange={(event, value) => {
+                //   selectedBankSetter(value)
+                //   console.log(value)
+                //   paymentDataSetter((old) => ({...old, bank : value}))
+                // }}
                 renderInput={(params) => <TextField {...params} label='Bank'/> }
                 renderOption={(props, option) => 
                   <Box {...props} component='li' key={option.id} >

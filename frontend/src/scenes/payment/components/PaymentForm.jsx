@@ -47,7 +47,8 @@ const initialPaymentData = {
   bank: "",
   check_number: "",
   remarks: "",
-  attachment : null
+  attachment : null,
+  account_titles : []
 };
 const initialCashRowData = [
   { denomination: 1000, count: 0 },
@@ -161,20 +162,26 @@ export default function PaymentForm({paymentDispacher, popup}) {
     const formatData = {...paymentData , check_date : paymentData.check_date ? dayjs(paymentData.check_date).format('YYYY-MM-DD') : null}
     // return console.log(formatData)
     const fData = new FormData()
-    const keys = Object.keys(formatData)
-
-    for (const key in keys) {
-      const k = keys[key]
-      fData.append(k, formatData[k])
-    }
-
+    
+    fData.set('loan_header_id', formatData.loan_header_id);
+    fData.set('loan_detail_id', formatData.loan_detail_id);
+    fData.set('payment_type', formatData.payment_type);
+    fData.set('principal_payment', formatData.principal_payment);
+    fData.set('interest_payment', formatData.interest_payment);
+    fData.set('check_date', formatData.check_date);
+    fData.set('penalty_amount', formatData.penalty_amount);
+    fData.set('pr_number', formatData.pr_number);
+    fData.set('or_number', formatData.or_number);
+    fData.set('bank', JSON.stringify(formatData.bank));
+    fData.set('check_number', formatData.check_number);
+    fData.set('remarks', formatData.remarks);
+    fData.set('attachment', formatData.attachment);
+    fData.set('account_titles', JSON.stringify(formatData.account_titles));
+    
     try {
       const req = await fetch('/api/payments', {
         method : 'post',
         body : fData,
-        // headers : {
-        //   "Content-Type": "multipart/form-data",
-        // }
       })
 
       if(req.ok) {

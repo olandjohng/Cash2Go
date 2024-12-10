@@ -74,23 +74,21 @@ const Dashboard = () => {
         }
       </Box>
       <Box >
-        <Box style={{height : '25rem'}} border='solid orange' display='flex' flexDirection='column'>
+        <Box style={{height : '25rem'}} display='flex' flexDirection='column'>
           <p style={{ padding : 16 , textTransform : 'uppercase', fontSize : 'medium'}}>Weekly Collection</p>
           {weeklyCollectionLoading ? (
             <Skeleton variant='rectangular' height='100%'/>
           ) : (
-            <Box border='solid blue' height='100%'>
-              <StlyedDataGrid
-                sx={{
-                  display: 'grid',
-                  gridTemplateRows: 'auto',
-                }}
-              loading={weeklyCollectionLoading}  rows={weeklyCollectionData.data} columns={columns} getRowId={(r) => r.loan_detail_id } getRowClassName={(params) => `status--${params.row.payment_status_id}`}/>
+            <Box flex={1} position='relative'>
+              <Box sx={{position : 'absolute', inset : 0}}>
+                <StlyedDataGrid
+                loading={weeklyCollectionLoading}  rows={weeklyCollectionData.data} columns={columns} getRowId={(r) => r.loan_detail_id } getRowClassName={(params) => `status--${params.row.payment_status_id}`}/>
+              </Box>
             </Box>
           )}
         </Box>
         
-        <Box border='solid orange'  style={{height : '25rem', marginTop : 75}} >
+        <Box style={{height : '25rem', marginTop : 20}} display='flex' flexDirection='column' >
           <Box style={{ display : 'flex', justifyContent : 'space-between'}}>
             <p style={{ padding : 16 , textTransform : 'uppercase', fontSize : 'medium'}}>Monthly and Yearly Collections</p>
             <TextField sx={{py : 1.2}}  select size="small" defaultValue={type} value={type} 
@@ -104,25 +102,31 @@ const Dashboard = () => {
               ))}
             </TextField>
           </Box>
-           {type === 'month' ?
-              (
-              
-                <Box border='solid blue' height='100%'>
-                  <MonthlyCollectionsDataGrid columns={columns} isLoading={monthlyCollectionLoading} monthlyCollection={monthlyCollectionData} />
-                </Box>
-              
-              ) : (
-                <Box border='solid blue' height='100%'>
-                  <YearlyCollectionsDataGrid columns={columns} isLoading={yearlyCollectionLoading} yearlyCollection={yearlyCollectionData} />
-                </Box>
-              )
-            }
+          <Box position='relative' flex={1}>
+            <Box sx={{position : 'absolute', inset : 0}}>
+              {type === 'month' ?
+                  (
+                  
+                    // <Box border='solid blue' height='100%'>
+                      <MonthlyCollectionsDataGrid columns={columns} isLoading={monthlyCollectionLoading} monthlyCollection={monthlyCollectionData} />
+                    // </Box>
+                  
+                  ) : (
+                    // <Box border='solid blue' height='100%'>
+                      <YearlyCollectionsDataGrid columns={columns} isLoading={yearlyCollectionLoading} yearlyCollection={yearlyCollectionData} />
+                    // </Box>
+                  )
+              }
+            </Box>
+          </Box>
         </Box>
         
-        <Box style={{height : '25rem', marginTop : 75}} border='solid orange' display='flex' flexDirection='column' >
+        <Box style={{height : '25rem', marginTop : 20}}  display='flex' flexDirection='column' >
           <p style={{ padding : 16 , textTransform : 'uppercase', fontSize : 'medium'}}>Birthday</p>
-          <Box border='solid blue' height='100%'>
-            <BirthdayDataGrid columns={birthday_column} birthdayData={birthdayData} isLoading={birthdayLoading} />
+          <Box flex={1} position='relative'>
+            <Box sx={{position : 'absolute', inset : 0}}>
+              <BirthdayDataGrid columns={birthday_column} birthdayData={birthdayData} isLoading={birthdayLoading} />
+            </Box>
           </Box>
         </Box>
       </Box>

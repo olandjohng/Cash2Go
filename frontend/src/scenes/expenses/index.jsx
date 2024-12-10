@@ -2,7 +2,7 @@ import { DataGrid, GridActionsCell, GridActionsCellItem } from '@mui/x-data-grid
 import React, { useState } from 'react'
 import Header from '../../components/Header'
 import Popups from '../../components/Popups'
-import { Box, Button } from '@mui/material'
+import { Box, Button, Skeleton } from '@mui/material'
 import ExpensesParentForm from './components/ExpensesParentForm'
 import ExpensesDetails from './components/ExpensesDetails'
 import ExpensesVoucher from './components/ExpensesVoucher'
@@ -248,10 +248,11 @@ export default function ExpensesPage() {
   return (
     <Box padding={2} height='100%' display='flex' flexDirection='column'>
       <Header title='Expenses' onAddButtonClick={ () => setOpenExpensesForm(true)}/>
-        <Box border='solid red' flex={1} position='relative'>
+        <Box flex={1} position='relative'>
           <Box sx={{position : 'absolute', inset: 0}}>
-            {!isLoading && 
-              <DataGrid columns={column} rows={expenses} rowSelection={false}/>
+            {!isLoading ?
+              (<DataGrid columns={column} rows={expenses} rowSelection={false}/>) :
+              (<Skeleton variant='rectangular' height='100%' width='100%'/>)
             }
           </Box>
         </Box>

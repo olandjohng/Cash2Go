@@ -124,7 +124,7 @@ function AccountCategory() {
         onAddButtonClick={()=> setOpenPopup(true)} 
         toURL={loc.pathname + '/new'}
         />
-      <Box flex={1} position='relative' border='solid red'>
+      <Box flex={1} position='relative' >
         <Box sx={{position : 'absolute', inset : 0}}>
           <DataGrid 
             columns={columns}

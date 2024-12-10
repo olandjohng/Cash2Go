@@ -192,7 +192,6 @@ export default function LoanPayment() {
   return (
     <Box 
       // style={{ height: "75%", padding: 20 }}
-      border={'solid red'}
       height={'100%'}
       display={'flex'}
       flexDirection={'column'}
@@ -247,15 +246,12 @@ export default function LoanPayment() {
 
         </Box>
       </Box>
-      <Box border='solid blue' flex={1} position='relative'>
+      <Box flex={1} position='relative'>
         <Box sx={{position: 'absolute', inset : 0}} >
           { isDeductionView ? 
             (
               <DeductionDataGrid 
-                // columns={deduction_col}
                 rows={deductionRows}
-                // handleCsv={handleCsvDeduction}
-                // handlePrint={handlePrintDeduction}
               />
             )
           : 

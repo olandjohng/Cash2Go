@@ -4,8 +4,8 @@ import React, { useState } from 'react'
 import { IMaskMixin } from 'react-imask';
 import * as yup from 'yup'
 
-const NumberInput = IMaskMixin(({inputRef, ...props}) => (
-  <TextField {...props} fullWidth  inputRef={inputRef}/>
+export const NumberInput = IMaskMixin(({inputRef, ...props}) => (
+  <TextField {...props} fullWidth inputRef={inputRef}/>
 ))
 
 const validationSchema = yup.array(
