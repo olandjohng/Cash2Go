@@ -325,7 +325,6 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
             stepName="Deduction Details"
             schema={deductionSchema}
             onSubmit={() => {
-              console.log(formValue)
               try {
                 deductionSchema.validateSync(formValue, 
                   {abortEarly : false}
@@ -348,7 +347,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
           <FormStep
             stepName="Summary"
             onSubmit={() => {
-              console.log(formValue)
+          
             }}
             schema={yup.object({})}
           >
@@ -376,9 +375,10 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
             }}
           >
             <VoucherPrint onClick={() => {
-               const templateData = {
+              
+              const templateData = {
                 borrower : formValue.customer_name,
-                date : dayjs(new Date()).format('MM-DD-YYYY'), 
+                date : formValue.date_granted.format('MM-DD-YYYY'), 
                 details : formValue.voucher,
                 voucherNumber : formValue.voucher_number,
                 logo : c2gLogo,

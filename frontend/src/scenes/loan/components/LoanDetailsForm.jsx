@@ -62,7 +62,6 @@ export default function LoanDetailsForm({banks, rows, setRows}) {
                     const data = result.data.map((v, i) => ({
                       ...v, id : i + 1
                     }))
-                    console.log(64, result)
                     setRows(data)
                   },
                   transform : (value, field) => {
