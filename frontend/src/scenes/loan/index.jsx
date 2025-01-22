@@ -124,8 +124,7 @@ const getVoucher = async (id) => {
   try {
     const fetchData = await fetch(`/api/loans/voucher/${id}`);
     const voucherJSON = await fetchData.json();
-    console.log(voucherJSON)
-    // return 
+
     const format = {
       ...voucherJSON,
       logo: c2gImage,

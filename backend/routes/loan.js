@@ -89,7 +89,7 @@ loanRouter.get('/voucher/:id', async (req, res) =>{
     has_second_check: item.has_second_check,
     check_date : item.check_date,
     borrower : fullname.trim(),
-    date : new Date().toISOString().split('T')[0],
+    date : dayjs(item.date_granted).format('MM-DD-YYYY'),
     voucherNumber : item.voucher_number
   }
 

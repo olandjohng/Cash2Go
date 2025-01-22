@@ -61,14 +61,12 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
   const [hasSecondCheck, setHasSecondCheck] = useState(false)
 
   const handleTextInputChange = (e, field) => {
-    console.log(field)
     setValidationError(null)
     setFormValue((old) => ({...old , [field] : e.target.value}))
   }
   
   const handleComboBoxChange = (fields, values) => {
     setValidationError(null)
-    console.log(fields, values)
     setFormValue((old) => ({...old, [fields.name] : values.value , [fields.id] : values.id}))
   }
 
@@ -164,6 +162,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           onChange={(val) => { 
             setValidationError(null)
             if(val){
+              // console.log(val)
               setFormValue((old) => ({...old , date_granted : val}))
             }
           }}
