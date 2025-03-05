@@ -36,6 +36,11 @@ async function getLoanList (req, res) {
     if(req.query['type'] == 'loan_facility') {
       return sub.whereILike('loanfacility', `%${req.query['value'].trim()}%`)
     }
+    
+    if(req.query['type'] == 'voucher_number') {
+      return sub.where('voucher_number', req.query['value'].trim())
+      
+    }
   
   }).orderBy('date_granted', 'desc')
   .from('view_loan_header')

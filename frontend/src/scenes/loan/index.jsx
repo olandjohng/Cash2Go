@@ -108,6 +108,10 @@ const searchType = [
   {
     label : 'Loan Facility',
     value : 'loan_facility'
+  },
+  {
+    label : 'Voucher Number',
+    value : 'voucher_number'
   }
 ]
 

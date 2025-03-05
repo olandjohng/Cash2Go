@@ -247,7 +247,7 @@ export default function ExpensesPage() {
 
   return (
     <Box padding={2} height='100%' display='flex' flexDirection='column'>
-      <Header title='Expenses' onAddButtonClick={ () => setOpenExpensesForm(true)}/>
+      <Header title='Disbursement' onAddButtonClick={ () => setOpenExpensesForm(true)}/>
         <Box flex={1} position='relative'>
           <Box sx={{position : 'absolute', inset: 0}}>
             {!isLoading ?
@@ -257,7 +257,7 @@ export default function ExpensesPage() {
           </Box>
         </Box>
       <Popups
-        title="Expenses Form"
+        title="Disbursement Form"
         openPopup={openExpesesForm}
         setOpenPopup={(open) => {
           setOpenExpensesForm(open)
@@ -267,7 +267,7 @@ export default function ExpensesPage() {
       >
         <Box width={900}>
           <ExpensesParentForm activeStep={activeStep}>
-            <FormStep label='Expenses Details'>
+            <FormStep label='Disbursement Details'>
               <ExpensesDetails validationSchema={validationSchema} onComplete={handleStepComplete} suppliers={suppliers} data={details} banks={banks} employee={employee} />
             </FormStep>
             <FormStep label='Voucher'>
@@ -281,7 +281,7 @@ export default function ExpensesPage() {
       </Popups>
       
       <Popups
-        title="Expenses Form"
+        title="Disbursement Form"
         openPopup={openEditExpensesForm}
         setOpenPopup={(open) => {
           setOpenEditExpensesForm(open)
@@ -291,7 +291,7 @@ export default function ExpensesPage() {
       >
         <Box width={900}>
           <ExpensesParentForm activeStep={activeStep}>
-            <FormStep label='Expenses Details'>
+            <FormStep label='Disbursement Details'>
               <ExpensesDetails onComplete={handleStepComplete} suppliers={suppliers} data={details} banks={banks} employee={employee} />
             </FormStep>
             <FormStep label='Voucher'>
