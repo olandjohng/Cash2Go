@@ -89,6 +89,7 @@ export const LOAN_INITIAL_VALUES = {
     value : false,
     pr_number : '',
   },
+  remarks : '',
 
 };
 
@@ -108,6 +109,10 @@ const searchType = [
   {
     label : 'Loan Facility',
     value : 'loan_facility'
+  },
+  {
+    label : 'Voucher Number',
+    value : 'voucher_number'
   }
 ]
 

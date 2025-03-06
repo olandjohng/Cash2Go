@@ -78,7 +78,7 @@ export default function ExpensesDetails({onComplete, data, banks, employee, supp
           <DatePicker label='CHECK DATE' slotProps={{ textField: { fullWidth: true } }} value={dateValue(formik.values.check_date)} onChange={(value) => formik.setFieldValue('check_date', value.format('YYYY-MM-DD'))} />
         </Grid>
         <Grid item xs={4}> 
-          <TextField fullWidth select label='PREPAIRED BY' name='prepared_by' onChange={formik.handleChange} value={formik.values.prepared_by}>
+          <TextField fullWidth select label='PREPARED BY' name='prepared_by' onChange={formik.handleChange} value={formik.values.prepared_by}>
             {employee && employee.map((v)=> (
               <MenuItem value={v.name} key={v.name}>{v.name}</MenuItem>
             ))}

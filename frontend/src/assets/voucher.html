@@ -44,6 +44,9 @@
               <div class="text-sm"><%= v.title %></div>
             </div>
             <% }); %>
+            <% if (remarks) { %>
+              <div class="text-red-500 uppercase mt-4 font-semibold"><%= remarks %></div>
+            <% } %>
           </div>
         </div>
         <div class="w-[25%] border-t border-b border-slate-900">
@@ -69,36 +72,30 @@
       <div class="flex">
         
         <div class="w-[60%]">
-          <% if(has_second_check) { %>
-          <div>
-            <div class="flex flex-col gap-1 pr-2 py-2 border-r border-slate-900">
-              <div class="flex gap-2 ">
-                <div>Check:</div>
-                <div class="border-b flex-1 border-slate-900 font-semibold italic px-3"><%= check_details_2 %></div>
-                <div>Date:</div>
-                <div class="border-b border-slate-900 font-semibold italic px-1"><%= check_date_2  %></div>
-              </div>
-              <div class="flex gap-2 ">
-              </div>
-              <!-- <div class="mt-5">
-                <div class="border-b flex-1 border-slate-900"></div>
-                <div class="text-center">Printed Name & Signature</div>
-              </div> -->
-            </div>
-          </div>
-          <% } %>
           <div>
             <div class="flex flex-col gap-1 pr-2 py-2 border-r border-slate-900">
               <div>
                 <div class="font-semibold text-sm">Received from CASH 2 GO FINANCE, INC. the amout in full</div>
               </div>
-              <div class="flex gap-2 ">
-                <div>Check:</div>
-                <div class="border-b flex-1 border-slate-900 font-semibold italic px-3"><%= check_details %></div>
-                <div>Date:</div>
-                <div class="border-b border-slate-900 font-semibold italic px-1"><%= check_date  %></div>
-              </div>
-              <div class="flex gap-2 ">
+              <div>
+                <div class="flex gap-2 ">
+                  <div>Check:</div>
+                  <div class="border-b flex-1 border-slate-900 font-semibold italic px-3"><%= check_details %></div>
+                  <div>Date:</div>
+                  <div class="border-b border-slate-900 font-semibold italic px-1"><%= check_date  %></div>
+                </div>
+                <!-- <div class="flex gap-2 ">
+                </div> -->
+                <% if(has_second_check) { %>
+                  <div class="flex gap-2 ">
+                    <div>Check:</div>
+                    <div class="border-b flex-1 border-slate-900 font-semibold italic px-3"><%= check_details_2 %></div>
+                    <div>Date:</div>
+                    <div class="border-b border-slate-900 font-semibold italic px-1"><%= check_date_2  %></div>
+                  </div>
+                  <!-- <div class="flex gap-2 ">
+                  </div> -->
+                <% } %>
               </div>
               <div class="mt-5">
                 <div class="border-b flex-1 border-slate-900"></div>
