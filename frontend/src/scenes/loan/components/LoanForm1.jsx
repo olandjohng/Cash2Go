@@ -389,7 +389,8 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
                 approved_by : formValue.approved_by,
                 checked_by : formValue.checked_by,
                 check_details : `${formValue.bank_name}-${formValue.check_number}`,
-                check_date : dayjs(formValue.check_date).format('MM-DD-YYYY')
+                check_date : dayjs(formValue.check_date).format('MM-DD-YYYY'),
+                remarks : formValue.remarks
               }
               
               const voucherHTML = ejs.render(voucherHTMLTemplate, templateData)

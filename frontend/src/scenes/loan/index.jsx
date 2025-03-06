@@ -89,6 +89,7 @@ export const LOAN_INITIAL_VALUES = {
     value : false,
     pr_number : '',
   },
+  remarks : '',
 
 };
 

@@ -90,7 +90,8 @@ loanRouter.get('/voucher/:id', async (req, res) =>{
     check_date : item.check_date,
     borrower : fullname.trim(),
     date : dayjs(item.date_granted).format('MM-DD-YYYY'),
-    voucherNumber : item.voucher_number
+    voucherNumber : item.voucher_number,
+    remarks: item.remarks
   }
 
   res.status(200).json(voucherInfo)
@@ -413,7 +414,7 @@ loanRouter.post('/', async (req, res) => {
     await builder.transaction(async t => {
       let id = 0;
       if(!req.body.has_second_check) {
-        console.log('No second check')
+        // console.log('No second check')
         id = await builder('loan_headertbl').insert({
           pn_number : pnNumber,
           check_number :  req.body.check_number,
@@ -440,10 +441,11 @@ loanRouter.post('/', async (req, res) => {
           status_code : LoanStatus.ONGOING,
           renewal_id : 0,
           renewal_amount : 0,
-          co_maker_id : req.body.co_maker_id
+          co_maker_id : req.body.co_maker_id,
+          remarks: req.body.remarks
         }, '*').transacting(t)
       }else{
-        console.log('second check')
+        // console.log('second check')
         id = await builder('loan_headertbl').insert({
           pn_number : pnNumber,
           check_number :  req.body.check_number,
@@ -473,9 +475,10 @@ loanRouter.post('/', async (req, res) => {
           status_code : LoanStatus.ONGOING,
           renewal_id : 0,
           renewal_amount : 0,
-          co_maker_id : req.body.co_maker_id
+          co_maker_id : req.body.co_maker_id,
+          remarks: req.body.remarks
         }, '*').transacting(t)
-        console.log(488, id)
+        // console.log(488, id)
       }
 
       // console.log(481, id)
