@@ -61,7 +61,7 @@ export default function ExpensesPage() {
   const [openExpesesForm, setOpenExpensesForm] = useState(false)
   const [openEditExpensesForm, setOpenEditExpensesForm] = useState(false)
 
-  const [activeStep, setActiveStep] = React.useState(1);
+  const [activeStep, setActiveStep] = React.useState(0);
   const [details, setDetails] = useState(initialValues)
   
   const {data : banks, } = useSwr('/api/expenses/banks', fetcher)
