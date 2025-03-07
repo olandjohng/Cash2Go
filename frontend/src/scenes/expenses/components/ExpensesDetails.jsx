@@ -98,6 +98,7 @@ export default function ExpensesDetails({onComplete, data, banks, employee, supp
               ))}
           </TextField>
         </Grid>
+        {/* <TextField placeholder='Remarks'/> */}
         <Grid item xs>
           <Box display='flex' justifyContent='end'>
             <Button color='success' type='submit' variant='outlined' >Next</Button>

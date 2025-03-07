@@ -17,24 +17,28 @@ const validationSchema = yup.array(
 )
 
 export default function ExpensesVoucher({onComplete, onPrevious, data, titles}) {
-  const [details, setDetails] = useState(data)
+  const [remarks, setRemarks] = useState(data.remarks)
+  const [voucher, setDetails] = useState(data.vouchers)
 
+  // console.log(data)
+  // console.log(voucher)
+  // console.log(remarks)
   const handleChange = (index, name, value) => {
-    const temp = details[index]
+    const temp = voucher[index]
     const newValue = {...temp, [name] : value}
-    const newList = details.map((v, i) => i === index ? newValue : v)
+    const newList = voucher.map((v, i) => i === index ? newValue : v)
     setDetails(newList)
   } 
 
   const handlePrevious = () => {
     //save changes
-    onPrevious({ voucher_details : details})
+    onPrevious({ voucher_details : voucher, remarks : remarks })
   }
   
   const handleComplete = async () => {
     try {
-      const validate = await validationSchema.validate(details)
-      onComplete({ voucher_details : validate})
+      const validate = await validationSchema.validate(voucher)
+      onComplete({ voucher_details : validate, remarks : remarks } )
 
     } catch(error) {
       return console.log(error)
@@ -42,11 +46,12 @@ export default function ExpensesVoucher({onComplete, onPrevious, data, titles}) 
   }
 
   const handleDelete = (index) => {
-    const filter = details.filter((val, i) => index != i)
+    const filter = voucher.filter((val, i) => index != i)
     setDetails(filter)
   }
 
   const handleAddEntry = () => {
+    // console.log('ywaa')
     setDetails((old) => [...old, {category: '', debit: 0, credit: 0,}])
   }
   
@@ -58,7 +63,7 @@ export default function ExpensesVoucher({onComplete, onPrevious, data, titles}) 
             <Button color='success' variant='outlined' onClick={handleAddEntry}>Add</Button>
           </Box>
         </Grid> 
-        {details.map((v, index) => {
+        {voucher.map((v, index) => {
           return (
           <React.Fragment key={index}>
             <Grid item xs={5}>
@@ -102,6 +107,11 @@ export default function ExpensesVoucher({onComplete, onPrevious, data, titles}) 
           )
         })}
       </Grid>
+      <Box display="flex" mt={4}>
+        <TextField placeholder='Remarks' 
+          fullWidth value={remarks} 
+          onChange={(e) => { setRemarks(e.target.value) } } />
+      </Box>
       <Box display='flex' justifyContent='space-between' mt='10px'>
         <Button color='success' variant='outlined' onClick={handlePrevious}>Back</Button>
         <Button color='success' variant='outlined' onClick={handleComplete}>Next</Button>
