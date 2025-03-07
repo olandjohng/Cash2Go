@@ -28,6 +28,7 @@ const initialValues = {
   prepared_by: '',
   checked_by: '',
   approved_by: '',
+  remarks: '',
   voucher_details : [{ category: '', debit: '0', credit: '0'}] 
 }
 
@@ -200,6 +201,7 @@ export default function ExpensesPage() {
         prepared_by: data.prepared_by,
         checked_by: data.checked_by,
         approved_by: data.approved_by,
+        remarks : data.remarks
       },
       details: v_details
     }
@@ -271,7 +273,7 @@ export default function ExpensesPage() {
               <ExpensesDetails validationSchema={validationSchema} onComplete={handleStepComplete} suppliers={suppliers} data={details} banks={banks} employee={employee} />
             </FormStep>
             <FormStep label='Voucher'>
-              <ExpensesVoucher titles={expenses_title} data={details.voucher_details} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
+              <ExpensesVoucher titles={expenses_title} data={{ vouchers : details.voucher_details, remarks : details.remarks}} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
             </FormStep>
             <FormStep label='Print And Save'>
               <ExpensesPrintVoucher data={details} onPrevious={handlePrevious} onSubmit={handleSubmitVoucher}/>
@@ -295,7 +297,7 @@ export default function ExpensesPage() {
               <ExpensesDetails onComplete={handleStepComplete} suppliers={suppliers} data={details} banks={banks} employee={employee} />
             </FormStep>
             <FormStep label='Voucher'>
-              <ExpensesVoucher titles={expenses_title} data={details.voucher_details} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
+              <ExpensesVoucher titles={expenses_title} data={{ vouchers : details.voucher_details, remarks : details.remarks}} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
             </FormStep>
             <FormStep label='Print And Save'>
               <ExpensesPrintVoucher data={details} onPrevious={handlePrevious} onSubmit={handleUpdateVoucher} />
