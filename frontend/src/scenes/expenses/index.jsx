@@ -88,9 +88,9 @@ export default function ExpensesPage() {
   }
 
   const handlePrintVoucher = async (id) => {
-
+    // TODO add remarks 
     const response = await getExpensesVoucher(id)
-    console.log(68, response)
+    // console.log(68, response)
     const input = {
       logo : logo,
       ...response,
@@ -193,7 +193,7 @@ export default function ExpensesPage() {
     const input = {
       header : {
         payee : data.borrower,
-        date: data.date,
+        date: dayjs(data.date).format('MM-DD-YYYY'),
         check_number : data.check_number,
         check_date : data.check_date,
         bank: {name : data.bank.name, id : data.bank.id},
@@ -205,7 +205,7 @@ export default function ExpensesPage() {
       },
       details: v_details
     }
-
+    // cons
     const response = await createExpenses(input)
     
     if(response.status === 200 ) {
