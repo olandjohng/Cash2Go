@@ -11,9 +11,9 @@ const incrementTicketNumber = (ticket) => {
 
 adjustingEntriesRouter.get('/', async (req, res) => {
   try {
-    const getAdjustingEntries = await builder('adjusting_entries_header').select('id', 'ticket_number', 'borrower_name', 
+    const getAdjustingEntries = await builder('adjusting_entries_header').select('id', 'ticket_number', 'borrower_name',
       builder.raw(`DATE_FORMAT(date, '%m-%d-%Y') as date`),
-      'checked_by', 'prepared_by', 'approved_by' )
+      'checked_by', 'prepared_by', 'approved_by' ).orderBy('date', 'desc')
     res.status(200).json(getAdjustingEntries)
   } catch (error) {
     console.log(error)

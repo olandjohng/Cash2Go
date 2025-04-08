@@ -22,6 +22,7 @@ import LoanRestructureForm from "./components/LoanRestructureForm";
 import { MuiFileInput } from "mui-file-input";
 import { toastErr, toastSucc } from "../../utils";
 import { useFormik } from "formik";
+import Amortization from "./components/Amortization";
 
 function reducer(state, action) {
   switch (action.type) {
@@ -211,9 +212,18 @@ export default function Loan() {
             showInMenu
             onClick={() => handleOpenPopup(id) }
           />,
+          <GridActionsCellItem
+            icon={<UploadFile />}
+            color="success"
+            label="Amortization"
+            disabled={isLoanOnGoing}
+            showInMenu
+            onClick={() => handleAmortization(id) }
+          />,
         ];
       },
     },
+    
     {
       field: "date_granted",
       headerName: "Date Granted",
@@ -221,6 +231,11 @@ export default function Loan() {
       valueFormatter: (params) => {
         return dayjs(params.value).format("MM-DD-YYYY");
       },
+    },
+    {
+      field: "voucher_number",
+      headerName: "Voucher No.",
+      width: 120,
     },
     { field: "name", headerName: "Borrower", width: 250 },
     { field: "pn_number", headerName: "PN Number", width: 250 },
@@ -271,11 +286,12 @@ export default function Loan() {
   const [openRenewPopup, setOpenRenewPopup] = useState(false);
   const [openRestructurePopup, setOpenRestructurePopup] = useState(false);
   const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
+  const [openAmortizationPopup, setOpenAmortizationPopup] = useState(false)
   const [selectedLoanId, setSelectedLoanId] = useState(null);
   const [loans, dispatch] = useReducer(reducer, []);
   const [fileAttachment, setFileAttachment]  = useState(null)
   const attachmentId = useRef(null)
-
+  const amortizationId = useRef(null)
 
   const formik = useFormik({
     initialValues : {
@@ -287,6 +303,11 @@ export default function Loan() {
     }
   })
 
+    
+  const handleAmortization = (id) => {
+    amortizationId.current = id
+    setOpenAmortizationPopup(true)
+  }
 
   const handleRowDoubleClick = (params) => {
     setSelectedLoanId(params.row.loan_header_id);
@@ -406,7 +427,7 @@ export default function Loan() {
       const categoryData = await req[4].json();
       const deductionData = await req[5].json();
       const accountTitleData = await req[6].json();
-
+      // console.log(loanData)
       dispatch({ type: "INIT", loans: loanData });
       // console.log('173', banksData)
       setCollaterals(collateralData);
@@ -509,6 +530,7 @@ export default function Loan() {
       >
         <LoanRestructureForm dispatcher={dispatch} popup={setOpenRestructurePopup} loanInitialValue={restructureFormValue} accountTitle={accountTitle}  banks={banks} collaterals={collaterals} categories={categories} facilities={facilities}/>
       </Popups>
+      {/* Upload Attachment Popups */}
       <Popups
         title='Upload Attachment'
         openPopup={openAttachmentPopup}
@@ -527,7 +549,13 @@ export default function Loan() {
           <Button variant="outlined" color='success' onClick={handleAttachmentSubmit} >Save</Button>
         </div>
       </Popups>
-
+      <Popups 
+        title='Amortization'
+        openPopup={openAmortizationPopup}
+        setOpenPopup={setOpenAmortizationPopup}
+      >
+        <Amortization banks={banks} headerId={amortizationId.current} success={() => setOpenAmortizationPopup(false)} />
+      </Popups>
 
       <Popups
         title="New Loan"

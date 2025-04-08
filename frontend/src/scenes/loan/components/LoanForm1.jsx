@@ -180,7 +180,6 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
       data  = {...formValue, check_date : dayjs(formValue.check_date).format(), date_granted : formValue.date_granted.format()}
     }
 
-    
     const mapLoanDetails = data.loan_details.map((v) => {
       let item = {...v , dueDate : v.dueDate.format()}
       
@@ -197,8 +196,8 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
     })
     
     data = {...data , loan_details : mapLoanDetails} 
-    console.log(JSON.stringify(data))
-    console.log(data)
+    // console.log(JSON.stringify(data))
+    // console.log(data)
     fetch('/api/loans', {
       method : 'POST',
       headers: {

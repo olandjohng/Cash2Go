@@ -19,28 +19,34 @@ const LoanStatus = {
 }
 
 async function createPnNumber(req){
-
-  const qCategoryCode = await builder.select({ code : 'code'}).from('loan_categorytbl').where('loan_category_id', req.loan_category_id)
-  const qFacilityCode = await builder.select({ code : 'code'}).from('loan_facilitytbl').where('loan_facility_id', req.loan_facility_id)
-  const qCustomerPnNumber = await builder.select({id : 'pn_number'}).from('loan_headertbl').where('customer_id', req.customer_id)
-
-  const categoryCode = qCategoryCode[0].code + qFacilityCode[0].code
-  let min = 0
-
-  if(qCustomerPnNumber.length > 0){
-    for (const PN of qCustomerPnNumber) {
-      const arr = PN.id.split('-')
-      if(arr[0] === categoryCode){
-        min = min < Number(arr[1]) ? Number(arr[1]) : min
+  try {
+    const qCategoryCode = await builder.select({ code : 'code'}).from('loan_categorytbl').where('loan_category_id', req.loan_category_id)
+    const qFacilityCode = await builder.select({ code : 'code'}).from('loan_facilitytbl').where('loan_facility_id', req.loan_facility_id)
+    const qCustomerPnNumber = await builder.select({id : 'pn_number'}).from('loan_headertbl').where('customer_id', req.customer_id)
+  
+    const categoryCode = qCategoryCode[0].code + qFacilityCode[0].code
+    let min = 0
+  
+    if(qCustomerPnNumber.length > 0){
+      for (const PN of qCustomerPnNumber) {
+        const arr = PN.id.split('-')
+        if(arr[0] === categoryCode){
+          min = min < Number(arr[1]) ? Number(arr[1]) : min
+        }
       }
     }
-  }
+    
+    const count = String(min + 1)
+    const id = '0000'.slice(count.length) + count
+    const year = new Date().getFullYear();
   
-  const count = String(min + 1)
-  const id = '0000'.slice(count.length) + count
-  const year = new Date().getFullYear();
-
-  return `${categoryCode}-${id}-${req.customer_id}-${year}`
+    return `${categoryCode}-${id}-${req.customer_id}-${year}`
+    
+  } catch (error) {
+    console.log(err)
+    
+  }
+  return undefined
 }
 
 const attachment = upload.single('loan_attachment')
@@ -53,80 +59,89 @@ const convertEmpty = (name) => name !== '' ? name : ''
 loanRouter.get('/voucher/:id', async (req, res) =>{
   
   const {id} = req.params
-  
-  const query = await builder.select('*').from('view_voucher').where('loan_header_id', id)
-  if(query.length <= 0) {
-    return res.status(400).send()
-  }
-  
-  const details = query.map((v) => {
-    return {
-      name : v.acc_title,
-      title : v.account_title,
-      credit : v.credit_amount, 
-      debit : v.debit_amount
+  try {
+    const query = await builder.select('*').from('view_voucher').where('loan_header_id', id)
+
+    if(query.length <= 0) {
+      return res.status(400).send()
     }
-  })
-  
-  const item = query[0]
+    
+    const details = query.map((v) => {
+      return {
+        name : v.acc_title,
+        title : v.account_title,
+        credit : v.credit_amount, 
+        debit : v.debit_amount
+      }
+    })
+    
+    const item = query[0]
 
-  const lastname = item.clname.split(',')
+    const lastname = item.clname.split(',')
 
-  const firstName = convertEmpty(item.cfname) 
-  const extName = lastname[1] ? lastname[1] : ''
-  const midInitial = convertEmpty(item.cmname)
-  
-  const fullname = `${lastname[0]}, ${firstName}  ${midInitial} ${extName}`
+    const firstName = convertEmpty(item.cfname) 
+    const extName = lastname[1] ? lastname[1] : ''
+    const midInitial = convertEmpty(item.cmname)
+    
+    const fullname = `${lastname[0]}, ${firstName}  ${midInitial} ${extName}`
 
-  const voucherInfo = {
-    details : details,
-    prepared_by : item.prepared_by,
-    approved_by : item.approved_by,
-    checked_by : item.checked_by,
-    check_details : `${item.bank_name}-${item.check_number}`,
-    check_details_2 : `${item.bank_name_2}-${item.check_number_2}`,
-    check_date_2: item.has_second_check ?  dayjs(item.check_date_2).format('MM-DD-YYYY') : null,
-    has_second_check: item.has_second_check,
-    check_date : item.check_date,
-    borrower : fullname.trim(),
-    date : dayjs(item.date_granted).format('MM-DD-YYYY'),
-    voucherNumber : item.voucher_number,
-    remarks: item.remarks
+    const voucherInfo = {
+      details : details,
+      prepared_by : item.prepared_by,
+      approved_by : item.approved_by,
+      checked_by : item.checked_by,
+      check_details : `${item.bank_name}-${item.check_number}`,
+      check_details_2 : `${item.bank_name_2}-${item.check_number_2}`,
+      check_date_2: item.has_second_check ?  dayjs(item.check_date_2).format('MM-DD-YYYY') : null,
+      has_second_check: item.has_second_check,
+      check_date : item.check_date,
+      borrower : fullname.trim(),
+      date : dayjs(item.date_granted).format('MM-DD-YYYY'),
+      voucherNumber : item.voucher_number,
+      remarks: item.remarks
+    }
+
+    res.status(200).json(voucherInfo)
+  } catch (error) {
+    console.log(err)
   }
-
-  res.status(200).json(voucherInfo)
+  
 })
 
 
 loanRouter.get('/renew/:id', async (req, res) => {
-
-  const renewLoan = await builder('view_loan_renew').select('*').where('loan_header_id', req.params.id).first()
-
-  const fullname = formatName(renewLoan)
-
-  const format = {
-    loan_header_id: renewLoan.loan_header_id, 
-    customer_id : renewLoan.customer_id,
-    PrincipalBalance : Number(renewLoan.PrincipalBalance),
-    PenaltyBalance :  Number(renewLoan.PenaltyBalance),
-    InterestBalance: Number(renewLoan.InterestBalance),
-    Balance : Number(renewLoan.Balance),
-    customer_name : fullname
-  }
+  try {
+    
+    const renewLoan = await builder('view_loan_renew').select('*').where('loan_header_id', req.params.id).first()
   
-  res.status(200).json(format)
+    const fullname = formatName(renewLoan)
+  
+    const format = {
+      loan_header_id: renewLoan.loan_header_id, 
+      customer_id : renewLoan.customer_id,
+      PrincipalBalance : Number(renewLoan.PrincipalBalance),
+      PenaltyBalance :  Number(renewLoan.PenaltyBalance),
+      InterestBalance: Number(renewLoan.InterestBalance),
+      Balance : Number(renewLoan.Balance),
+      customer_name : fullname
+    }
+    
+    res.status(200).json(format)
+  } catch (error) {
+    console.log(error)
+  }
 })
 
 loanRouter.post('/renew', async (req, res) => {
-
+ 
   const pnNumber = await createPnNumber(req.body)
 
   const {loan_details, voucher, deduction, loan_facility } = req.body
   
   const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest), 0)
   
-  const {is_rediscount} = await builder('loan_facilitytbl').select('is_rediscount').where('description', loan_facility).first()
   try {
+    const {is_rediscount} = await builder('loan_facilitytbl').select('is_rediscount').where('description', loan_facility).first()
 
     await builder.transaction(async (t) => {
       // update old loan 
@@ -189,10 +204,6 @@ loanRouter.post('/renew', async (req, res) => {
           accumulated_penalty : 0
         }
       })
-
-      
-
-
 
       await t('loan_detail').insert(loanDetailsMap)
 
@@ -589,7 +600,7 @@ loanRouter.get('/facility', async (req, res)=>{
   res.status(200).json(banks)
 })
 
-loanRouter.get('/collateral', async (req, res)=>{
+loanRouter.get('/collateral', async (req, res)=> {
   const col = await builder.select({id : 'collateral_id', name : 'description'}).from('collateraltbl')
   res.status(200).json(col)
 })
@@ -630,7 +641,31 @@ loanRouter.post('/attachment/:id', (req, res) => {
   })
 })
 
+loanRouter.post('/details', async (req, res, next) => {
+  // res.json({success : true})
+  const data = req.body
+  // console.log(data)
+  try {
+    const loan_details = data.details.map((loan) => ({
+      loan_header_id : data.header_id,
+      check_number: loan.checkNumber,
+      bank_account_id : loan.bank_account_id,
+      monthly_amortization: loan.amortization,
+      monthly_interest: loan.interest,
+      monthly_principal: loan.principal,
+      accumulated_penalty: 0,
+      due_date: loan.dueDate,
+    }))
+    // console.log(loan_details)
+    await builder('loan_detail').insert(loan_details)
+    
+    res.status(200).end()
 
+  } catch (error) {
+    res.status(500).end()
+  }
+  // console.log(req.body)
+})
 loanRouter.get('/:id', getLoan)
 
 module.exports = {loanRouter }

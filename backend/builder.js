@@ -4,7 +4,7 @@ require('dotenv').config()
 const HOST = 'localhost'
 const USER = 'root'
 const PASSWORD = ''
-const DATABASE = 'u787404562_loandb'
+const DATABASE = 'cash2go'
 
 const builder = knex({
   client: 'mysql2',
@@ -13,7 +13,7 @@ const builder = knex({
     // user : USER,
     // password : PASSWORD,
     // database : DATABASE,
-    // port : 3306,
+    port : 3306,
     host: process.env.DB_HOST,
     user: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
