@@ -180,7 +180,6 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
       data  = {...formValue, check_date : dayjs(formValue.check_date).format(), date_granted : formValue.date_granted.format()}
     }
 
-    
     const mapLoanDetails = data.loan_details.map((v) => {
       let item = {...v , dueDate : v.dueDate.format()}
       
@@ -197,8 +196,8 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
     })
     
     data = {...data , loan_details : mapLoanDetails} 
-    console.log(JSON.stringify(data))
-    console.log(data)
+    // console.log(JSON.stringify(data))
+    // console.log(data)
     fetch('/api/loans', {
       method : 'POST',
       headers: {
@@ -325,7 +324,6 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
             stepName="Deduction Details"
             schema={deductionSchema}
             onSubmit={() => {
-              console.log(formValue)
               try {
                 deductionSchema.validateSync(formValue, 
                   {abortEarly : false}
@@ -348,7 +346,7 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
           <FormStep
             stepName="Summary"
             onSubmit={() => {
-              console.log(formValue)
+          
             }}
             schema={yup.object({})}
           >
@@ -376,9 +374,10 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
             }}
           >
             <VoucherPrint onClick={() => {
-               const templateData = {
+              
+              const templateData = {
                 borrower : formValue.customer_name,
-                date : dayjs(new Date()).format('MM-DD-YYYY'), 
+                date : formValue.date_granted.format('MM-DD-YYYY'), 
                 details : formValue.voucher,
                 voucherNumber : formValue.voucher_number,
                 logo : c2gLogo,
@@ -389,7 +388,8 @@ function LoanForm1({loanInitialValue, collaterals, facilities, banks, categories
                 approved_by : formValue.approved_by,
                 checked_by : formValue.checked_by,
                 check_details : `${formValue.bank_name}-${formValue.check_number}`,
-                check_date : dayjs(formValue.check_date).format('MM-DD-YYYY')
+                check_date : dayjs(formValue.check_date).format('MM-DD-YYYY'),
+                remarks : formValue.remarks
               }
               
               const voucherHTML = ejs.render(voucherHTMLTemplate, templateData)

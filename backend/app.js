@@ -35,6 +35,13 @@ const PORT = process.env.PORT || 8000
 app.use(cookieParser())
 app.use('/api/public', express.static('public'))
 
+app.use((req, res, next) => {
+  req.on('aborted', () => {
+    console.warn('⚠️ Client aborted the request');
+  });
+  next();
+});
+
 app.use(express.static('dist'))
 
 app.use(bodyParser.json())
@@ -57,6 +64,11 @@ app.use('/api/employee', employeeRouter)
 app.use('/api/expenses', expensesRouter)
 app.use('/api/adjusting-entries', adjustingEntriesRouter)
 app.use('/api/auth', auth)
+
+app.use((err, req, res, next) => {
+  console.log(62);
+  console.log(err);
+})
 
 app.use('*', express.static('dist'))
 

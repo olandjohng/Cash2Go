@@ -7,6 +7,7 @@ import * as ejs from "ejs";
 import useSWRMutation from 'swr/mutation'
 import axios from 'axios'
 import { toastErr } from '../../../utils'
+import dayjs from 'dayjs'
 
 async function saveExpenses(url, {arg}) {
   return await axios.post(url, arg)
@@ -29,15 +30,17 @@ export default function ExpensesPrintVoucher({data, onPrevious, onSubmit}) {
         debit: Number(v.debit)
       }
     })
-
     const input = {
       ...data,
       borrower : data.borrower.name,
+      date : dayjs(data.date).format('MM-DD-YYYY'),
+      check_date : dayjs(data.check_date).format('MM-DD-YYYY'),
       logo : logo,
       details: v_details,
       has_second_check : false,
       check_details : `${data.bank.name}-${data.check_number}` 
     }
+    // console.log(input)
     const template = ejs.render(voucherTemplateHTML, input)
 
     const voucherWindow = window.open("", "Print Voucher");

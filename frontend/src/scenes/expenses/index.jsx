@@ -28,6 +28,7 @@ const initialValues = {
   prepared_by: '',
   checked_by: '',
   approved_by: '',
+  remarks: '',
   voucher_details : [{ category: '', debit: '0', credit: '0'}] 
 }
 
@@ -87,9 +88,9 @@ export default function ExpensesPage() {
   }
 
   const handlePrintVoucher = async (id) => {
-
+    // TODO add remarks 
     const response = await getExpensesVoucher(id)
-    console.log(68, response)
+    // console.log(68, response)
     const input = {
       logo : logo,
       ...response,
@@ -192,7 +193,7 @@ export default function ExpensesPage() {
     const input = {
       header : {
         payee : data.borrower,
-        date: data.date,
+        date: dayjs(data.date).format('MM-DD-YYYY'),
         check_number : data.check_number,
         check_date : data.check_date,
         bank: {name : data.bank.name, id : data.bank.id},
@@ -200,10 +201,11 @@ export default function ExpensesPage() {
         prepared_by: data.prepared_by,
         checked_by: data.checked_by,
         approved_by: data.approved_by,
+        remarks : data.remarks
       },
       details: v_details
     }
-
+    // cons
     const response = await createExpenses(input)
     
     if(response.status === 200 ) {
@@ -247,7 +249,7 @@ export default function ExpensesPage() {
 
   return (
     <Box padding={2} height='100%' display='flex' flexDirection='column'>
-      <Header title='Expenses' onAddButtonClick={ () => setOpenExpensesForm(true)}/>
+      <Header title='Disbursement' onAddButtonClick={ () => setOpenExpensesForm(true)}/>
         <Box flex={1} position='relative'>
           <Box sx={{position : 'absolute', inset: 0}}>
             {!isLoading ?
@@ -257,7 +259,7 @@ export default function ExpensesPage() {
           </Box>
         </Box>
       <Popups
-        title="Expenses Form"
+        title="Disbursement Form"
         openPopup={openExpesesForm}
         setOpenPopup={(open) => {
           setOpenExpensesForm(open)
@@ -267,11 +269,11 @@ export default function ExpensesPage() {
       >
         <Box width={900}>
           <ExpensesParentForm activeStep={activeStep}>
-            <FormStep label='Expenses Details'>
+            <FormStep label='Disbursement Details'>
               <ExpensesDetails validationSchema={validationSchema} onComplete={handleStepComplete} suppliers={suppliers} data={details} banks={banks} employee={employee} />
             </FormStep>
             <FormStep label='Voucher'>
-              <ExpensesVoucher titles={expenses_title} data={details.voucher_details} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
+              <ExpensesVoucher titles={expenses_title} data={{ vouchers : details.voucher_details, remarks : details.remarks}} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
             </FormStep>
             <FormStep label='Print And Save'>
               <ExpensesPrintVoucher data={details} onPrevious={handlePrevious} onSubmit={handleSubmitVoucher}/>
@@ -281,7 +283,7 @@ export default function ExpensesPage() {
       </Popups>
       
       <Popups
-        title="Expenses Form"
+        title="Disbursement Form"
         openPopup={openEditExpensesForm}
         setOpenPopup={(open) => {
           setOpenEditExpensesForm(open)
@@ -291,11 +293,11 @@ export default function ExpensesPage() {
       >
         <Box width={900}>
           <ExpensesParentForm activeStep={activeStep}>
-            <FormStep label='Expenses Details'>
+            <FormStep label='Disbursement Details'>
               <ExpensesDetails onComplete={handleStepComplete} suppliers={suppliers} data={details} banks={banks} employee={employee} />
             </FormStep>
             <FormStep label='Voucher'>
-              <ExpensesVoucher titles={expenses_title} data={details.voucher_details} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
+              <ExpensesVoucher titles={expenses_title} data={{ vouchers : details.voucher_details, remarks : details.remarks}} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
             </FormStep>
             <FormStep label='Print And Save'>
               <ExpensesPrintVoucher data={details} onPrevious={handlePrevious} onSubmit={handleUpdateVoucher} />

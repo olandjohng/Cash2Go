@@ -5,7 +5,7 @@ const dayjs = require('dayjs')
 
 expensesRouter.get('/', async (req, res) => {
   try {
-    const expenseHeader = await builder('expenses_header').select('*')
+    const expenseHeader = await builder('expenses_header').select('*').orderBy('date', 'desc')
     
     const format = expenseHeader.map(v => ({
       ...v,

@@ -1,6 +1,6 @@
 import { Box, Button, Grid, TextField, Typography } from '@mui/material'
 import React, { useContext, useEffect, useState } from 'react'
-import { ComboBox, LoanFormContext, numberFormat } from './LoanForm1'
+import { ComboBox, LoanFormContext, numberFormat, TextInput } from './LoanForm1'
 import { DeleteOutline } from '@mui/icons-material'
 import CurrencyInput from './fields/CurrencyInput'
 
@@ -159,6 +159,16 @@ export default function VoucherForm({accountTitle, voucher, setVoucher }) {
           </Grid>
         ))
         }
+        <Box mt={3}>
+          <TextInput 
+            name="remarks" 
+            label="Remarks"
+            value={formValue.remarks}
+            change={(e, fields) => { setFormValue((old) => ({...old, [fields] : e.target.value})) }}  
+          />
+
+        </Box>
+
         <Box mt={1} ml={2}>
           <Box display='flex' gap={1}>
             <Typography fontWeight='bold' textTransform='uppercase' letterSpacing='1px' > Credit Total :</Typography> 
