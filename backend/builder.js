@@ -1,10 +1,15 @@
 const knex = require("knex");
 require("dotenv").config();
 
-const HOST = "localhost";
-const USER = "root";
+// const HOST = "localhost";
+// const USER = "root";
+// const PASSWORD = "!Tested123";
+// const DATABASE = "loan_db";
+
+const HOST = "srv1365.hstgr.io";
+const USER = "u215434580_dev";
 const PASSWORD = "!Tested123";
-const DATABASE = "loan_db";
+const DATABASE = "u215434580_loandev";
 
 const builder = knex({
   client: "mysql2",
