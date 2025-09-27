@@ -56,14 +56,19 @@ loanRouter.get('/', getLoanList)
 
 const convertEmpty = (name) => name !== '' ? name : ''
 
-loanRouter.get('/voucher/:id', async (req, res) =>{
-  
+loanRouter.get('/voucher/:id', async (req, res) => {
   const {id} = req.params
+  
+  // Validate ID parameter
+  if (!id || isNaN(id)) {
+    return res.status(400).json({ error: 'Invalid loan ID provided' })
+  }
+
   try {
     const query = await builder.select('*').from('view_voucher').where('loan_header_id', id)
 
     if(query.length <= 0) {
-      return res.status(400).send()
+      return res.status(404).json({ error: `Voucher not found for loan ID: ${id}` }) // Better error message
     }
     
     const details = query.map((v) => {
@@ -102,10 +107,11 @@ loanRouter.get('/voucher/:id', async (req, res) =>{
     }
 
     res.status(200).json(voucherInfo)
+    
   } catch (error) {
-    console.log(err)
+    console.error('Voucher API Error:', error) // ✅ Fixed variable name
+    res.status(500).json({ error: 'Internal server error', details: error.message }) // ✅ Added error response
   }
-  
 })
 
 
