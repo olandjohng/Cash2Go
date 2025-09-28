@@ -387,6 +387,258 @@ loanRouter.post('/recalculate', async (req, res) => {
   }
 })
 
+// Add this route after line 162 (after the recalculate routes)
+// GET route to fetch loan data for editing
+loanRouter.get('/edit/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get loan header information with customer details
+    const loanHeader = await builder
+      .select('*')
+      .from('view_loan_header') // Using your existing view
+      .where('loan_header_id', id)
+      .first();
+
+    if (!loanHeader) {
+      return res.status(404).json({ message: 'Loan not found' });
+    }
+
+    // Get loan details (payment schedule)
+    const loanDetails = await builder
+      .select('*')
+      .from('loan_detail')
+      .where('loan_header_id', id)
+      .orderBy('due_date', 'asc');
+
+    // Get voucher entries
+    const vouchers = await builder
+      .select('v.*', 'at.account_title')
+      .from('vouchertbl as v')
+      .join('account_titletbl as at', 'v.account_title_id', 'at.account_title_id')
+      .where('v.loan_header_id', id);
+
+    // Get deduction history
+    const deductions = await builder
+      .select('ldh.*', 'ld.description')
+      .from('loan_deduction_historytbl as ldh')
+      .join('loan_deductiontbl as ld', 'ldh.loan_deduction_id', 'ld.loan_deduction_id')
+      .where('ldh.loan_header_id', id);
+
+    // Format customer name
+    const fullname = formatName(loanHeader);
+
+    const editData = {
+      loan_header_id: loanHeader.loan_header_id,
+      pn_number: loanHeader.pn_number,
+      customer_id: loanHeader.customer_id,
+      customer_name: fullname,
+      principal_amount: Number(loanHeader.principal_amount),
+      interest_rate: Number(loanHeader.interest_rate),
+      total_interest: Number(loanHeader.total_interest),
+      date_granted: loanHeader.date_granted,
+      transaction_date: loanHeader.transaction_date,
+      check_number: loanHeader.check_number,
+      check_date: loanHeader.check_date,
+      check_issued_name: loanHeader.check_issued_name,
+      voucher_number: loanHeader.voucher_number,
+      bank_account_id: loanHeader.bank_account_id,
+      bank_name: loanHeader.bank_name,
+      collateral_id: loanHeader.collateral_id,
+      collateral: loanHeader.collateral,
+      loan_category_id: loanHeader.loan_category_id,
+      loan_category: loanHeader.loancategory,
+      loan_facility_id: loanHeader.loan_facility_id,
+      loan_facility: loanHeader.loanfacility,
+      term: loanHeader.term,
+      term_type: loanHeader.term_type,
+      status_code: loanHeader.status_code,
+      prepared_by: loanHeader.prepared_by,
+      approved_by: loanHeader.approved_by,
+      checked_by: loanHeader.checked_by,
+      co_maker_id: loanHeader.co_maker_id,
+      remarks: loanHeader.remarks,
+      has_second_check: loanHeader.has_second_check,
+      bank_name_2: loanHeader.bank_name_2,
+      check_number_2: loanHeader.check_number_2,
+      check_date_2: loanHeader.check_date_2,
+      loan_details: loanDetails.map(detail => ({
+        loan_detail_id: detail.loan_detail_id,
+        due_date: detail.due_date,
+        check_number: detail.check_number,
+        bank_account_id: detail.bank_account_id,
+        monthly_amortization: Number(detail.monthly_amortization || 0),
+        monthly_interest: Number(detail.monthly_interest),
+        monthly_principal: Number(detail.monthly_principal),
+        net_proceeds: Number(detail.net_proceeds || 0),
+        accumulated_penalty: Number(detail.accumulated_penalty)
+      })),
+      vouchers: vouchers.map(voucher => ({
+        id: voucher.account_title_id,
+        account_title: voucher.account_title,
+        debit: Number(voucher.debit_amount),
+        credit: Number(voucher.credit_amount)
+      })),
+      deductions: deductions.map(deduction => ({
+        id: deduction.loan_deduction_id,
+        description: deduction.description,
+        amount: Number(deduction.amount)
+      }))
+    };
+
+    res.status(200).json(editData);
+  } catch (error) {
+    console.log('Error fetching loan for edit:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// PUT route to update loan data
+loanRouter.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      voucher,
+      deduction,
+      loan_details,
+      term_type,
+      loan_facility,
+      ...loanData
+    } = req.body;
+
+    // Check if loan exists and is editable
+    const existingLoan = await builder
+      .select('status_code')
+      .from('loan_headertbl')
+      .where('loan_header_id', id)
+      .first();
+
+    if (!existingLoan) {
+      return res.status(404).json({ message: 'Loan not found' });
+    }
+
+    // Prevent editing of completed or closed loans
+    if (existingLoan.status_code === 'Completed' || existingLoan.status_code === 'Closed') {
+      return res.status(400).json({ message: 'Cannot edit completed or closed loans' });
+    }
+
+    const totalInterest = loan_details.reduce((acc, cur) => acc + Number(cur.interest || cur.monthly_interest), 0);
+    const term = term_type === 'months' ? loan_details.length : 
+                 Math.max(...loan_details.map(d => dayjs(d.dueDate || d.due_date).diff(dayjs(), 'day'))) + 1;
+
+    await builder.transaction(async (t) => {
+      // Update loan header
+      await t('loan_headertbl')
+        .where('loan_header_id', id)
+        .update({
+          check_number: loanData.check_number,
+          term_type: loanData.term_type,
+          check_date: loanData.check_date,
+          prepared_by: loanData.prepared_by,
+          approved_by: loanData.approved_by,
+          checked_by: loanData.checked_by,
+          customer_id: loanData.customer_id,
+          transaction_date: loanData.transaction_date,
+          bank_account_id: Number(loanData.bank_account_id),
+          collateral_id: loanData.collateral_id,
+          loan_category_id: loanData.loan_category_id,
+          loan_facility_id: loanData.loan_facility_id,
+          principal_amount: Number(loanData.principal_amount),
+          interest_rate: Number(loanData.interest_rate),
+          date_granted: loanData.date_granted,
+          check_issued_name: loanData.check_issued_name,
+          voucher_number: loanData.voucher_number,
+          total_interest: totalInterest,
+          term: term,
+          co_maker_id: loanData.co_maker_id,
+          remarks: loanData.remarks,
+          has_second_check: loanData.has_second_check,
+          bank_name_2: loanData.bank_name_2,
+          check_number_2: loanData.check_number_2,
+          check_date_2: loanData.check_date_2
+        });
+
+      // Delete and recreate loan details
+      await t('loan_detail').where('loan_header_id', id).del();
+      
+      const loanDetailsMap = loan_details.map(v => {
+        if (term_type === 'days') {
+          return {
+            loan_header_id: id,
+            due_date: (v.dueDate || v.due_date).split('T')[0],
+            check_date: v.check_date,
+            check_number: Number(v.checkNumber || v.check_number),
+            bank_account_id: Number(v.bank_account_id),
+            monthly_interest: Number(v.interest || v.monthly_interest),
+            monthly_principal: Number(v.principal || v.monthly_principal),
+            net_proceeds: Number(v.net_proceeds || 0),
+            accumulated_penalty: Number(v.accumulated_penalty || 0)
+          };
+        }
+        
+        return {
+          loan_header_id: id,
+          due_date: (v.dueDate || v.due_date).split('T')[0],
+          check_number: Number(v.checkNumber || v.check_number),
+          bank_account_id: Number(v.bank_account_id),
+          monthly_amortization: Number(v.amortization || v.monthly_amortization),
+          monthly_interest: Number(v.interest || v.monthly_interest),
+          monthly_principal: Number(v.principal || v.monthly_principal),
+          accumulated_penalty: Number(v.accumulated_penalty || 0)
+        };
+      });
+
+      await t('loan_detail').insert(loanDetailsMap);
+
+      // Update voucher entries
+      if (voucher && voucher.length > 0) {
+        await t('vouchertbl').where('loan_header_id', id).del();
+        await t('vouchertbl').insert(
+          voucher.map((v) => ({
+            account_title_id: +v.id,
+            debit_amount: +v.debit,
+            credit_amount: +v.credit,
+            loan_header_id: id
+          }))
+        );
+      }
+
+      // Update deduction history
+      if (deduction && deduction.length > 0) {
+        await t('loan_deduction_historytbl').where('loan_header_id', id).del();
+        await t('loan_deduction_historytbl').insert(
+          deduction.map((v) => ({
+            loan_deduction_id: v.id,
+            loan_header_id: id,
+            amount: v.amount
+          }))
+        );
+      }
+
+      const response = {
+        loan_header_id: id,
+        date_granted: loanData.date_granted,
+        name: loanData.customer_name,
+        pn_number: loanData.pn_number,
+        principal_amount: Number(loanData.principal_amount),
+        total_interest: totalInterest,
+        bank_name: loanData.bank_name,
+        loancategory: loanData.loan_category,
+        loanfacility: loanData.loan_facility,
+        loan_term: `${term} ${loanData.term_type}`,
+        status_code: loanData.status_code,
+        message: 'Loan updated successfully'
+      };
+
+      res.status(200).json(response);
+    });
+
+  } catch (error) {
+    console.log('Error updating loan:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 loanRouter.delete('/', async (req, res) => {
   // console.log('delete!')
   // console.log(req.body.id)

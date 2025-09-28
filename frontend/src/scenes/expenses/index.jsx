@@ -87,22 +87,57 @@ export default function ExpensesPage() {
     setActiveStep((prev) => prev + 1)
   }
 
+  // const handlePrintVoucher = async (id) => {
+  //   // TODO add remarks 
+  //   const response = await getExpensesVoucher(id)
+  //   // console.log(68, response)
+  //   const input = {
+  //     logo : logo,
+  //     ...response,
+  //     has_second_check: false,
+  //     date: dayjs(response.date).format('MM-DD-YYYY'),
+  //     check_details : `${response.bank}-${response.check_number}`
+  //   }
+
+  //   const template = ejs.render(voucherTemplateHTML, input)
+  //   const voucherWindow = window.open("", "Print Voucher");
+  //   voucherWindow.document.write(template);
+  // }
+
   const handlePrintVoucher = async (id) => {
-    // TODO add remarks 
+  try {
     const response = await getExpensesVoucher(id)
-    // console.log(68, response)
-    const input = {
-      logo : logo,
-      ...response,
-      has_second_check: false,
-      date: dayjs(response.date).format('MM-DD-YYYY'),
-      check_details : `${response.bank}-${response.check_number}`
+    
+    if (!response) {
+      toastErr('Failed to fetch voucher data')
+      return
     }
 
-    const template = ejs.render(voucherTemplateHTML, input)
-    const voucherWindow = window.open("", "Print Voucher");
-    voucherWindow.document.write(template);
+    const format = {
+      ...response,
+      logo: logo,
+      payee: response.borrower,
+      date: dayjs(response.date).format('MM-DD-YYYY'),
+      check_details: `${response.bank}-${response.check_number}`,
+      // Add ALL missing fields that your template expects
+      remarks: response.remarks || '',
+      voucher_details: response.details || [],
+      has_second_check: false, // Your working code sets this to false
+      check_details_2: '', // Provide empty default
+      ...(response.check_date && { 
+        check_date: dayjs(response.check_date).format('MM-DD-YYYY') 
+      })
+    }
+
+    const render = ejs.render(voucherTemplateHTML, format)
+    const voucherWindow = window.open("", "Print Voucher")
+    voucherWindow.document.write(render)
+    
+  } catch (error) {
+    console.error('Print voucher error:', error)
+    toastErr('Failed to print voucher: ' + error.message)
   }
+}
 
   const handlePrevious = (data) => {
     setDetails((old) => ({...old, ...data}))

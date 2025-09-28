@@ -110,7 +110,8 @@ expensesRouter.get('/:id', async (req, res) => {
       'voucher_number',
       'prepared_by',
       'checked_by',
-      'approved_by'
+      'approved_by',
+      'remarks'
     ).where('id', Number(id))
   
     res.status(200).json({...expenses_header, details : format_details})
