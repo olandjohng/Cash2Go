@@ -420,7 +420,7 @@ loanRouter.get('/edit/:id', async (req, res) => {
 
     // Get deduction history
     const deductions = await builder
-      .select('ldh.*', 'ld.description')
+      .select('ldh.*', 'ld.deduction_type')
       .from('loan_deduction_historytbl as ldh')
       .join('loan_deductiontbl as ld', 'ldh.loan_deduction_id', 'ld.loan_deduction_id')
       .where('ldh.loan_header_id', id);
@@ -481,7 +481,7 @@ loanRouter.get('/edit/:id', async (req, res) => {
       })),
       deductions: deductions.map(deduction => ({
         id: deduction.loan_deduction_id,
-        description: deduction.description,
+        label: deduction.deduction_type,  // This matches what DeductionDetailsForm expects
         amount: Number(deduction.amount)
       }))
     };
