@@ -144,7 +144,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           disabled={isRestructure}
           label='Check Date'
           name='check_date'
-          value={formValue.check_date ? dayjs(formValue.check_date) : formValue.check_date}
+          value={formValue.check_date ? dayjs(formValue.check_date) : null}
           onChange={(val) => { 
             setValidationError(null)
             if(val){
@@ -158,7 +158,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           disabled={isRestructure}
           label='Release Date'
           name='date_granted'
-          value={formValue.date_granted ? dayjs(formValue.date_granted) : formValue.date_granted}
+          value={formValue.date_granted ? dayjs(formValue.date_granted) : null}
           onChange={(val) => { 
             setValidationError(null)
             if(val){
@@ -214,7 +214,7 @@ export default function LoanRequirementsForm({banks, collaterals, categories, fa
           disabled={!formValue.has_second_check}
           label='Check Date'
           name='check_date_2'
-          value={formValue.check_date_2 ? dayjs(formValue.check_date_2) : formValue.check_date_2}
+          value={formValue.check_date_2 ? dayjs(formValue.check_date_2) : null}
           onChange={(val) => { 
             setValidationError(null)
             if(val){

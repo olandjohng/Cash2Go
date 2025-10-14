@@ -1,23 +1,30 @@
 import { useTheme } from '@emotion/react';
 import { DeleteOutlined } from '@mui/icons-material';
-import { Box, Button, InputBase, TextField, Grid, Tooltip, Typography, styled, tooltipClasses } from '@mui/material';
-import { DataGrid, GridActionsCellItem, GridEditInputCell, GridRowEditStopReasons, GridRowModes, GridToolbarContainer, GRID_DATE_COL_DEF, useGridApiContext } from '@mui/x-data-grid';
-import React, { useEffect, useState } from 'react'
+import { Box, Button, InputBase, Typography, Tooltip, styled, tooltipClasses } from '@mui/material';
+import { DataGrid, GridActionsCellItem, GridEditInputCell, GridToolbarContainer, GRID_DATE_COL_DEF, useGridApiContext } from '@mui/x-data-grid';
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { tokens } from '../../../theme';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import CurrencyInput from './fields/CurrencyInput';
 
 function EditToolbar(props) {
-  const {setRows, rows, setRowModesModel} = props
+  const {setRows, rows} = props
   
-  const handleClick = () =>{
+  const handleClick = () => {
     const id = rows.length + 1
-    setRows((oldRows) => [...oldRows, { id , dueDate: null,  principal : '', interest : 0, numberDays : '',  bank_name : null, checkNumber: '', check_date : null, net_proceeds : 0, isNew : true}])
-    setRowModesModel((oldModel) => ({
-      ...oldModel,
-      [id] : { mode: GridRowModes.Edit, fieldToFocus: 'dueDate' }
-    }))
+    setRows((oldRows) => [...oldRows, { 
+      id, 
+      dueDate: null, 
+      principal: '', 
+      interest: '', 
+      numberDays: '', 
+      bank_name: null, 
+      checkNumber: '', 
+      check_date: null, 
+      net_proceeds: '', 
+      isNew: true
+    }])
   }
 
   return (
@@ -29,7 +36,8 @@ function EditToolbar(props) {
   )
 }
 
-const formatNumber = (params) =>{
+const formatNumber = (params) => {
+  if (!params.value && params.value !== 0) return ''
   const format = Number(params.value).toLocaleString('en', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2 
@@ -46,34 +54,17 @@ const StyledToolTip = styled(({className, ...props}) => (
   },
 }));
 
-
-const renderAmount = (props) => {
-  const {error} = props
-  return (
-    <StyledToolTip open={!!error} title={error} >
-      <GridEditInputCell {...props} />
-    </StyledToolTip> 
-  )
-}
-
-const handleAmountValidation = async (params) => {
-  
-  const error = new Promise((resolve) => {
-    resolve(Number(params.props.value) <= 0 ? `Invalid Amount` : null)
-  });
-  return params.hasChanged ? {...params.props, error : await error} :  {...params.props}
-}
-
 const WrappedGridEditDateInput = (props) => {
   const {placeholder, value, ...other} = props
   return (
-  <InputBase sx={{padding : '0 15px', fontSize : 'inherit'}}
-    {...props.InputProps}
-    placeholder={placeholder}
-    value={value}
-    {...other}
-  />
-)
+    <InputBase 
+      sx={{padding: '0 15px', fontSize: 'inherit'}}
+      {...props.InputProps}
+      placeholder={placeholder}
+      value={value}
+      {...other}
+    />
+  )
 }
 
 const GridDatePicker = (params) => {
@@ -85,31 +76,66 @@ const GridDatePicker = (params) => {
   }
 
   return ( 
-  <DatePicker
-    value={value}
-    sx={{px : 1.5}}
-    onChange={handleChange}
-    slots={{
-      textField : WrappedGridEditDateInput
-    }} 
-  />)
+    <DatePicker
+      value={value}
+      sx={{px: 1.5}}
+      onChange={handleChange}
+      slots={{
+        textField: WrappedGridEditDateInput
+      }} 
+    />
+  )
 }
 
-const GridCurrency = (params) => {
+// Make GridCurrency a proper React component to use hooks
+const GridCurrencyEdit = React.memo((props) => {
+  const {params} = props
   const refApi = useGridApiContext()
-  const {value, id, field} = params
+  const {value, id, field, hasFocus} = params
+  const inputRef = useRef(null)
+  
   const handleChange = (newValue) => {
     refApi.current.setEditCellValue({ id, field, value: newValue.floatValue })
   }
-  return <CurrencyInput sx={{ px : 1.5}} value={value} customInput={InputBase} onValueChange={handleChange}/>
+
+  // Auto-select text when entering edit mode
+  useEffect(() => {
+    if (hasFocus && inputRef.current) {
+      const input = inputRef.current.querySelector('input')
+      if (input) {
+        setTimeout(() => {
+          input.select()
+        }, 0)
+      }
+    }
+  }, [hasFocus])
+  
+  return (
+    <Box ref={inputRef}>
+      <CurrencyInput 
+        sx={{px: 1.5}} 
+        value={value || ''} 
+        customInput={InputBase} 
+        onValueChange={handleChange}
+        autoFocus={hasFocus}
+      />
+    </Box>
+  )
+})
+
+GridCurrencyEdit.displayName = 'GridCurrencyEdit'
+
+// Wrapper function for renderEditCell
+const GridCurrency = (params) => {
+  return <GridCurrencyEdit params={params} />
 }
 
-const CustomFooter  = (props) => {
+const CustomFooter = (props) => {
   return (
-    <Box margin={1} >
+    <Box margin={1}>
       <Box display='flex'>
         <Box display='flex' alignItems='center' width={'20%'}> 
-          <Typography >Total</Typography>
+          <Typography>Total</Typography>
         </Box>
         <Box flex={1}>
           <Box mx={1} display='flex' alignItems='center'>
@@ -118,170 +144,374 @@ const CustomFooter  = (props) => {
             <Typography flex={1}>Net Proceeds</Typography>
           </Box>
           <Box mx={1} display='flex' alignItems='center'>
-            <CurrencyInput displayType='text' value={props.principal_total} 
-              renderText={
-                (val) => <Typography flex={1}>{val}</Typography>
-              } /> 
-            <CurrencyInput value={props.interest_total} displayType='text' 
-              renderText={
-                (val) => <Typography flex={1}>{val}</Typography>
-              } />
-            <CurrencyInput value={props.amortization_total} displayType='text' 
-              renderText={
-                (val) => <Typography flex={1}>{val}</Typography>
-              } />
+            <CurrencyInput 
+              displayType='text' 
+              value={props.principal_total} 
+              renderText={(val) => <Typography flex={1}>{val}</Typography>} 
+            /> 
+            <CurrencyInput 
+              value={props.interest_total} 
+              displayType='text' 
+              renderText={(val) => <Typography flex={1}>{val}</Typography>} 
+            />
+            <CurrencyInput 
+              value={props.amortization_total} 
+              displayType='text' 
+              renderText={(val) => <Typography flex={1}>{val}</Typography>} 
+            />
           </Box>
         </Box>
       </Box>
     </Box>
-
   )
 }
 
-export default function LoanDetailsTable({banks, rows, setRows, formValue}) {
-
+export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) {
   const theme = useTheme()
-  const colors =  tokens(theme.palette.mode)
-  const [rowModesModel, setRowModesModel] = useState({})
-  const [pricipalTotal, setPricipalTotal] = useState(0)
+  const colors = tokens(theme.palette.mode)
+  const [principalTotal, setPrincipalTotal] = useState(0)
   const [interestTotal, setInterestTotal] = useState(0)
   const [netProceeds, setNetProceeds] = useState(0)
+  const apiRef = useRef(null)
   
   const handleDelete = (id) => {
-    const filterRows = rows.filter((row) => row.id !== id).map((r,i) =>  ({...r, id : i + 1}) )
+    const filterRows = rows.filter((row) => row.id !== id).map((r, i) => ({...r, id: i + 1}))
     setRows(filterRows)
   }
 
-  const handleRowModesModelChange = (newRowModesModel) => {
-    setRowModesModel(newRowModesModel);
-  };
-
-  const handleRowInputChange = (newRow) => {
-    const updatedRow = { ...newRow, isNew : false}
-    console.log(163, {...newRow})
-    setRows(rows.map((row)=> (row.id === newRow.id ? updatedRow : row)))
-    return updatedRow
-  }
-
-  const handleRowEditStop = (params, event) => {
-    if (params.reason === GridRowEditStopReasons.rowFocusOut) {
-      event.defaultMuiPrevented = true;
+  const handleProcessRowUpdate = useCallback((newRow, oldRow) => {
+    let numberDays = newRow.numberDays
+    if (newRow.dueDate && newRow.dueDate !== oldRow.dueDate) {
+      const now = dayjs()
+      numberDays = Math.abs(now.diff(dayjs(newRow.dueDate), 'day')) + 1
     }
-  };
+    
+    const netProceeds = (Number(newRow.principal) || 0) - (Number(newRow.interest) || 0)
+    
+    const updatedRow = {
+      ...newRow,
+      numberDays,
+      net_proceeds: netProceeds,
+      isNew: false
+    }
+    
+    setRows((prevRows) => 
+      prevRows.map((row) => (row.id === updatedRow.id ? updatedRow : row))
+    )
+    
+    return updatedRow
+  }, [setRows])
+
+  const handleProcessRowUpdateError = useCallback((error) => {
+    console.error('Row update error:', error)
+  }, [])
   
   useEffect(() => {
-    
-      setPricipalTotal(rows.reduce((acc, cur) => acc + cur.principal, 0))
-      setInterestTotal(rows.reduce((acc, cur) => acc + cur.interest, 0))
-      setNetProceeds(rows.reduce((acc, cur) => acc + cur.net_proceeds, 0))
-    
+    setPrincipalTotal(rows.reduce((acc, cur) => acc + (Number(cur.principal) || 0), 0))
+    setInterestTotal(rows.reduce((acc, cur) => acc + (Number(cur.interest) || 0), 0))
+    setNetProceeds(rows.reduce((acc, cur) => acc + (Number(cur.net_proceeds) || 0), 0))
   }, [rows])
 
+  const editableFields = ['dueDate', 'check_date', 'principal', 'bank_name', 'checkNumber', 'interest']
+
   const columns = [
-    { field: 'dueDate', headerName: 'Cleared Date', editable: true, width: 150,
-      GRID_DATE_COL_DEF, 
-      renderEditCell : (params) => { return <GridDatePicker {...params} />} ,
-      valueFormatter : (params) => {
-        if(params.value){
+    { 
+      field: 'dueDate', 
+      headerName: 'Cleared Date', 
+      editable: true, 
+      width: 150,
+      ...GRID_DATE_COL_DEF, 
+      renderEditCell: (params) => <GridDatePicker {...params} />,
+      valueFormatter: (params) => {
+        if (params.value) {
           return dayjs(params.value).format('MM/DD/YYYY')
         }
         return ''
       }
     },
-    { field: 'check_date', headerName: 'Check Date', editable: true, width: 150,
-      GRID_DATE_COL_DEF, 
-      renderEditCell : (params) => { return <GridDatePicker {...params} />} ,
-      valueFormatter : (params) => {
-        if(params.value){
+    { 
+      field: 'check_date', 
+      headerName: 'Check Date', 
+      editable: true, 
+      width: 150,
+      ...GRID_DATE_COL_DEF, 
+      renderEditCell: (params) => <GridDatePicker {...params} />,
+      valueFormatter: (params) => {
+        if (params.value) {
           return dayjs(params.value).format('MM/DD/YYYY')
         }
         return ''
       }
     },
-    { field: 'principal', headerName: 'Check Amount', width: 150, editable: true,
-      valueFormatter : (params) => {
-        return formatNumber(params)
-      },
-      preProcessEditCellProps :  handleAmountValidation,
-      renderEditCell : GridCurrency
+    { 
+      field: 'principal', 
+      headerName: 'Check Amount', 
+      width: 150, 
+      editable: true,
+      type: 'number',
+      valueFormatter: (params) => formatNumber(params),
+      renderEditCell: GridCurrency,
+      preProcessEditCellProps: (params) => {
+        const hasError = Number(params.props.value) <= 0 && params.props.value !== '' && params.props.value !== undefined
+        return { ...params.props, error: hasError ? 'Invalid Amount' : null }
+      }
     },
-     
-    { field: 'bank_name', headerName: 'Bank', width: 120, editable: true, type : 'singleSelect', valueOptions : banks.filter((b) => +b.owner == 0),
+    { 
+      field: 'bank_name', 
+      headerName: 'Bank', 
+      width: 120, 
+      editable: true, 
+      type: 'singleSelect', 
+      valueOptions: banks.filter((b) => +b.owner === 0),
       getOptionValue: (value) => value.bank_branch,
       getOptionLabel: (value) => value.bank_branch,
     },
-    { field: 'checkNumber', headerName: 'Check Number', width: 120, editable: true,},
-    { field : 'numberDays', headerName : 'NO. of Days', width : 120,  editable: true,
-      valueSetter : (params) => {
-        if(params.row.dueDate){
+    { 
+      field: 'checkNumber', 
+      headerName: 'Check Number', 
+      width: 120, 
+      editable: true
+    },
+    { 
+      field: 'numberDays', 
+      headerName: 'NO. of Days', 
+      width: 120, 
+      editable: false,
+      valueGetter: (params) => {
+        if (params.row.dueDate) {
           const now = dayjs()
-          const dif = Math.abs(now.diff(params.row.dueDate, 'day')) + 1
-          return {...params.row, numberDays: dif}
+          return Math.abs(now.diff(dayjs(params.row.dueDate), 'day')) + 1
         }
-        return {...params.row}
+        return ''
       }
     }, 
-    { field: 'interest', headerName: 'Interest', width: 150, editable : true,
-      valueFormatter : (params) => {
-        return formatNumber(params)
-      },
-      preProcessEditCellProps : (params) => {  // validate
-        const err = params.props.value == undefined
-        return { ...params.props, error: err };
-      },
-      renderEditCell : GridCurrency
-    },
-   
-    { field: 'net_proceeds', headerName: 'Net Proceeds', editable: true, width: 150,
-      renderEditCell : GridCurrency,
-      valueFormatter : (params) => {
-        return formatNumber(params)
-      },
-      valueSetter : (params) => {
-        const dif = +params.row.principal - +params.row.interest 
-        return {...params.row, net_proceeds : dif}
+    { 
+      field: 'interest', 
+      headerName: 'Interest', 
+      width: 150, 
+      editable: true,
+      type: 'number',
+      valueFormatter: (params) => formatNumber(params),
+      renderEditCell: GridCurrency,
+      preProcessEditCellProps: (params) => {
+        const hasError = params.props.value === undefined || (Number(params.props.value) < 0 && params.props.value !== '')
+        return { ...params.props, error: hasError ? 'Invalid Amount' : null }
       }
     },
-    
-   
-    { field: 'action', type : 'actions',
-      getActions : ({id}) => {
-        if(false) {}
-        return [
-          <GridActionsCellItem
-            icon={<DeleteOutlined/>}
-            color='inherit'
-            label='edit'
-            sx={{color: colors.redAccent[500], cursor: 'auto'}}
-            onClick={(e) => handleDelete(id)}
-          />
-        ]
+    { 
+      field: 'net_proceeds', 
+      headerName: 'Net Proceeds', 
+      editable: false, 
+      width: 150,
+      valueFormatter: (params) => formatNumber(params),
+      valueGetter: (params) => {
+        return (Number(params.row.principal) || 0) - (Number(params.row.interest) || 0)
       }
     },
-  ];
+    { 
+      field: 'action', 
+      type: 'actions',
+      getActions: ({id}) => [
+        <GridActionsCellItem
+          icon={<DeleteOutlined/>}
+          color='inherit'
+          label='delete'
+          sx={{color: colors.redAccent[500]}}
+          onClick={() => handleDelete(id)}
+        />
+      ]
+    },
+  ]
+
+  // Helper function to start editing a cell
+  const startEditingCell = (rowId, field) => {
+    if (apiRef.current) {
+      apiRef.current.startCellEditMode({ id: rowId, field })
+    }
+  }
+
+  // Helper function to stop editing current cell
+  const stopEditingCell = (rowId, field) => {
+    if (apiRef.current && rowId && field) {
+      apiRef.current.stopCellEditMode({ 
+        id: rowId,
+        field: field,
+        ignoreModifications: false 
+      })
+    }
+  }
 
   return (
     <DataGrid
+      apiRef={apiRef}
       columns={columns}
       rows={rows}
-      editMode="row"
-      rowModesModel={rowModesModel}
-      onRowModesModelChange={handleRowModesModelChange}
-      onProcessRowUpdateError={(error) => {
-        console.log(258, error)
-      }}
-      onRowEditStop={handleRowEditStop}
-      processRowUpdate={handleRowInputChange}
+      editMode="cell"
+      processRowUpdate={handleProcessRowUpdate}
+      onProcessRowUpdateError={handleProcessRowUpdateError}
       slots={{
         toolbar: EditToolbar,
-        footer : CustomFooter
+        footer: CustomFooter
       }}
       slotProps={{
-        toolbar: {setRows, rows, setRowModesModel},
-        footer : {
-          principal_total : pricipalTotal,
-          interest_total : interestTotal,
-          amortization_total : netProceeds
+        toolbar: {setRows, rows},
+        footer: {
+          principal_total: principalTotal,
+          interest_total: interestTotal,
+          amortization_total: netProceeds
+        }
+      }}
+      disableRowSelectionOnClick
+      onCellClick={(params, event) => {
+        // Start editing immediately on click for editable cells
+        if (params.isEditable && editableFields.includes(params.field)) {
+          event.defaultMuiPrevented = true
+          startEditingCell(params.id, params.field)
+        }
+      }}
+      onCellKeyDown={(params, event) => {
+        const {field, id, isEditable, cellMode} = params
+        
+        // Only handle navigation when NOT in edit mode
+        if (cellMode === 'view' && isEditable) {
+          const currentRowIndex = rows.findIndex(row => row.id === id)
+          const currentFieldIndex = editableFields.indexOf(field)
+          
+          // Enter key - start editing current cell
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            event.stopPropagation()
+            startEditingCell(id, field)
+            return
+          }
+          
+          // Arrow Down - move to same column, next row
+          if (event.key === 'ArrowDown' && currentRowIndex < rows.length - 1) {
+            event.preventDefault()
+            event.stopPropagation()
+            const nextRowId = rows[currentRowIndex + 1].id
+            params.api.setCellFocus(nextRowId, field)
+            return
+          }
+          
+          // Arrow Up - move to same column, previous row
+          if (event.key === 'ArrowUp' && currentRowIndex > 0) {
+            event.preventDefault()
+            event.stopPropagation()
+            const prevRowId = rows[currentRowIndex - 1].id
+            params.api.setCellFocus(prevRowId, field)
+            return
+          }
+          
+          // Arrow Right - move to next editable column
+          if (event.key === 'ArrowRight' && currentFieldIndex < editableFields.length - 1) {
+            event.preventDefault()
+            event.stopPropagation()
+            const nextField = editableFields[currentFieldIndex + 1]
+            params.api.setCellFocus(id, nextField)
+            return
+          }
+          
+          // Arrow Left - move to previous editable column
+          if (event.key === 'ArrowLeft' && currentFieldIndex > 0) {
+            event.preventDefault()
+            event.stopPropagation()
+            const prevField = editableFields[currentFieldIndex - 1]
+            params.api.setCellFocus(id, prevField)
+            return
+          }
+
+          // Tab key - move to next editable cell
+          if (event.key === 'Tab' && !event.shiftKey) {
+            event.preventDefault()
+            event.stopPropagation()
+            
+            if (currentFieldIndex < editableFields.length - 1) {
+              const nextField = editableFields[currentFieldIndex + 1]
+              params.api.setCellFocus(id, nextField)
+            } else if (currentRowIndex < rows.length - 1) {
+              const nextRowId = rows[currentRowIndex + 1].id
+              params.api.setCellFocus(nextRowId, editableFields[0])
+            }
+            return
+          }
+          
+          // Shift+Tab - move to previous editable cell
+          if (event.key === 'Tab' && event.shiftKey) {
+            event.preventDefault()
+            event.stopPropagation()
+            
+            if (currentFieldIndex > 0) {
+              const prevField = editableFields[currentFieldIndex - 1]
+              params.api.setCellFocus(id, prevField)
+            } else if (currentRowIndex > 0) {
+              const prevRowId = rows[currentRowIndex - 1].id
+              params.api.setCellFocus(prevRowId, editableFields[editableFields.length - 1])
+            }
+            return
+          }
+        }
+        
+        // When IN edit mode, handle Tab to save and move
+        if (cellMode === 'edit') {
+          const currentRowIndex = rows.findIndex(row => row.id === id)
+          const currentFieldIndex = editableFields.indexOf(field)
+          
+          // Tab - save current cell and move to next
+          if (event.key === 'Tab' && !event.shiftKey) {
+            event.preventDefault()
+            event.stopPropagation()
+            stopEditingCell(id, field)
+            
+            setTimeout(() => {
+              if (currentFieldIndex < editableFields.length - 1) {
+                const nextField = editableFields[currentFieldIndex + 1]
+                params.api.setCellFocus(id, nextField)
+                setTimeout(() => startEditingCell(id, nextField), 50)
+              } else if (currentRowIndex < rows.length - 1) {
+                const nextRowId = rows[currentRowIndex + 1].id
+                params.api.setCellFocus(nextRowId, editableFields[0])
+                setTimeout(() => startEditingCell(nextRowId, editableFields[0]), 50)
+              }
+            }, 50)
+            return
+          }
+          
+          // Shift+Tab - save current cell and move to previous
+          if (event.key === 'Tab' && event.shiftKey) {
+            event.preventDefault()
+            event.stopPropagation()
+            stopEditingCell(id, field)
+            
+            setTimeout(() => {
+              if (currentFieldIndex > 0) {
+                const prevField = editableFields[currentFieldIndex - 1]
+                params.api.setCellFocus(id, prevField)
+                setTimeout(() => startEditingCell(id, prevField), 50)
+              } else if (currentRowIndex > 0) {
+                const prevRowId = rows[currentRowIndex - 1].id
+                params.api.setCellFocus(prevRowId, editableFields[editableFields.length - 1])
+                setTimeout(() => startEditingCell(prevRowId, editableFields[editableFields.length - 1]), 50)
+              }
+            }, 50)
+            return
+          }
+          
+          // Enter - save and move to next row same column
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            event.stopPropagation()
+            stopEditingCell(id, field)
+            
+            setTimeout(() => {
+              if (currentRowIndex < rows.length - 1) {
+                const nextRowId = rows[currentRowIndex + 1].id
+                params.api.setCellFocus(nextRowId, field)
+                setTimeout(() => startEditingCell(nextRowId, field), 50)
+              }
+            }, 50)
+            return
+          }
         }
       }}
     />

@@ -3,7 +3,7 @@ require("dotenv").config();
 
 const HOST = "localhost";
 const USER = "root";
-const PASSWORD = "web001";
+const PASSWORD = "!Web001@2025";
 const DATABASE = "loan_db";
 
 const builder = knex({
