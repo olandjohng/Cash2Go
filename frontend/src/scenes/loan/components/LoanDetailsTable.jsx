@@ -267,19 +267,15 @@ export default function LoanDetailsTable({banks, rows, setRows}) {
       editable: true, 
       type: 'singleSelect', 
       valueOptions: banks.filter(b => +b.owner === 0),
-      getOptionValue: (value) => value.bank_branch,
-      getOptionLabel: (value) => value.bank_branch,
-      valueSetter: (params) => {
-        // Store only the bank_branch string
-        return { ...params.row, bank_name: params.value?.bank_branch || params.value };
-      },
-      valueGetter: (params) => {
-        // Return the full bank object for the dropdown, or find it by bank_branch string
-        const bankValue = params.row.bank_name;
-        if (typeof bankValue === 'string') {
-          return banks.find(b => b.bank_branch === bankValue) || bankValue;
+      getOptionValue: (value) => value.id, // Store the bank ID
+      getOptionLabel: (value) => value.bank_branch, // Display the branch name
+      valueFormatter: (params) => {
+        // For display, find the bank by ID and show the branch name
+        if (typeof params.value === 'number') {
+          const bank = banks.find(b => b.id === params.value);
+          return bank ? bank.bank_branch : '';
         }
-        return bankValue;
+        return params.value || '';
       }
     },
     { 

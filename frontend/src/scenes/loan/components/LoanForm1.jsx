@@ -214,6 +214,11 @@ function LoanForm1({
   const totalDebit = voucher.reduce((acc, cur) => acc + Number(cur.debit), 0);
 
   const handleSubmit = async () => {
+    console.log("=== handleSubmit Debug - START ===");
+    console.log("Sample bank object:", banks[0]);
+    console.log("Original formValue:", formValue);
+    console.log("Original formValue.loan_details:", formValue.loan_details);
+
     let data;
 
     if (formValue.check_date_2) {
@@ -221,6 +226,7 @@ function LoanForm1({
         ...formValue,
         check_date: dayjs(formValue.check_date).format(),
         date_granted: formValue.date_granted.format(),
+        transaction_date: dayjs(formValue.transaction_date).format(),
         check_date_2: formValue.check_date_2.format(),
       };
     } else {
@@ -228,7 +234,61 @@ function LoanForm1({
         ...formValue,
         check_date: dayjs(formValue.check_date).format(),
         date_granted: formValue.date_granted.format(),
+        transaction_date: dayjs(formValue.transaction_date).format(),
       };
+    }
+
+    // Debug what's in data
+    console.log("data.bank_name:", data.bank_name);
+    console.log("data.bank_account_id:", data.bank_account_id);
+    console.log("data object keys:", Object.keys(data));
+
+    // ADD THIS: Find and set the main bank_account_id from bank_name
+    if (data.bank_name) {
+      console.log("Looking for bank with name:", data.bank_name);
+      console.log("All banks:", banks);
+
+      // Try to find by bank_branch first, then by name
+      const mainBank = banks.find(
+        (b) => b.bank_branch === data.bank_name || b.name === data.bank_name
+      );
+
+      if (mainBank) {
+        data.bank_account_id = mainBank.id;
+        console.log(
+          "Set main bank_account_id:",
+          mainBank.id,
+          "for bank:",
+          data.bank_name
+        );
+      } else {
+        console.error("Could not find bank for:", data.bank_name);
+        console.error(
+          "Available banks:",
+          banks.map((b) => ({ id: b.id, name: b.name, branch: b.bank_branch }))
+        );
+      }
+    } else {
+      console.log("NO BANK_NAME FOUND! data.bank_name is:", data.bank_name);
+    }
+
+    // ADD THIS: Find and set the main bank_account_id from bank_name
+    if (data.bank_name) {
+      const mainBank = banks.find(
+        (b) =>
+          b.bank_branch === data.bank_name || b.bank_name === data.bank_name
+      );
+      if (mainBank) {
+        data.bank_account_id = mainBank.id;
+        console.log(
+          "Set main bank_account_id:",
+          mainBank.id,
+          "for bank:",
+          data.bank_name
+        );
+      } else {
+        console.error("Could not find bank for:", data.bank_name);
+      }
     }
 
     const mapLoanDetails = data.loan_details.map((v) => {
@@ -237,9 +297,28 @@ function LoanForm1({
         dueDate: v.dueDate.format ? v.dueDate.format() : v.dueDate,
       };
 
-      for (const b of banks) {
-        if (item.bank_name === b.bank_branch) {
-          item = { ...item, bank_account_id: b.id };
+      // Add logging here to see what's happening during mapping
+      console.log("Processing loan detail item:");
+      console.log(
+        "  item.bank_name:",
+        item.bank_name,
+        "type:",
+        typeof item.bank_name
+      );
+
+      // bank_name now contains the bank ID (number), use it directly
+      if (typeof item.bank_name === "number") {
+        item = { ...item, bank_account_id: item.bank_name };
+        console.log("  Set bank_account_id from number:", item.bank_account_id);
+      } else if (typeof item.bank_name === "string") {
+        console.log("  bank_name is string, searching for match...");
+        // Fallback for old data format (string bank_branch)
+        for (const b of banks) {
+          if (item.bank_name === b.bank_branch) {
+            item = { ...item, bank_account_id: b.id };
+            console.log("  Found match! Set bank_account_id:", b.id);
+            break;
+          }
         }
       }
 
@@ -255,6 +334,11 @@ function LoanForm1({
     });
 
     data = { ...data, loan_details: mapLoanDetails };
+
+    // Add this log right before the fetch
+    console.log("=== handleSubmit Debug - BEFORE FETCH ===");
+    console.log("Mapped loan_details:", mapLoanDetails);
+    console.log("Final data being sent:", JSON.stringify(data, null, 2));
 
     // Determine URL and method based on edit mode
     const url = isEdit ? `/api/loans/${loanId}` : "/api/loans";
