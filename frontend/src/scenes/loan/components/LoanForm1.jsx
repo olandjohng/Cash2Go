@@ -421,11 +421,9 @@ function LoanForm1({
   };
 
   useEffect(() => {
-    if (!isEdit) {
-      // Only update formValue from rows when NOT in edit mode
-      setFormValue((prev) => ({ ...prev, loan_details: [...rows] }));
-    }
-  }, [rows, isEdit]);
+    // Always sync rows to formValue.loan_details
+    setFormValue((prev) => ({ ...prev, loan_details: [...rows] }));
+  }, [rows]);
 
   useEffect(() => {
     const getEmployees = async () => {
@@ -690,11 +688,11 @@ function LoanForm1({
 export function PreviewLabel({ label, value }) {
   return (
     <Box>
-      <StyledLabel sx={{ color: "ghostwhite" }}>{value}</StyledLabel>
+      <StyledLabel sx={{ color: "ghostwhite", textAlign: 'left' }}>{value}</StyledLabel>
       <Typography
         style={{
           letterSpacing: "1px",
-          textAlign: "center",
+          textAlign: "left",
           fontSize: "smaller",
           fontStyle: "italic",
           color: "ghostwhite",
@@ -711,7 +709,6 @@ const StyledLabel = styled("div")({
   letterSpacing: "1.5px",
   textAlign: "center",
 
-  borderBottomWidth: 1,
 });
 
 export default LoanForm1;

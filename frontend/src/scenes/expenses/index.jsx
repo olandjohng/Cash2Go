@@ -264,6 +264,7 @@ export default function ExpensesPage() {
         prepared_by: data.prepared_by,
         supplier_id: data.supplier_id,
         voucher_number: data.voucherNumber,
+        remarks: data.remarks
       },
       voucher_details : data.voucher_details,
       map_to_delete : data.map_to_delete

@@ -67,7 +67,8 @@ expensesRouter.get('/edit/:id', async (req, res) => {
       'bank',
       'prepared_by',
       'checked_by',
-      'approved_by'
+      'approved_by',
+      'remarks'
     ).where('id', Number(id))
     
     const formatVoucherDetails = {
