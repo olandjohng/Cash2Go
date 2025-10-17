@@ -12,6 +12,7 @@ const collateralRouter = require('./routes/collateral')
 const accountCategoryRouter = require('./routes/accountCategory')
 const accountTitleRouter = require('./routes/accountTitle')
 const employeeRouter = require('./routes/employee')
+const { sequenceRouter } = require('./routes/sequenceRouter')
 const paymentRouter = require('./routes/payment');
 
 const os = require('os');
@@ -54,6 +55,7 @@ app.use('/api/customers', customerRouter)
 app.use('/api/banks', bankRouter)
 app.use('/api/deductions', deductionRouter)
 app.use('/api/facility', facilityRouter)
+app.use('/api/sequence', sequenceRouter)
 app.use('/api/category', categoryRouter)
 app.use('/api/customerInfo', customerInfoRouter)
 app.use('/api/collateral', collateralRouter)

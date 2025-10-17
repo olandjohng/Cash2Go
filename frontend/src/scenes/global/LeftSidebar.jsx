@@ -4,7 +4,7 @@ import { Box, IconButton, Typography, useTheme } from "@mui/material"
 import { Link } from "react-router-dom"
 import { tokens } from "../../theme"
 import {Outlet} from 'react-router-dom'
-import { HomeOutlined, MenuOutlined, ReceiptOutlined, PointOfSaleOutlined, AttachMoneyOutlined, Diversity3Outlined, CategoryOutlined, TrendingDownOutlined, EmojiTransportationOutlined, AccountBalanceOutlined, CompareArrowsOutlined, ClassOutlined, TitleOutlined, BadgeOutlined, RequestQuoteOutlined, AccountBalanceWalletOutlined } from "@mui/icons-material"
+import { HomeOutlined, MenuOutlined, ReceiptOutlined, PointOfSaleOutlined, AttachMoneyOutlined, Diversity3Outlined, CategoryOutlined, TrendingDownOutlined, EmojiTransportationOutlined, AccountBalanceOutlined, CompareArrowsOutlined, ClassOutlined, TitleOutlined, BadgeOutlined, RequestQuoteOutlined, AccountBalanceWalletOutlined, FormatListNumberedOutlined } from "@mui/icons-material"
 import 'react-pro-sidebar/dist/css/styles.css';
 import { useAuthContext } from "../../context/AuthContext"
 
@@ -264,6 +264,13 @@ const LeftSidebar = () => {
                 title="Account Title"
                 to="/account-title"
                 icon={<TitleOutlined />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+              <Item
+                title="Sequence Settings"
+                to="/sequence"
+                icon={<FormatListNumberedOutlined />}
                 selected={selected}
                 setSelected={setSelected}
               />

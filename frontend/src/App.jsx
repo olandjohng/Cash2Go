@@ -24,6 +24,7 @@ import AdjustingEntriesPage from "./scenes/adjusting-entries";
 import Signin from "./scenes/auth/Signin";
 import { AuthContextProvider } from "./context/AuthContext";
 import RootLayout from "./components/layout/RootLayout";
+import Sequence from "./scenes/sequence";
 
 function App() {
 
@@ -122,6 +123,11 @@ function App() {
                 <Route path="/employee" element={<Employee />} />
                 <Route path="/employee/new" element={<Employee />} />
                 <Route path="/employee/:id" element={<Employee />} />
+
+                <Route path="/sequence" element={<Sequence />} />
+                <Route path="/sequence/new" element={<Sequence />} />
+                <Route path="/sequence/:sequenceType" element={<Sequence />} />
+                
               </Route>
             </Routes>
             <ToastContainer />

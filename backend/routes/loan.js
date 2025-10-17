@@ -926,4 +926,4 @@ loanRouter.post('/details', async (req, res, next) => {
 })
 loanRouter.get('/:id', getLoan)
 
-module.exports = {loanRouter }
+module.exports = { loanRouter }
