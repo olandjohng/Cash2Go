@@ -1,8 +1,8 @@
-import { DataGrid, GridActionsCell, GridActionsCellItem } from '@mui/x-data-grid'
-import React, { useState } from 'react'
+import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid'
+import React, { useState, useEffect } from 'react'
 import Header from '../../components/Header'
 import Popups from '../../components/Popups'
-import { Box, Button, Skeleton } from '@mui/material'
+import { Box, Skeleton } from '@mui/material'
 import ExpensesParentForm from './components/ExpensesParentForm'
 import ExpensesDetails from './components/ExpensesDetails'
 import ExpensesVoucher from './components/ExpensesVoucher'
@@ -17,6 +17,7 @@ import * as ejs from 'ejs'
 import dayjs from 'dayjs'
 import { toastErr, toastSucc } from '../../utils'
 import * as yup from 'yup'
+import { useSequence } from '../../hooks/useSequence' // Import the sequence hook
 
 const initialValues = {
   voucherNumber : '',
@@ -60,24 +61,48 @@ const saveExpenses = async (url, {arg}) => {
 export default function ExpensesPage() {
   const [openExpesesForm, setOpenExpensesForm] = useState(false)
   const [openEditExpensesForm, setOpenEditExpensesForm] = useState(false)
-
-  const [activeStep, setActiveStep] = React.useState(0);
+  const [activeStep, setActiveStep] = useState(0)
   const [details, setDetails] = useState(initialValues)
   
-  const {data : banks, } = useSwr('/api/expenses/banks', fetcher)
-  const {data : expenses_title, } = useSwr('/api/account-title/expenses', fetcher)
-  const {data : employee, } = useSwr('/api/employee', fetcher,)
+  // Initialize sequence hook
+  const { getNextSequence, loading: sequenceLoading } = useSequence()
+  
+  const {data : banks} = useSwr('/api/expenses/banks', fetcher)
+  const {data : expenses_title} = useSwr('/api/account-title/expenses', fetcher)
+  const {data : employee} = useSwr('/api/employee', fetcher)
   const {data : suppliers} = useSwr('/api/expenses/suppliers', fetcher)
   const {data : expenses, isLoading, mutate } = useSwr('/api/expenses/', fetcher)
   
   const {trigger: createExpenses} = useSWRMutation('/api/expenses', saveExpenses)
-  const { trigger: getExpensesVoucher  } = useSWRMutation('/api/expenses', fetchDetails)
-  const { trigger: getEditExpensesVocher  } = useSWRMutation('/api/expenses/edit', fetchDetails)
+  const { trigger: getExpensesVoucher } = useSWRMutation('/api/expenses', fetchDetails)
+  const { trigger: getEditExpensesVocher } = useSWRMutation('/api/expenses/edit', fetchDetails)
 
+  // Function to fetch and set voucher number
+  const fetchVoucherNumber = async () => {
+    try {
+      // Use the exact sequence_type from your database
+      const sequenceData = await getNextSequence('disbursement_voucher')
+      console.log('Sequence data received:', sequenceData) // Debug log
+      
+      setDetails(prev => ({
+        ...prev,
+        voucherNumber: sequenceData.formattedValue || sequenceData.formatted_value
+      }))
+    } catch (error) {
+      console.error('Failed to fetch voucher number:', error)
+      toastErr('Failed to generate voucher number')
+    }
+  }
+
+  // Fetch voucher number when opening new form
+  useEffect(() => {
+    if (openExpesesForm && !openEditExpensesForm) {
+      fetchVoucherNumber()
+    }
+  }, [openExpesesForm])
 
   const handleEditVoucher = async (id) => {
     const response = await getEditExpensesVocher(id)
-    // console.log(response)
     setDetails(response)
     setOpenEditExpensesForm(true)
   }
@@ -87,57 +112,39 @@ export default function ExpensesPage() {
     setActiveStep((prev) => prev + 1)
   }
 
-  // const handlePrintVoucher = async (id) => {
-  //   // TODO add remarks 
-  //   const response = await getExpensesVoucher(id)
-  //   // console.log(68, response)
-  //   const input = {
-  //     logo : logo,
-  //     ...response,
-  //     has_second_check: false,
-  //     date: dayjs(response.date).format('MM-DD-YYYY'),
-  //     check_details : `${response.bank}-${response.check_number}`
-  //   }
-
-  //   const template = ejs.render(voucherTemplateHTML, input)
-  //   const voucherWindow = window.open("", "Print Voucher");
-  //   voucherWindow.document.write(template);
-  // }
-
   const handlePrintVoucher = async (id) => {
-  try {
-    const response = await getExpensesVoucher(id)
-    
-    if (!response) {
-      toastErr('Failed to fetch voucher data')
-      return
-    }
+    try {
+      const response = await getExpensesVoucher(id)
+      
+      if (!response) {
+        toastErr('Failed to fetch voucher data')
+        return
+      }
 
-    const format = {
-      ...response,
-      logo: logo,
-      payee: response.borrower,
-      date: dayjs(response.date).format('MM-DD-YYYY'),
-      check_details: `${response.bank}-${response.check_number}`,
-      // Add ALL missing fields that your template expects
-      remarks: response.remarks || '',
-      voucher_details: response.details || [],
-      has_second_check: false, // Your working code sets this to false
-      check_details_2: '', // Provide empty default
-      ...(response.check_date && { 
-        check_date: dayjs(response.check_date).format('MM-DD-YYYY') 
-      })
-    }
+      const format = {
+        ...response,
+        logo: logo,
+        payee: response.borrower,
+        date: dayjs(response.date).format('MM-DD-YYYY'),
+        check_details: `${response.bank}-${response.check_number}`,
+        remarks: response.remarks || '',
+        voucher_details: response.details || [],
+        has_second_check: false,
+        check_details_2: '',
+        ...(response.check_date && { 
+          check_date: dayjs(response.check_date).format('MM-DD-YYYY') 
+        })
+      }
 
-    const render = ejs.render(voucherTemplateHTML, format)
-    const voucherWindow = window.open("", "Print Voucher")
-    voucherWindow.document.write(render)
-    
-  } catch (error) {
-    console.error('Print voucher error:', error)
-    toastErr('Failed to print voucher: ' + error.message)
+      const render = ejs.render(voucherTemplateHTML, format)
+      const voucherWindow = window.open("", "Print Voucher")
+      voucherWindow.document.write(render)
+      
+    } catch (error) {
+      console.error('Print voucher error:', error)
+      toastErr('Failed to print voucher: ' + error.message)
+    }
   }
-}
 
   const handlePrevious = (data) => {
     setDetails((old) => ({...old, ...data}))
@@ -156,8 +163,8 @@ export default function ExpensesPage() {
             label='Print Voucher'
             onClick={() => handlePrintVoucher(id)}
             showInMenu={true}
-            />,
-            <GridActionsCellItem 
+          />,
+          <GridActionsCellItem 
             icon={<CreateOutlined />}
             label='Edit Voucher'
             showInMenu={true}
@@ -174,16 +181,13 @@ export default function ExpensesPage() {
     {
       field : 'voucher_number',
       headerName: "Voucher No.",
-      // flex: 1
       width: 100
     },
     {
       field : 'payee',
       headerName: "Payee",
       flex: 1
-      // width : 200
     },
-    
     {
       field : 'check_details',
       headerName: "Check Details",
@@ -212,11 +216,10 @@ export default function ExpensesPage() {
     setOpenEditExpensesForm(false)
     setActiveStep(0)
     setDetails(initialValues)
-    toastSucc('Save Successfuly')
+    toastSucc('Save Successfully')
   }
 
   const handleSubmitVoucher = async (data) => {
-    
     const v_details = data.voucher_details.map(v => {
       return {
         account_title_id : v.category.id,
@@ -224,7 +227,7 @@ export default function ExpensesPage() {
         debit: Number(v.debit)
       }
     })
-    // return console.log(data)
+    
     const input = {
       header : {
         payee : data.borrower,
@@ -240,7 +243,7 @@ export default function ExpensesPage() {
       },
       details: v_details
     }
-    // cons
+    
     const response = await createExpenses(input)
     
     if(response.status === 200 ) {
@@ -279,21 +282,20 @@ export default function ExpensesPage() {
     } catch (error) {
       return toastErr('Something went Wrong!')
     }
-    
   }
-
 
   return (
     <Box padding={2} height='100%' display='flex' flexDirection='column'>
-      <Header title='Disbursement' onAddButtonClick={ () => setOpenExpensesForm(true)}/>
-        <Box flex={1} position='relative'>
-          <Box sx={{position : 'absolute', inset: 0}}>
-            {!isLoading ?
-              (<DataGrid columns={column} rows={expenses} rowSelection={false}/>) :
-              (<Skeleton variant='rectangular' height='100%' width='100%'/>)
-            }
-          </Box>
+      <Header title='Disbursement' onAddButtonClick={() => setOpenExpensesForm(true)}/>
+      <Box flex={1} position='relative'>
+        <Box sx={{position : 'absolute', inset: 0}}>
+          {!isLoading ?
+            (<DataGrid columns={column} rows={expenses} rowSelection={false}/>) :
+            (<Skeleton variant='rectangular' height='100%' width='100%'/>)
+          }
         </Box>
+      </Box>
+      
       <Popups
         title="Disbursement Form"
         openPopup={openExpesesForm}
@@ -306,13 +308,30 @@ export default function ExpensesPage() {
         <Box width={900}>
           <ExpensesParentForm activeStep={activeStep}>
             <FormStep label='Disbursement Details'>
-              <ExpensesDetails validationSchema={validationSchema} onComplete={handleStepComplete} suppliers={suppliers} data={details} banks={banks} employee={employee} />
+              <ExpensesDetails 
+                validationSchema={validationSchema} 
+                onComplete={handleStepComplete} 
+                suppliers={suppliers} 
+                data={details} 
+                banks={banks} 
+                employee={employee}
+                isLoading={sequenceLoading}
+              />
             </FormStep>
             <FormStep label='Voucher'>
-              <ExpensesVoucher titles={expenses_title} data={{ vouchers : details.voucher_details, remarks : details.remarks}} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
+              <ExpensesVoucher 
+                titles={expenses_title} 
+                data={{ vouchers : details.voucher_details, remarks : details.remarks}} 
+                onComplete={handleStepComplete} 
+                onPrevious={handlePrevious}
+              />
             </FormStep>
             <FormStep label='Print And Save'>
-              <ExpensesPrintVoucher data={details} onPrevious={handlePrevious} onSubmit={handleSubmitVoucher}/>
+              <ExpensesPrintVoucher 
+                data={details} 
+                onPrevious={handlePrevious} 
+                onSubmit={handleSubmitVoucher}
+              />
             </FormStep>
           </ExpensesParentForm>
         </Box>
@@ -330,18 +349,33 @@ export default function ExpensesPage() {
         <Box width={900}>
           <ExpensesParentForm activeStep={activeStep}>
             <FormStep label='Disbursement Details'>
-              <ExpensesDetails onComplete={handleStepComplete} suppliers={suppliers} data={details} banks={banks} employee={employee} />
+              <ExpensesDetails 
+                onComplete={handleStepComplete} 
+                suppliers={suppliers} 
+                data={details} 
+                banks={banks} 
+                employee={employee}
+                hasTicketNumber={true}
+              />
             </FormStep>
             <FormStep label='Voucher'>
-              <ExpensesVoucher titles={expenses_title} data={{ vouchers : details.voucher_details, remarks : details.remarks}} onComplete={handleStepComplete} onPrevious={handlePrevious}/>
+              <ExpensesVoucher 
+                titles={expenses_title} 
+                data={{ vouchers : details.voucher_details, remarks : details.remarks}} 
+                onComplete={handleStepComplete} 
+                onPrevious={handlePrevious}
+              />
             </FormStep>
             <FormStep label='Print And Save'>
-              <ExpensesPrintVoucher data={details} onPrevious={handlePrevious} onSubmit={handleUpdateVoucher} />
+              <ExpensesPrintVoucher 
+                data={details} 
+                onPrevious={handlePrevious} 
+                onSubmit={handleUpdateVoucher} 
+              />
             </FormStep>
           </ExpensesParentForm>
         </Box>
       </Popups>
-      
     </Box>
   )
 }

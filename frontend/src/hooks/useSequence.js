@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:5173/api'
+const API_BASE_URL = '/api' // Changed from localhost:5173 to relative path
 
 /**
  * Custom hook for managing sequences
@@ -25,10 +25,14 @@ export const useSequence = () => {
         `${API_BASE_URL}/sequence/${sequenceType}`
       )
       
+      console.log('Raw API response:', response.data) // Debug log
+      
+      // Return the data directly
       return response.data
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Failed to get sequence number'
       setError(errorMessage)
+      console.error('Sequence error:', err) // Debug log
       throw new Error(errorMessage)
     } finally {
       setLoading(false)
