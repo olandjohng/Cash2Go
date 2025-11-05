@@ -59,58 +59,96 @@ const convertEmpty = (name) => name !== '' ? name : ''
 loanRouter.get('/voucher/:id', async (req, res) => {
   const {id} = req.params
   
-  // Validate ID parameter
   if (!id || isNaN(id)) {
     return res.status(400).json({ error: 'Invalid loan ID provided' })
   }
 
   try {
-    const query = await builder.select('*').from('view_voucher').where('loan_header_id', id)
+    // ✅ Query directly from loan_headertbl instead of view
+    const loanHeader = await builder
+      .select(
+        'lh.*',
+        'c.clname',
+        'c.cfname', 
+        'c.cmname'
+      )
+      .from('loan_headertbl as lh')
+      .leftJoin('customertbl as c', 'lh.customer_id', 'c.customerid')
+      .where('lh.loan_header_id', id)
+      .first()
 
-    if(query.length <= 0) {
-      return res.status(404).json({ error: `Voucher not found for loan ID: ${id}` }) // Better error message
+    if (!loanHeader) {
+      return res.status(404).json({ error: `Loan not found for ID: ${id}` })
     }
-    
-    const details = query.map((v) => {
-      return {
-        name : v.acc_title,
-        title : v.account_title,
-        credit : v.credit_amount, 
-        debit : v.debit_amount
-      }
-    })
-    
-    const item = query[0]
 
-    const lastname = item.clname.split(',')
+    // Get voucher details
+    const voucherDetails = await builder
+      .select(
+        'v.*',
+        'at.account_title'
+      )
+      .from('vouchertbl as v')
+      .leftJoin('account_titletbl as at', 'v.account_title_id', 'at.account_title_id')
+      .where('v.loan_header_id', id)
 
-    const firstName = convertEmpty(item.cfname) 
+    // Get bank details
+    const bankInfo = await builder
+      .select('bank_name')
+      .from('bank_accounttbl')
+      .where('bank_account_id', loanHeader.bank_account_id)
+      .first()
+
+    // Format details for voucher
+    const details = voucherDetails.map((v) => ({
+      name: v.account_title,
+      title: v.account_title,
+      credit: v.credit_amount, 
+      debit: v.debit_amount
+    }))
+
+    // Format customer name
+    const lastname = loanHeader.clname?.split(',') || ['']
+    const firstName = convertEmpty(loanHeader.cfname)
     const extName = lastname[1] ? lastname[1] : ''
-    const midInitial = convertEmpty(item.cmname)
-    
-    const fullname = `${lastname[0]}, ${firstName}  ${midInitial} ${extName}`
+    const midInitial = convertEmpty(loanHeader.cmname)
+    const fullname = `${lastname[0]}, ${firstName} ${midInitial} ${extName}`.trim()
+
+    // Handle second check
+    let bankName2 = null
+    if (loanHeader.has_second_check && loanHeader.bank_account_id_2) {
+      const bank2 = await builder
+        .select('bank_name')
+        .from('bank_accounttbl')
+        .where('bank_account_id', loanHeader.bank_account_id_2)
+        .first()
+      bankName2 = bank2?.bank_name
+    }
 
     const voucherInfo = {
-      details : details,
-      prepared_by : item.prepared_by,
-      approved_by : item.approved_by,
-      checked_by : item.checked_by,
-      check_details : `${item.bank_name}-${item.check_number}`,
-      check_details_2 : `${item.bank_name_2}-${item.check_number_2}`,
-      check_date_2: item.has_second_check ?  dayjs(item.check_date_2).format('MM-DD-YYYY') : null,
-      has_second_check: item.has_second_check,
-      check_date : item.check_date,
-      borrower : fullname.trim(),
-      date : dayjs(item.date_granted).format('MM-DD-YYYY'),
-      voucherNumber : item.voucher_number,
-      remarks: item.remarks
+      details: details,
+      prepared_by: loanHeader.prepared_by,
+      approved_by: loanHeader.approved_by,
+      checked_by: loanHeader.checked_by,
+      check_details: `${bankInfo?.bank_name || ''}-${loanHeader.check_number || ''}`,
+      check_details_2: loanHeader.has_second_check 
+        ? `${bankName2 || ''}-${loanHeader.check_number_2 || ''}` 
+        : null,
+      check_date_2: loanHeader.has_second_check && loanHeader.check_date_2
+        ? dayjs(loanHeader.check_date_2).format('MM-DD-YYYY') 
+        : null,
+      has_second_check: loanHeader.has_second_check || false,
+      check_date: loanHeader.check_date,
+      borrower: fullname,
+      date: dayjs(loanHeader.date_granted).format('MM-DD-YYYY'),
+      voucherNumber: loanHeader.voucher_number || 'N/A',
+      remarks: loanHeader.remarks || ''
     }
 
     res.status(200).json(voucherInfo)
     
   } catch (error) {
-    console.error('Voucher API Error:', error) // ✅ Fixed variable name
-    res.status(500).json({ error: 'Internal server error', details: error.message }) // ✅ Added error response
+    console.error('Voucher API Error:', error)
+    res.status(500).json({ error: 'Internal server error', details: error.message })
   }
 })
 

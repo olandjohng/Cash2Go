@@ -150,7 +150,17 @@ const formatNumber = (value) => {
 const getVoucher = async (id) => {
   try {
     const fetchData = await fetch(`/api/loans/voucher/${id}`);
+    
+    if (!fetchData.ok) {
+      const errorData = await fetchData.json();
+      console.error('Voucher fetch failed:', errorData);
+      toastErr(errorData.error || 'Failed to load voucher');
+      return;
+    }
+    
     const voucherJSON = await fetchData.json();
+
+    console.log('Voucher data:', voucherJSON); // ✅ Debug log
 
     const format = {
       ...voucherJSON,
@@ -158,11 +168,13 @@ const getVoucher = async (id) => {
       date: dayjs(voucherJSON.date).format("MM-DD-YYYY"),
       check_date: dayjs(voucherJSON.check_date).format("MM-DD-YYYY"),
     };
+    
     const render = ejs.render(voucherTemplateHTML, format);
     const voucherWindow = window.open("", "Print Voucher");
     voucherWindow.document.write(render);
   } catch (error) {
-    console.log(error);
+    console.error('Voucher error:', error);
+    toastErr('Failed to generate voucher');
   }
 };
 
