@@ -178,16 +178,17 @@ sequenceRouter.post('/', asyncHandler(async (req, res) => {
 
 /**
  * PUT /api/sequence/:sequenceType
- * Update sequence settings (does not affect current_value)
+ * Update sequence settings (including current_value)
  * @param {string} sequenceType - The sequence type to update
  * @body {string} [description] - Updated description
  * @body {string} [prefix] - Updated prefix
  * @body {string} [suffix] - Updated suffix
  * @body {boolean} [isActive] - Active status
+ * @body {number} [currentValue] - Updated current value
  */
 sequenceRouter.put('/:sequenceType', asyncHandler(async (req, res) => {
   const { sequenceType } = req.params
-  const { description, prefix, suffix, isActive } = req.body
+  const { description, prefix, suffix, isActive, currentValue } = req.body
 
   try {
     // Build update object with only provided fields
@@ -196,6 +197,17 @@ sequenceRouter.put('/:sequenceType', asyncHandler(async (req, res) => {
     if (prefix !== undefined) updateData.prefix = prefix || null
     if (suffix !== undefined) updateData.suffix = suffix || null
     if (isActive !== undefined) updateData.is_active = isActive ? 1 : 0
+    
+    // Add current value validation and update
+    if (currentValue !== undefined) {
+      if (currentValue < 1) {
+        return res.status(400).json({
+          error: 'Validation error',
+          message: 'Current value must be at least 1'
+        })
+      }
+      updateData.current_value = currentValue
+    }
 
     // Check if sequence exists
     const existing = await builder
