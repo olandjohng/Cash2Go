@@ -8,7 +8,7 @@ import { tokens } from "../../../theme"
 import { toast, Bounce } from "react-toastify"
 import { useNavigate, useParams } from "react-router-dom"
 import "react-toastify/dist/ReactToastify.css"
-import { useSequence } from "../../../hooks/useSequence" // ← Add this import
+import { useSequence } from "../../../hooks/useSequence"
 
 const INITIAL_FORM_STATE = {
   sequenceType: "",
@@ -50,14 +50,13 @@ export default function SequenceForm({ onSequenceAdded, onClosePopup }) {
 
   const [initialValues, setInitialValues] = useState(INITIAL_FORM_STATE)
   
-  // ← Use the custom hook
   const { getAllSequences, createSequence, updateSequence } = useSequence()
 
   useEffect(() => {
     if (sequenceType) {
       const fetchSequence = async () => {
         try {
-          const sequences = await getAllSequences() // ← Use hook method
+          const sequences = await getAllSequences()
           const sequence = sequences.find((s) => s.sequenceType === sequenceType)
           if (sequence) {
             setInitialValues({
@@ -86,11 +85,17 @@ export default function SequenceForm({ onSequenceAdded, onClosePopup }) {
     try {
       let response
       if (sequenceType) {
-        // Update existing sequence
-        response = await updateSequence(sequenceType, values) // ← Use hook method
+        // Update existing sequence - include currentValue
+        response = await updateSequence(sequenceType, {
+          description: values.description,
+          prefix: values.prefix,
+          suffix: values.suffix,
+          isActive: values.isActive,
+          currentValue: values.startingValue, // Send current value for updates
+        })
       } else {
         // Create new sequence
-        response = await createSequence(values) // ← Use hook method
+        response = await createSequence(values)
       }
       
       onSequenceAdded()
@@ -151,15 +156,13 @@ export default function SequenceForm({ onSequenceAdded, onClosePopup }) {
             <Grid item xs={6}>
               <Textfield name="suffix" label="Suffix" />
             </Grid>
-            {!sequenceType && (
-              <Grid item xs={12}>
-                <Textfield
-                  name="startingValue"
-                  label="Starting Value"
-                  type="number"
-                />
-              </Grid>
-            )}
+            <Grid item xs={12}>
+              <Textfield
+                name="startingValue"
+                label={sequenceType ? "Current Value" : "Starting Value"}
+                type="number"
+              />
+            </Grid>
             <Grid item>
               <ActiveCheckBox name="isActive" />
             </Grid>
@@ -188,7 +191,7 @@ export default function SequenceForm({ onSequenceAdded, onClosePopup }) {
               <Button
                 variant="outlined"
                 type="submit"
-                disabled={formikProps.isSubmitting} // ← Add disabled state
+                disabled={formikProps.isSubmitting}
                 sx={{
                   backgroundColor: colors.blueAccent[700],
                   color: colors.grey[100],

@@ -41,6 +41,7 @@ import { MuiFileInput } from "mui-file-input";
 import { toastErr, toastSucc } from "../../utils";
 import { useFormik } from "formik";
 import Amortization from "./components/Amortization";
+import { useSequence } from "../../hooks/useSequence"; // Add this import
 
 function reducer(state, action) {
   switch (action.type) {
@@ -48,7 +49,7 @@ function reducer(state, action) {
       return action.loans;
     case "ADD":
       return [action.loans, ...state];
-    case "UPDATE": // Add this case
+    case "UPDATE":
       return state.map((loan) =>
         loan.loan_header_id === action.loan.loan_header_id
           ? { ...loan, ...action.loan }
@@ -150,7 +151,17 @@ const formatNumber = (value) => {
 const getVoucher = async (id) => {
   try {
     const fetchData = await fetch(`/api/loans/voucher/${id}`);
+
+    if (!fetchData.ok) {
+      const errorData = await fetchData.json();
+      console.error("Voucher fetch failed:", errorData);
+      toastErr(errorData.error || "Failed to load voucher");
+      return;
+    }
+
     const voucherJSON = await fetchData.json();
+
+    console.log("Voucher data:", voucherJSON);
 
     const format = {
       ...voucherJSON,
@@ -158,11 +169,13 @@ const getVoucher = async (id) => {
       date: dayjs(voucherJSON.date).format("MM-DD-YYYY"),
       check_date: dayjs(voucherJSON.check_date).format("MM-DD-YYYY"),
     };
+
     const render = ejs.render(voucherTemplateHTML, format);
     const voucherWindow = window.open("", "Print Voucher");
     voucherWindow.document.write(render);
   } catch (error) {
-    console.log(error);
+    console.error("Voucher error:", error);
+    toastErr("Failed to generate voucher");
   }
 };
 
@@ -185,9 +198,9 @@ const RefreshToolBar = ({ refresh }) => {
 export default function Loan() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const { getNextSequence } = useSequence(); // Add this hook
 
   const columns = [
-    // {field: "loan_header_id", headerName: "ID" },
     {
       field: "voucher",
       type: "actions",
@@ -209,7 +222,7 @@ export default function Loan() {
             onClick={() => getVoucher(id)}
           />,
           <GridActionsCellItem
-            icon={<EditOutlined />} // Add this import at top
+            icon={<EditOutlined />}
             color="success"
             label="Edit"
             showInMenu
@@ -324,8 +337,9 @@ export default function Loan() {
   const [openRestructurePopup, setOpenRestructurePopup] = useState(false);
   const [openNewLoanPopup, setOpenNewLoanPopup] = useState(false);
   const [openAmortizationPopup, setOpenAmortizationPopup] = useState(false);
-  const [openEditLoanPopup, setOpenEditLoanPopup] = useState(false); // Add this
-  const [editFormValue, setEditFormValue] = useState(LOAN_INITIAL_VALUES); // Add this
+  const [openEditLoanPopup, setOpenEditLoanPopup] = useState(false);
+  const [editFormValue, setEditFormValue] = useState(LOAN_INITIAL_VALUES);
+  const [newLoanFormValue, setNewLoanFormValue] = useState(LOAN_INITIAL_VALUES); // Add this
   const [selectedLoanId, setSelectedLoanId] = useState(null);
   const [loans, dispatch] = useReducer(reducer, []);
   const [fileAttachment, setFileAttachment] = useState(null);
@@ -383,7 +397,7 @@ export default function Loan() {
       });
       if (!request.ok) {
         return;
-      } // error handling
+      }
 
       const response = await request.json();
 
@@ -414,8 +428,8 @@ export default function Loan() {
         deduction:
           responseJSON.deductions?.map((d) => ({
             id: d.id,
-            label: d.label, // Keep the label for display
-            name: d.label.toLowerCase().split(" ").join("_"), // Generate name field
+            label: d.label,
+            name: d.label.toLowerCase().split(" ").join("_"),
             amount: d.amount,
           })) || [],
       };
@@ -431,7 +445,6 @@ export default function Loan() {
 
   const handleSearch = async (data) => {
     const params = new URLSearchParams(data).toString();
-    // console.log(params)
     setLoading(true);
     try {
       const request = await fetch("/api/loans?" + params);
@@ -496,18 +509,15 @@ export default function Loan() {
       const req = await Promise.all(urls);
 
       const loanData = await req[0].json();
-      // const customerData = await req[1].json()
       const collateralData = await req[1].json();
       const facilityData = await req[2].json();
       const banksData = await req[3].json();
       const categoryData = await req[4].json();
       const deductionData = await req[5].json();
       const accountTitleData = await req[6].json();
-      // console.log(loanData)
-      dispatch({ type: "INIT", loans: loanData });
-      // console.log('173', banksData)
-      setCollaterals(collateralData);
 
+      dispatch({ type: "INIT", loans: loanData });
+      setCollaterals(collateralData);
       setFacilities(facilityData);
       setBanks(banksData);
       setCategories(categoryData);
@@ -522,6 +532,36 @@ export default function Loan() {
   const handleOpenPopup = (id) => {
     attachmentId.current = id;
     setOpenAttachmentPopup(true);
+  };
+
+  // Add this new function to handle opening new loan modal with sequence
+  const handleOpenNewLoanModal = async () => {
+    try {
+      // Get next sequence numbers for both voucher and check
+      const voucherSequence = await getNextSequence("loan voucher");
+      const checkSequence = await getNextSequence("check_number");
+
+      console.log("Voucher sequence:", voucherSequence); // Debug log
+      console.log("Check sequence:", checkSequence); // Debug log
+
+      // Create new form value with both voucher and check numbers
+      const newFormValue = {
+        ...LOAN_INITIAL_VALUES,
+        voucher_number: voucherSequence.formattedValue,
+        check_number: checkSequence.formattedValue,
+      };
+
+      console.log("New form value:", newFormValue); // Debug log
+
+      setNewLoanFormValue(newFormValue);
+      setOpenNewLoanPopup(true);
+    } catch (error) {
+      console.error("Failed to get sequence:", error);
+      toastErr("Failed to generate voucher number");
+      // Still open the modal but without voucher number
+      setNewLoanFormValue(LOAN_INITIAL_VALUES);
+      setOpenNewLoanPopup(true);
+    }
   };
 
   useEffect(() => {
@@ -543,7 +583,7 @@ export default function Loan() {
       <Header
         title="LOANS"
         showButton={true}
-        onAddButtonClick={() => setOpenNewLoanPopup(true)}
+        onAddButtonClick={handleOpenNewLoanModal} // Changed from direct setOpenNewLoanPopup
       />
       <form onSubmit={formik.handleSubmit}>
         <Box display="flex" justifyContent="end" mb={1} gap={2}>
@@ -642,7 +682,6 @@ export default function Loan() {
           facilities={facilities}
         />
       </Popups>
-      {/* Upload Attachment Popups */}
       <Popups
         title="Upload Attachment"
         openPopup={openAttachmentPopup}
@@ -685,7 +724,7 @@ export default function Loan() {
         setOpenPopup={setOpenNewLoanPopup}
       >
         <LoanForm1
-          loanInitialValue={LOAN_INITIAL_VALUES}
+          loanInitialValue={newLoanFormValue} // Changed from LOAN_INITIAL_VALUES
           setModalOpen={setOpenNewLoanPopup}
           collaterals={collaterals}
           facilities={facilities}

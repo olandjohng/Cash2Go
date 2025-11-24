@@ -1,6 +1,11 @@
 const knex = require("knex");
 require("dotenv").config();
 
+// const HOST = "srv1365.hstgr.io";
+// const USER = "u215434580_c2goAdmin";
+// const PASSWORD = "!cash2goAdminP@ssw0rd";
+// const DATABASE = "u215434580_c2go";
+
 const HOST = "localhost";
 const USER = "root";
 const PASSWORD = "web001";
