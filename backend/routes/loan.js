@@ -849,6 +849,7 @@ loanRouter.post('/', async (req, res) => {
       res.status(200).json({
         loan_header_id : id[0],
         date_granted : req.body.date_granted,
+        voucher_number : req.body.voucher_number,
         name : req.body.customer_name,
         pn_number : pnNumber,
         principal_amount : Number(req.body.principal_amount),
