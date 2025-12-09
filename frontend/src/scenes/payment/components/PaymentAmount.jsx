@@ -1,14 +1,9 @@
-import { Box, Button, Grid, TextField } from "@mui/material";
-import TextfieldWrapper from "../../../components/FormUI/Textfield";
-import NumberfieldWrapper from "../../../components/FormUI/Numberfield";
+import { Box, TextField, Typography, Paper, Divider, CircularProgress, Alert } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import dayjs from "dayjs";
 import { tokens } from "../../../theme";
 import { useTheme } from "@emotion/react";
 import { NumericFormat } from "react-number-format";
 import AccountTitles from "./AccountTitles";
-
-
 
 const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
   const theme = useTheme();
@@ -16,142 +11,307 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
 
   const inputStyle = {
     "& .MuiOutlinedInput-root": {
-      // Class for the border around the input field
       "& .MuiOutlinedInput-notchedOutline": {
-        borderColor: colors.grey[300],
+        borderColor: colors.grey[500],
+      },
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: colors.greenAccent[500],
+      },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: colors.greenAccent[600],
       },
     },
-    // Class for the label of the input field
     "& .MuiInputLabel-outlined": {
       color: colors.grey[300],
     },
-  }
-  
-  const [pricipalAmount, setPricipalAmount] = useState(null)
-  const [interestAmount, setInterestAmount] = useState(null)
-  const [penaltyAmount, setPenaltyAmount] = useState(null)
-  const [totalAmount, setTotalAmount] = useState(null)
-  // const [details, setDetails] = useState([]);
+    "& .MuiInputLabel-outlined.Mui-focused": {
+      color: "white",
+    },
+  };
+
+  const [principalAmount, setPrincipalAmount] = useState(0);
+  const [interestAmount, setInterestAmount] = useState(0);
+  const [penaltyAmount, setPenaltyAmount] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const getDetail = async () => {
-      const req = await fetch(
-        `/api/payments/paymentDue/${id}`
-      );
-      const resJson = await req.json();
-      const {Principal_Due, Interest_Due, Penalty_Due, loan_detail_id } = resJson[0]
-      setPricipalAmount(Number(Principal_Due))
-      setInterestAmount(Number(Interest_Due))
-      setPenaltyAmount(Number(Penalty_Due))
-      paymentDataSetter((old) => ({
-        ...old, 
-        loan_detail_id : loan_detail_id, 
-        principal_payment : Number(Principal_Due),
-        interest_payment : Number(Interest_Due),
-        penalty_amount : Number(Penalty_Due)
-      }))
-      // setDetails(resJson);
+      if (!id) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const req = await fetch(`/api/payments/paymentDue/${id}`);
+        
+        if (!req.ok) {
+          throw new Error('Failed to fetch payment details');
+        }
+
+        const resJson = await req.json();
+
+        if (!resJson || resJson.length === 0) {
+          throw new Error('No payment details found');
+        }
+
+        const { Principal_Due, Interest_Due, Penalty_Due, loan_detail_id } = resJson[0];
+
+        const principal = Number(Principal_Due) || 0;
+        const interest = Number(Interest_Due) || 0;
+        const penalty = Number(Penalty_Due) || 0;
+
+        setPrincipalAmount(principal);
+        setInterestAmount(interest);
+        setPenaltyAmount(penalty);
+
+        paymentDataSetter((old) => ({
+          ...old,
+          loan_detail_id: loan_detail_id,
+          principal_payment: principal,
+          interest_payment: interest,
+          penalty_amount: penalty,
+        }));
+      } catch (err) {
+        console.error('Error fetching payment details:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     };
+
     getDetail();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
-    // cal total
-    const total = calculateTotal()
-    setTotalAmount(total)
-    paymentDataSetter((old) => ({...old, 
-      principal_payment : Number(pricipalAmount),
-      interest_payment : Number(interestAmount),
-      penalty_amount : Number(penaltyAmount)
-    }))
-    // set data 
-  }, [pricipalAmount, interestAmount, penaltyAmount])
+    const total = Number(principalAmount) + Number(interestAmount) + Number(penaltyAmount);
+    setTotalAmount(total);
 
+    paymentDataSetter((old) => ({
+      ...old,
+      principal_payment: Number(principalAmount) || 0,
+      interest_payment: Number(interestAmount) || 0,
+      penalty_amount: Number(penaltyAmount) || 0,
+    }));
+  }, [principalAmount, interestAmount, penaltyAmount]);
 
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+        <CircularProgress color="success" />
+      </Box>
+    );
+  }
 
-  const calculateTotal = () => {
-    const totalAmount = Number(pricipalAmount) + Number(interestAmount) + Number(penaltyAmount) 
-    return totalAmount;
-  };
-
-  const handleValueChange = (index, fieldName, value) => {
-    let numericValue;
-    // Check if value is an object and extract the value from it
-    if (typeof value === 'object' && value.target && typeof value.target.value !== 'undefined') {
-      // If it's an object, get the value from event.target.value
-      numericValue = parseFloat(String(value.target.value).replace(/,/g, ''));
-    } else {
-      // If it's not an object, assume it's already the value we need
-      numericValue = parseFloat(String(value).replace(/,/g, ''));
-    }
-    // If numericValue is NaN or undefined, set it to 0
-    if (isNaN(numericValue) || typeof numericValue === 'undefined') {
-      numericValue = 0;
-    }
-    // Ensure the numericValue is a valid number
-    if (!isNaN(numericValue)) {
-      // Round the numericValue to 2 decimal points and convert it back to a string
-      const formattedValue = numericValue.toFixed(2);
-      const updatedDetails = [...details];
-      updatedDetails[index][fieldName] = formattedValue;
-      console.log(updatedDetails)
-      setDetails(updatedDetails);
-    } else {
-      console.error(`Invalid value provided: ${value}`);
-    }
-  };
-  
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ mb: 2 }}>
+        {error}
+      </Alert>
+    );
+  }
 
   return (
-    <Box width='100%' display='flex' flexDirection='column' gap='10px'>
-      <Box display='flex' gap={2}>
-        <Box width='20%' display='flex'  flexDirection='column' gap='10px'>
-          <NumericFormat value={pricipalAmount} thousandSeparator fixedDecimalScale decimalScale={2} customInput={TextField} label="Principal Amount" fullWidth 
-            onValueChange={(format) => setPricipalAmount(format.value)}
-            sx={inputStyle}
-            InputProps= {{
-              inputProps : {  
-                style : { textAlign : 'right'}
-              }
+    <Box width="100%" display="flex" flexDirection="column" gap={2}>
+      <Box display="flex" gap={2} flexDirection={{ xs: 'column', md: 'row' }}>
+        {/* Payment Amounts Section */}
+        <Box width={{ xs: '100%', md: '30%' }}>
+          <Paper
+            elevation={2}
+            sx={{
+              p: 2,
+              backgroundColor: colors.greenAccent[900],
+              border: `1px solid ${colors.greenAccent[700]}`,
             }}
-          />
-          <NumericFormat value={interestAmount} thousandSeparator fixedDecimalScale decimalScale={2} customInput={TextField} label="Interest Amount" fullWidth 
-            onValueChange={(format) => setInterestAmount(Number(format.value))}
-            sx={inputStyle}
-            InputProps= {{
-              inputProps : {
-                style : { textAlign : 'right'}
-              }
+          >
+            <Typography
+              variant="h5"
+              color={colors.greenAccent[400]}
+              fontWeight="600"
+              mb={2}
+            >
+              Payment Breakdown
+            </Typography>
+
+            <Box display="flex" flexDirection="column" gap={2}>
+              <NumericFormat
+                value={principalAmount}
+                thousandSeparator
+                fixedDecimalScale
+                decimalScale={2}
+                customInput={TextField}
+                label="Principal Amount"
+                fullWidth
+                onValueChange={(values) => {
+                  const { floatValue } = values;
+                  setPrincipalAmount(floatValue || 0);
+                }}
+                sx={inputStyle}
+                InputProps={{
+                  inputProps: {
+                    style: { textAlign: "right" },
+                  },
+                }}
+              />
+
+              <NumericFormat
+                value={interestAmount}
+                thousandSeparator
+                fixedDecimalScale
+                decimalScale={2}
+                customInput={TextField}
+                label="Interest Amount"
+                fullWidth
+                onValueChange={(values) => {
+                  const { floatValue } = values;
+                  setInterestAmount(floatValue || 0);
+                }}
+                sx={inputStyle}
+                InputProps={{
+                  inputProps: {
+                    style: { textAlign: "right" },
+                  },
+                }}
+              />
+
+              <NumericFormat
+                value={penaltyAmount}
+                thousandSeparator
+                fixedDecimalScale
+                decimalScale={2}
+                customInput={TextField}
+                label="Penalty Amount"
+                fullWidth
+                onValueChange={(values) => {
+                  const { floatValue } = values;
+                  setPenaltyAmount(floatValue || 0);
+                }}
+                sx={inputStyle}
+                InputProps={{
+                  inputProps: {
+                    style: { textAlign: "right" },
+                  },
+                }}
+              />
+
+              <Divider sx={{ my: 1, borderColor: colors.grey[700] }} />
+
+              <NumericFormat
+                value={totalAmount}
+                disabled
+                thousandSeparator
+                fixedDecimalScale
+                decimalScale={2}
+                customInput={TextField}
+                label="Total Amount"
+                fullWidth
+                sx={{
+                  ...inputStyle,
+                  "& .MuiInputBase-input.Mui-disabled": {
+                    WebkitTextFillColor: colors.greenAccent[400],
+                    fontWeight: "bold",
+                  },
+                }}
+                InputProps={{
+                  inputProps: {
+                    style: { textAlign: "right" },
+                  },
+                }}
+              />
+
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label="Remarks"
+                placeholder="Add payment notes or remarks here..."
+                value={paymentData.remarks || ""}
+                onChange={(e) =>
+                  paymentDataSetter((old) => ({ ...old, remarks: e.target.value }))
+                }
+                sx={inputStyle}
+              />
+            </Box>
+          </Paper>
+
+          {/* Summary Card */}
+          <Paper
+            elevation={1}
+            sx={{
+              p: 2,
+              mt: 2,
+              backgroundColor: colors.greenAccent[900],
+              border: `1px solid ${colors.greenAccent[700]}`,
             }}
-          />
-          <NumericFormat value={penaltyAmount} thousandSeparator fixedDecimalScale decimalScale={2} customInput={TextField} label="Penalty Amount" fullWidth 
-            onValueChange={(format) => setPenaltyAmount(Number(format.value))}
-            sx={inputStyle}
-            InputProps= {{
-              inputProps : {
-                style : { textAlign : 'right'}
-              }
-            }}
-          />
-          <NumericFormat value={totalAmount} disabled thousandSeparator fixedDecimalScale decimalScale={2} customInput={TextField} label="Total Amount" fullWidth 
-            sx={inputStyle}
-            InputProps= {{
-              inputProps : {
-                style : { textAlign : 'right'}
-              }
-            }}
-          />
-          <TextField fullWidth multiline rows={3} label='Remarks' value={paymentData.remarks} onChange={(e) => paymentDataSetter((old) => ({...old, remarks : e.target.value}))}
-           sx={inputStyle}
-           />
+          >
+            <Typography variant="body2" color={colors.grey[300]} mb={1}>
+              Payment Summary
+            </Typography>
+            <Box display="flex" justifyContent="space-between" mb={0.5}>
+              <Typography variant="body2" color={colors.grey[400]}>
+                Principal:
+              </Typography>
+              <Typography variant="body2" color={colors.grey[100]}>
+                ₱{principalAmount.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+            </Box>
+            <Box display="flex" justifyContent="space-between" mb={0.5}>
+              <Typography variant="body2" color={colors.grey[400]}>
+                Interest:
+              </Typography>
+              <Typography variant="body2" color={colors.grey[100]}>
+                ₱{interestAmount.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+            </Box>
+            <Box display="flex" justifyContent="space-between" mb={1}>
+              <Typography variant="body2" color={colors.grey[400]}>
+                Penalty:
+              </Typography>
+              <Typography variant="body2" color={colors.grey[100]}>
+                ₱{penaltyAmount.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+            </Box>
+            <Divider sx={{ mb: 1, borderColor: colors.greenAccent[700] }} />
+            <Box display="flex" justifyContent="space-between">
+              <Typography variant="h6" color={colors.greenAccent[400]} fontWeight="600">
+                Total:
+              </Typography>
+              <Typography variant="h6" color={colors.greenAccent[300]} fontWeight="600">
+                ₱{totalAmount.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+            </Box>
+          </Paper>
         </Box>
-        <Box  width='80%'>
-          <AccountTitles paymentData={paymentData} paymentDataSetter={paymentDataSetter} />
+
+        {/* Account Titles Section */}
+        <Box width={{ xs: '100%', md: '70%' }}>
+          <Paper
+            elevation={2}
+            sx={{
+              p: 2,
+              backgroundColor: colors.greenAccent[900],
+              border: `1px solid ${colors.greenAccent[700]}`,
+              minHeight: 400,
+            }}
+          >
+            <Typography
+              variant="h5"
+              color={colors.greenAccent[400]}
+              fontWeight="600"
+              mb={2}
+            >
+              Account Titles
+            </Typography>
+            <AccountTitles
+              paymentData={paymentData}
+              paymentDataSetter={paymentDataSetter}
+            />
+          </Paper>
         </Box>
       </Box>
     </Box>
   );
 };
-
 
 export default PaymentAmount;

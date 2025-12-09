@@ -23,24 +23,26 @@ const OptionSelect = ({options, onValueChange, ...props}) => {
   return(
     <TextField 
       {...props}
-      select={true} 
-      onChange={(e) => onValueChange(e.target.value , e)}
+      select
+      onChange={(e) => onValueChange(e.target.value, e)}
       sx={{
         "& .MuiOutlinedInput-root": {
           "&.Mui-focused fieldset": {
-            borderColor: colors.greenAccent[600], // Change border color when focused
+            borderColor: colors.greenAccent[600],
           },
           "&:hover fieldset": {
-            borderColor: colors.greenAccent[500], // Change border color on hover
+            borderColor: colors.greenAccent[500],
           },
         },
         "& .MuiInputLabel-root.Mui-focused": {
-          color: "white", // Change label color when focused
+          color: "white",
         },
       }}
     >
       {options.map((option) => (
-        <MenuItem key={option.value} value={option.value}
+        <MenuItem 
+          key={option.value} 
+          value={option.value}
           sx={{
             backgroundColor: colors.greenAccent[800],
             "&:hover": { backgroundColor: colors.greenAccent[700] },
@@ -51,7 +53,6 @@ const OptionSelect = ({options, onValueChange, ...props}) => {
       ))}
     </TextField>
   )
-
 }
 
 const TextInput = ({name, onValueChange, ...props }) => {
@@ -122,89 +123,222 @@ const PaymentSetup = ({cashRow, cashRowSetter, paymentData , paymentDataSetter, 
   }, []);
 
   useEffect(() => {
-    // Check if the selected bank ID is for BDO to determine OR number field visibility
-    // const selectedBankObject = banks.find(bank => bank.id === selectedBank);
-    if (selectedBank === "BDO") {
-      setShowOrField(true); // Show OR number field if selected bank is BDO
-    } else {
-      setShowOrField(false); // Hide OR number field for other banks
-    }
-  }, [selectedBank, banks]);
+    // Show OR field if bank name contains "BDO"
+    const shouldShowOr = paymentData.bank?.name?.toUpperCase().includes("BDO") || false;
+    setShowOrField(shouldShowOr);
+  }, [paymentData.bank]);
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={4}>
-        <Grid item xs={12} marginBottom={2}>
-          <OptionSelect value={paymentData.payment_type} fullWidth label='Mode of Payment' options={fixedOptions} 
-            onValueChange={(value) => paymentDataSetter((old) => ({...old, payment_type : value, or_number : '', check_number : '', bank : ''}))} 
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextInput fullWidth label='Provisional Receipt' name='pr_number' value={paymentData.pr_number} onValueChange={(value, field) => paymentDataSetter((old) => ({...old , [field] : value }))} />
-          {/* <TextfieldWrapper value={paymentData.pr_number} onChange={(e) => paymentDataSetter((old) => ({...old, pr_number : e.target.value}))} name="myText" label="Provisional Receipt" /> */}
+      {/* Left Column - Payment Type & PR Number */}
+      <Grid item xs={12} md={4}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <OptionSelect 
+              value={paymentData.payment_type} 
+              fullWidth 
+              label='Mode of Payment' 
+              options={fixedOptions} 
+              onValueChange={(value) => {
+                // Reset related fields when payment type changes
+                paymentDataSetter((old) => ({
+                  ...old, 
+                  payment_type: value, 
+                  or_number: '', 
+                  check_number: '', 
+                  check_date: null,
+                  bank: null,
+                  cash_count: value === 'CASH' ? old.cash_count : []
+                }));
+                // Reset cash row if switching away from CASH
+                if (value !== 'CASH') {
+                  cashRowSetter(cashRow.map(v => ({ ...v, count: 0 })));
+                  setTotal(0);
+                }
+              }} 
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextInput 
+              fullWidth 
+              label='Provisional Receipt' 
+              name='pr_number' 
+              value={paymentData.pr_number} 
+              onValueChange={(value, field) => paymentDataSetter((old) => ({...old, [field]: value}))} 
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <MuiFileInput 
+              value={file}
+              fullWidth
+              InputProps={{ startAdornment: <AttachFile /> }}
+              placeholder="Upload Attachment"
+              hideSizeText 
+              label='Attachment' 
+              getInputText={(value) => value ? value.name : ''}
+              onChange={handleFileChange}
+            />
+          </Grid>
         </Grid>
       </Grid>
-      <Grid item xs={8}>
+
+      {/* Right Column - Payment Details */}
+      <Grid item xs={12} md={8}>
         {paymentData.payment_type === "CASH" && (
-          <Grid item xs={12} marginBottom={2}>
+          <Box>
+            <Typography variant="h6" gutterBottom color={colors.greenAccent[400]}>
+              Cash Denomination
+            </Typography>
             <EditableDataGrid
               rowData={cashRow}
               onRowEdit={handleRowEdit}
               total={total}
             />
-          </Grid>
+            <Typography variant="h5" mt={2} color={colors.greenAccent[300]}>
+              Total: ₱{total.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Typography>
+          </Box>
         )}
+
         {paymentData.payment_type === "CHECK" && (
-          <Grid container columnSpacing={1}  >
-            <Grid item xs={4} marginBottom={2}>
-              <Autocomplete 
-                options={banks}
-                getOptionLabel={(option) => option.name }
-                value={paymentData.bank || null}
-                onChange={(_, value) => {
-                  console.log(value)
-                  paymentDataSetter((old) => ({...old, bank_name : value.name, bank_id: value.id, bank : value}))
-                }}
-                // onInputChange={(event, value) => {
-                //   selectedBankSetter(value)
-                //   console.log(value)
-                //   paymentDataSetter((old) => ({...old, bank : value}))
-                // }}
-                renderInput={(params) => <TextField {...params} label='Bank'/> }
-                renderOption={(props, option) => 
-                  <Box {...props} component='li' key={option.id} >
-                    {option.name}
-                  </Box>
-                }
-              />
-            </Grid>
-            <Grid item xs={showOrField ? 4 : 8} marginBottom={2}>
-              {/* <TextfieldWrapper name="myCheck" label="Check No." /> */}
-              <TextField fullWidth label='Check No.' name="check_number" onChange={handleTextFieldChange} value={paymentData.check_number}/>
-            </Grid>
-            {showOrField && (
-              <Grid item xs={4} marginBottom={2}>
-                {/* <TextfieldWrapper name="myOr" label="OR Number" /> */}
-                <TextField fullWidth label='OR No.' name="or_number" onChange={handleTextFieldChange} value={paymentData.or_number}/>
+          <Box>
+            <Typography variant="h6" gutterBottom color={colors.greenAccent[400]}>
+              Check Details
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={showOrField ? 4 : 6}>
+                <Autocomplete 
+                  options={banks}
+                  getOptionLabel={(option) => option.name}
+                  value={paymentData.bank || null}
+                  onChange={(_, value) => {
+                    paymentDataSetter((old) => ({
+                      ...old, 
+                      bank: value,
+                      or_number: value?.name?.toUpperCase().includes("BDO") ? old.or_number : ''
+                    }));
+                  }}
+                  renderInput={(params) => <TextField {...params} label='Bank' required />}
+                  renderOption={(props, option) => 
+                    <Box {...props} component='li' key={option.id}>
+                      {option.name}
+                    </Box>
+                  }
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "&.Mui-focused fieldset": {
+                        borderColor: colors.greenAccent[600],
+                      },
+                      "&:hover fieldset": {
+                        borderColor: colors.greenAccent[500],
+                      },
+                    },
+                  }}
+                />
               </Grid>
-            )}
-            <Grid item>
-              <DatePicker value={paymentData.check_date && dayjs(paymentData.check_date)} onChange={(value) => paymentDataSetter((old) => ({...old , check_date : dayjs(value)}))} label='Check Date' />
+              <Grid item xs={12} sm={showOrField ? 4 : 6}>
+                <TextField 
+                  fullWidth 
+                  label='Check No.' 
+                  name="check_number" 
+                  onChange={handleTextFieldChange} 
+                  value={paymentData.check_number}
+                  required
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "&.Mui-focused fieldset": {
+                        borderColor: colors.greenAccent[600],
+                      },
+                      "&:hover fieldset": {
+                        borderColor: colors.greenAccent[500],
+                      },
+                    },
+                    "& .MuiInputLabel-root.Mui-focused": {
+                      color: "white",
+                    },
+                  }}
+                />
+              </Grid>
+              {showOrField && (
+                <Grid item xs={12} sm={4}>
+                  <TextField 
+                    fullWidth 
+                    label='OR No.' 
+                    name="or_number" 
+                    onChange={handleTextFieldChange} 
+                    value={paymentData.or_number}
+                    required
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "&.Mui-focused fieldset": {
+                          borderColor: colors.greenAccent[600],
+                        },
+                        "&:hover fieldset": {
+                          borderColor: colors.greenAccent[500],
+                        },
+                      },
+                      "& .MuiInputLabel-root.Mui-focused": {
+                        color: "white",
+                      },
+                    }}
+                  />
+                </Grid>
+              )}
+              <Grid item xs={12} sm={showOrField ? 12 : 6}>
+                <DatePicker 
+                  value={paymentData.check_date ? dayjs(paymentData.check_date) : null}
+                  onChange={(value) => paymentDataSetter((old) => ({...old, check_date: value ? dayjs(value) : null}))} 
+                  label='Check Date'
+                  slotProps={{ 
+                    textField: { 
+                      fullWidth: true,
+                      required: true,
+                      sx: {
+                        "& .MuiOutlinedInput-root": {
+                          "&.Mui-focused fieldset": {
+                            borderColor: colors.greenAccent[600],
+                          },
+                          "&:hover fieldset": {
+                            borderColor: colors.greenAccent[500],
+                          },
+                        },
+                      }
+                    } 
+                  }}
+                />
+              </Grid>
             </Grid>
-          </Grid>
-          
+          </Box>
         )}
-      </Grid>
-      <Grid item xs={4}>
-        <MuiFileInput 
-          value={file}
-          InputProps={{ startAdornment : <AttachFile /> }}
-          placeholder="Upload Attachment"
-          hideSizeText 
-          label='Attachment' 
-          getInputText={(value) => value ? value.name : ''}
-          onChange={handleFileChange}
-        />
+
+        {paymentData.payment_type === "ONLINE" && (
+          <Box>
+            <Typography variant="h6" color={colors.greenAccent[400]}>
+              Online Payment
+            </Typography>
+            <Typography variant="body2" color={colors.grey[300]} mt={1}>
+              Please attach proof of payment using the attachment field.
+            </Typography>
+          </Box>
+        )}
+
+        {!paymentData.payment_type && (
+          <Box 
+            display="flex" 
+            justifyContent="center" 
+            alignItems="center" 
+            minHeight={200}
+            sx={{ 
+              border: `2px dashed ${colors.greenAccent[700]}`,
+              borderRadius: 2,
+              backgroundColor: colors.greenAccent[900]
+            }}
+          >
+            <Typography variant="h6" color={colors.grey[500]}>
+              Select a payment mode to continue
+            </Typography>
+          </Box>
+        )}
       </Grid>
     </Grid>
   );

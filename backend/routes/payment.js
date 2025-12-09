@@ -449,19 +449,13 @@ paymentRouter.get("/read/:id", async (req, res) => {
         ,'payment_amount'
         ,'Balance'
         ,'running_balance'
-        // ,'running_total',
-        // 'description'
+        ,'description'
     )
-    .from("new_view_payment_detail") // 
+    .from("new_view_payment_detail")
     .where("loan_header_id", id)
     .orderBy('due_date', 'asc')
     
-    const updatedLoan = payment.map((item) => {
-      return ({
-      ...item,
-      description: item.description || 'UNSETTLED',
-    })});
-  res.status(200).json(updatedLoan);
+  res.status(200).json(payment);
 });
 
 paymentRouter.get("/paymentDue/:id", async (req, res) => {
