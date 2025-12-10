@@ -1,9 +1,18 @@
-import { Box, TextField, Typography, Paper, Divider, CircularProgress, Alert } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Typography,
+  Paper,
+  Divider,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { tokens } from "../../../theme";
 import { useTheme } from "@emotion/react";
 import { NumericFormat } from "react-number-format";
 import AccountTitles from "./AccountTitles";
+import { InfoOutlined } from "@mui/icons-material";
 
 const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
   const theme = useTheme();
@@ -45,18 +54,19 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
         setError(null);
 
         const req = await fetch(`/api/payments/paymentDue/${id}`);
-        
+
         if (!req.ok) {
-          throw new Error('Failed to fetch payment details');
+          throw new Error("Failed to fetch payment details");
         }
 
         const resJson = await req.json();
 
         if (!resJson || resJson.length === 0) {
-          throw new Error('No payment details found');
+          throw new Error("No payment details found");
         }
 
-        const { Principal_Due, Interest_Due, Penalty_Due, loan_detail_id } = resJson[0];
+        const { Principal_Due, Interest_Due, Penalty_Due, loan_detail_id } =
+          resJson[0];
 
         const principal = Number(Principal_Due) || 0;
         const interest = Number(Interest_Due) || 0;
@@ -74,7 +84,7 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
           penalty_amount: penalty,
         }));
       } catch (err) {
-        console.error('Error fetching payment details:', err);
+        console.error("Error fetching payment details:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -85,7 +95,8 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
   }, [id]);
 
   useEffect(() => {
-    const total = Number(principalAmount) + Number(interestAmount) + Number(penaltyAmount);
+    const total =
+      Number(principalAmount) + Number(interestAmount) + Number(penaltyAmount);
     setTotalAmount(total);
 
     paymentDataSetter((old) => ({
@@ -98,7 +109,12 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight={400}
+      >
         <CircularProgress color="success" />
       </Box>
     );
@@ -114,9 +130,9 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
 
   return (
     <Box width="100%" display="flex" flexDirection="column" gap={2}>
-      <Box display="flex" gap={2} flexDirection={{ xs: 'column', md: 'row' }}>
+      <Box display="flex" gap={2} flexDirection={{ xs: "column", md: "row" }}>
         {/* Payment Amounts Section */}
-        <Box width={{ xs: '100%', md: '30%' }}>
+        <Box width={{ xs: "100%", md: "30%" }}>
           <Paper
             elevation={2}
             sx={{
@@ -228,7 +244,10 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
                 placeholder="Add payment notes or remarks here..."
                 value={paymentData.remarks || ""}
                 onChange={(e) =>
-                  paymentDataSetter((old) => ({ ...old, remarks: e.target.value }))
+                  paymentDataSetter((old) => ({
+                    ...old,
+                    remarks: e.target.value,
+                  }))
                 }
                 sx={inputStyle}
               />
@@ -253,7 +272,11 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
                 Principal:
               </Typography>
               <Typography variant="body2" color={colors.grey[100]}>
-                ₱{principalAmount.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₱
+                {principalAmount.toLocaleString("en", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </Typography>
             </Box>
             <Box display="flex" justifyContent="space-between" mb={0.5}>
@@ -261,7 +284,11 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
                 Interest:
               </Typography>
               <Typography variant="body2" color={colors.grey[100]}>
-                ₱{interestAmount.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₱
+                {interestAmount.toLocaleString("en", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </Typography>
             </Box>
             <Box display="flex" justifyContent="space-between" mb={1}>
@@ -269,23 +296,71 @@ const PaymentAmount = ({ id, paymentDataSetter, paymentData }) => {
                 Penalty:
               </Typography>
               <Typography variant="body2" color={colors.grey[100]}>
-                ₱{penaltyAmount.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₱
+                {penaltyAmount.toLocaleString("en", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </Typography>
             </Box>
             <Divider sx={{ mb: 1, borderColor: colors.greenAccent[700] }} />
             <Box display="flex" justifyContent="space-between">
-              <Typography variant="h6" color={colors.greenAccent[400]} fontWeight="600">
+              <Typography
+                variant="h6"
+                color={colors.greenAccent[400]}
+                fontWeight="600"
+              >
                 Total:
               </Typography>
-              <Typography variant="h6" color={colors.greenAccent[300]} fontWeight="600">
-                ₱{totalAmount.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <Typography
+                variant="h6"
+                color={colors.greenAccent[300]}
+                fontWeight="600"
+              >
+                ₱
+                {totalAmount.toLocaleString("en", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </Typography>
             </Box>
           </Paper>
+
+          {/* Overpayment Warning */}
+          <Alert
+            severity="warning"
+            icon={<InfoOutlined />}
+            sx={{
+              mt: 2,
+              backgroundColor: colors.primary[400],
+              border: `1px solid ${colors.redAccent[500]}`,
+            }}
+          >
+            <Typography variant="body2" fontWeight="600">
+              Payment Application Order
+            </Typography>
+            <Typography variant="caption" display="block" mt={0.5}>
+              1. Penalty charges (if any)
+            </Typography>
+            <Typography variant="caption" display="block">
+              2. Interest amount
+            </Typography>
+            <Typography variant="caption" display="block">
+              3. Principal amount
+            </Typography>
+            <Typography
+              variant="caption"
+              display="block"
+              mt={1}
+              color={colors.greenAccent[400]}
+            >
+              💡 Overpayments will automatically apply to next due installments
+            </Typography>
+          </Alert>
         </Box>
 
         {/* Account Titles Section */}
-        <Box width={{ xs: '100%', md: '70%' }}>
+        <Box width={{ xs: "100%", md: "70%" }}>
           <Paper
             elevation={2}
             sx={{
