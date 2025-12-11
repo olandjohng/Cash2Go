@@ -261,14 +261,16 @@ paymentRouter.post("/", upload.single("attachment"), async (req, res) => {
     await builder.transaction(async (t) => {
       const fileName = await supabaseUpload(req.file);
 
-      // Call stored procedure
+      // Call stored procedure with separate principal, interest, penalty
       await t.raw(
         `
-  CALL process_payment(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @result)
+  CALL process_payment(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @result)
 `,
         [
           data.loan_header_id,
-          total,
+          Number(data.principal_payment) || 0, // Principal payment
+          Number(data.interest_payment) || 0, // Interest payment
+          Number(data.penalty_amount) || 0, // Penalty payment
           data.payment_type,
           data.pr_number,
           data.or_number || "",
@@ -330,7 +332,14 @@ paymentRouter.post("/", upload.single("attachment"), async (req, res) => {
         )
         .first();
 
+      // Get the payment_history_id of the last inserted record
+      const lastPaymentHistory = await t("payment_historytbl")
+        .where("loan_detail_id", paymentResult.details[0].loan_detail_id)
+        .orderBy("payment_history_id", "desc")
+        .first();
+
       res.status(200).json({
+        payment_history_id: lastPaymentHistory.payment_history_id,
         success: true,
         payment_date: processDate,
         payment_receipt: data.pr_number,
@@ -340,8 +349,20 @@ paymentRouter.post("/", upload.single("attachment"), async (req, res) => {
         bank: bankJSON.name,
         check_number: data.check_number,
         check_date: data.check_date ? data.check_date : null,
-        total_applied: total - (paymentResult.overpayment || 0),
+        payment_principal: Number(data.principal_payment) || 0,
+        payment_interest: Number(data.interest_payment) || 0,
+        payment_penalty: Number(data.penalty_amount) || 0,
+        payment_amount:
+          (Number(data.principal_payment) || 0) +
+          (Number(data.interest_payment) || 0) +
+          (Number(data.penalty_amount) || 0),
+        total_applied:
+          (Number(data.principal_payment) || 0) +
+          (Number(data.interest_payment) || 0) +
+          (Number(data.penalty_amount) || 0) -
+          (paymentResult.overpayment || 0),
         overpayment: paymentResult.overpayment || 0,
+        overpayment_breakdown: paymentResult.overpayment_breakdown || {},
         details: paymentResult.details,
         remarks: data.remarks,
       });
