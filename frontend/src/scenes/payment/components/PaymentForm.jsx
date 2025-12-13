@@ -81,9 +81,18 @@ export default function PaymentForm({ paymentDispacher, popup }) {
 
   const columns = [
     {
+      field: "installment_number",
+      headerName: "#",
+      width: 60,
+      align: "center",
+      valueFormatter: (params) => {
+        return params.value === 0 ? "" : params.value;
+      },
+    },
+    {
       field: "due_date",
       headerName: "Due Date",
-      width: 150,
+      width: 120,
       valueFormatter: (params) => {
         return dayjs(params.value).format("MM-DD-YYYY");
       },
@@ -91,61 +100,112 @@ export default function PaymentForm({ paymentDispacher, popup }) {
     {
       field: "monthly_principal",
       headerName: "Principal",
-      width: 150,
+      width: 120,
+      align: "right",
       valueFormatter: (params) => {
-        return formatNumber(params.value);
+        return params.value ? formatNumber(params.value) : "-";
       },
     },
     {
       field: "monthly_interest",
       headerName: "Interest",
-      width: 150,
+      width: 120,
+      align: "right",
       valueFormatter: (params) => {
-        return formatNumber(params.value);
+        return params.value ? formatNumber(params.value) : "-";
       },
     },
     {
       field: "monthly_amortization",
       headerName: "Amortization",
-      width: 150,
+      width: 120,
+      align: "right",
       valueFormatter: (params) => {
-        return formatNumber(params.value);
+        return params.value ? formatNumber(params.value) : "-";
       },
     },
-    { field: "payment_type", headerName: "Type", width: 150 },
     {
-      field: "principal_payment",
+      field: "principal_paid",
       headerName: "Principal Paid",
-      width: 150,
+      width: 130,
+      align: "right",
       valueFormatter: (params) => {
-        return formatNumber(params.value);
+        return formatNumber(params.value || 0);
       },
     },
     {
-      field: "interest_payment",
+      field: "interest_paid",
       headerName: "Interest Paid",
-      width: 150,
+      width: 120,
+      align: "right",
       valueFormatter: (params) => {
-        return formatNumber(params.value);
+        return formatNumber(params.value || 0);
       },
     },
     {
-      field: "penalty_amount",
+      field: "penalty_paid",
       headerName: "Penalty Paid",
-      width: 150,
+      width: 120,
+      align: "right",
       valueFormatter: (params) => {
-        return formatNumber(params.value);
+        return formatNumber(params.value || 0);
       },
     },
     {
-      field: "Balance",
-      headerName: "Balance",
-      width: 150,
+      field: "total_payment",
+      headerName: "Total Payment",
+      width: 130,
+      align: "right",
       valueFormatter: (params) => {
-        return formatNumber(params.value);
+        return formatNumber(params.value || 0);
       },
     },
-    { field: "description", headerName: "Status", width: 150 },
+    {
+      field: "outstanding_balance",
+      headerName: "Outstanding Balance",
+      width: 150,
+      align: "right",
+      valueFormatter: (params) => {
+        return formatNumber(params.value || 0);
+      },
+    },
+    {
+      field: "payment_status",
+      headerName: "Status",
+      width: 130,
+      renderCell: (params) => {
+        const getStatusColor = (status) => {
+          switch (status) {
+            case "Settled":
+              return colors.greenAccent[500];
+            case "Partially Paid":
+              return colors.blueAccent[500];
+            case "Unsettled":
+              return colors.redAccent[500];
+            case "Initial":
+              return colors.grey[500];
+            default:
+              return colors.grey[500];
+          }
+        };
+
+        return (
+          <Box
+            sx={{
+              backgroundColor: getStatusColor(params.value),
+              color: "white",
+              padding: "4px 8px",
+              borderRadius: "4px",
+              fontSize: "0.75rem",
+              fontWeight: "bold",
+              textAlign: "center",
+            }}
+          >
+            {params.value}
+          </Box>
+        );
+      },
+    },
   ];
 
   useEffect(() => {
@@ -273,8 +333,18 @@ export default function PaymentForm({ paymentDispacher, popup }) {
           <DataGrid
             rows={loanDetails}
             columns={columns}
-            getRowId={(row) => row.loan_detail_id}
-            sx={{ height: 370 }}
+            getRowId={(row) =>
+              row.loan_detail_id || `initial-${row.loan_header_id}`
+            }
+            sx={{
+              height: 370,
+              "& .MuiDataGrid-row": {
+                "&:first-of-type": {
+                  backgroundColor: colors.blueAccent[800],
+                  fontWeight: "bold",
+                },
+              },
+            }}
           />
         </FormStep>
         <FormStep stepName="Current Due" onSubmit={() => {}}>

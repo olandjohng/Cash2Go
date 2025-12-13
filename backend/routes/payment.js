@@ -106,7 +106,7 @@ paymentRouter.get("/", async (req, res) => {
   console.log(req.query);
   // return
   const fields = [
-    { id: "p_h.payment_history_id" },
+    "p_h.payment_history_id",
     "p.loan_detail_id",
     "payment_principal",
     "payment_interest",
@@ -209,100 +209,188 @@ async function supabaseUpload(file) {
 }
 
 paymentRouter.post("/", upload.single("attachment"), async (req, res) => {
-  // get payment status
-
   const data = req.body;
   const { principal_payment, interest_payment, penalty_amount } = data;
 
   const bankJSON = JSON.parse(data.bank);
   const accountTitlesJSON = JSON.parse(data.account_titles);
 
-  let statusId = 0;
-
-  const formatStatus = (statusList) => {
-    const status = {};
-    for (const item of statusList) {
-      const formatDescription = item.description.toLowerCase().split(" ");
-      status[formatDescription.join("_")] = item.payment_status_id;
-    }
-    return status;
-  };
-
   try {
     const fileName = await supabaseUpload(req.file);
-
-    const paymentStatus = await builder("payment_status").select("*");
-
-    const status = formatStatus(paymentStatus);
-
-    const { monthly_principal, monthly_interest, accumulated_penalty } =
-      await builder("loan_detail")
-        .select("monthly_principal", "monthly_interest")
-        .where("loan_detail_id", data.loan_detail_id)
-        .first();
-
-    const total = principal_payment + interest_payment + penalty_amount;
-    // status_id
-    if (
-      Number(monthly_principal) == Number(principal_payment) &&
-      Number(interest_payment) == Number(monthly_interest)
-    )
-      statusId = status["paid"];
-    else statusId = status["partialy_paid"];
-
-    // payment_date
     const processDate = new Date().toISOString().split("T")[0];
 
-    const { count } = await builder("paymenttbl")
-      .count({ count: "loan_detail_id" })
-      .where("loan_detail_id", data.loan_detail_id)
-      .first();
-
     await builder.transaction(async (t) => {
-      const fileName = await supabaseUpload(req.file);
+      let remaining_principal = Number(principal_payment) || 0;
+      let remaining_interest = Number(interest_payment) || 0;
+      let remaining_penalty = Number(penalty_amount) || 0;
 
-      // Call stored procedure with separate principal, interest, penalty
-      await t.raw(
-        `
-  CALL process_payment(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @result)
-`,
-        [
-          data.loan_header_id,
-          Number(data.principal_payment) || 0, // Principal payment
-          Number(data.interest_payment) || 0, // Interest payment
-          Number(data.penalty_amount) || 0, // Penalty payment
-          data.payment_type,
-          data.pr_number,
-          data.or_number || "",
-          bankJSON.name,
-          data.check_number || "",
-          data.check_date || null,
-          data.remarks || "",
-          fileName,
-        ]
-      );
+      // Get all unpaid/partially paid loan details for this loan
+      const loanDetails = await t("loan_detail as ld")
+        .leftJoin("paymenttbl as p", "ld.loan_detail_id", "p.loan_detail_id")
+        .where("ld.loan_header_id", data.loan_header_id)
+        .whereRaw("(p.payment_status_id IS NULL OR p.payment_status_id != 1)")
+        .select(
+          "ld.loan_detail_id",
+          "ld.monthly_principal",
+          "ld.monthly_interest",
+          "ld.accumulated_penalty",
+          t.raw("COALESCE(p.principal_payment, 0) as principal_paid"),
+          t.raw("COALESCE(p.interest_payment, 0) as interest_paid"),
+          t.raw("COALESCE(p.penalty_amount, 0) as penalty_paid")
+        )
+        .orderBy("ld.due_date", "asc");
 
-      // Get the result
-      const resultQuery = await t.raw("SELECT @result as result");
-      const paymentResult = JSON.parse(resultQuery[0][0].result);
+      const payment_details = [];
+      let total_overpayment = 0;
 
-      if (!paymentResult.success) {
-        throw new Error(paymentResult.error);
+      // Process each installment
+      for (const detail of loanDetails) {
+        if (
+          remaining_principal <= 0 &&
+          remaining_interest <= 0 &&
+          remaining_penalty <= 0
+        ) {
+          break;
+        }
+
+        // Calculate what's still due (force number conversion)
+        const principal_due =
+          Number(detail.monthly_principal) - Number(detail.principal_paid);
+        const interest_due =
+          Number(detail.monthly_interest) - Number(detail.interest_paid);
+        const penalty_due =
+          Number(detail.accumulated_penalty) - Number(detail.penalty_paid);
+
+        // Apply payments
+        const penalty_to_apply = Math.min(
+          Number(remaining_penalty),
+          Number(penalty_due)
+        );
+        remaining_penalty =
+          Number(remaining_penalty) - Number(penalty_to_apply);
+
+        const interest_to_apply = Math.min(
+          Number(remaining_interest),
+          Number(interest_due)
+        );
+        remaining_interest =
+          Number(remaining_interest) - Number(interest_to_apply);
+
+        const principal_to_apply = Math.min(
+          Number(remaining_principal),
+          Number(principal_due)
+        );
+        remaining_principal =
+          Number(remaining_principal) - Number(principal_to_apply);
+
+        // Determine status
+        const new_principal_total =
+          Number(detail.principal_paid) + Number(principal_to_apply);
+        const new_interest_total =
+          Number(detail.interest_paid) + Number(interest_to_apply);
+        const is_paid =
+          new_principal_total >= detail.monthly_principal - 0.01 &&
+          new_interest_total >= detail.monthly_interest - 0.01;
+
+        const status_id = is_paid ? 1 : 4; // 1=PAID, 4=PARTIALLY PAID
+
+        // Update or insert into paymenttbl
+        const existingPayment = await t("paymenttbl")
+          .where("loan_detail_id", detail.loan_detail_id)
+          .first();
+
+        if (existingPayment) {
+          const new_penalty_total =
+            Number(detail.penalty_paid) + Number(penalty_to_apply);
+          const total_payment =
+            Number(new_principal_total) +
+            Number(new_interest_total) +
+            Number(new_penalty_total);
+
+          await t("paymenttbl")
+            .where("loan_detail_id", detail.loan_detail_id)
+            .update({
+              principal_payment: Number(new_principal_total).toFixed(2),
+              interest_payment: Number(new_interest_total).toFixed(2),
+              penalty_amount: Number(new_penalty_total).toFixed(2),
+              payment_amount: Number(total_payment).toFixed(2),
+              payment_status_id: status_id,
+              payment_type: data.payment_type,
+              receiptno: data.pr_number,
+              OR_no: data.or_number || "",
+              bank: bankJSON.name,
+              checkno: data.check_number || "",
+              remarks: data.remarks || "",
+            });
+        } else {
+          const total_payment =
+            Number(principal_to_apply) +
+            Number(interest_to_apply) +
+            Number(penalty_to_apply);
+
+          await t("paymenttbl").insert({
+            loan_detail_id: detail.loan_detail_id,
+            principal_payment: Number(principal_to_apply).toFixed(2),
+            interest_payment: Number(interest_to_apply).toFixed(2),
+            penalty_amount: Number(penalty_to_apply).toFixed(2),
+            payment_amount: Number(total_payment).toFixed(2),
+            payment_status_id: status_id,
+            payment_type: data.payment_type,
+            receiptno: data.pr_number,
+            OR_no: data.or_number || "",
+            bank: bankJSON.name,
+            checkno: data.check_number || "",
+            remarks: data.remarks || "",
+          });
+        }
+
+        // Insert into payment_historytbl
+        if (
+          principal_to_apply > 0 ||
+          interest_to_apply > 0 ||
+          penalty_to_apply > 0
+        ) {
+          await t("payment_historytbl").insert({
+            loan_detail_id: detail.loan_detail_id,
+            payment_principal: principal_to_apply,
+            payment_interest: interest_to_apply,
+            payment_penalty: penalty_to_apply,
+            payment_date: processDate,
+            payment_type: data.payment_type,
+            payment_receipt: data.pr_number,
+            remarks: data.remarks || "",
+            bank: bankJSON.name,
+            check_no: data.check_number || "",
+            check_date: data.check_date || null,
+            attachment: fileName,
+          });
+
+          payment_details.push({
+            loan_detail_id: detail.loan_detail_id,
+            principal: principal_to_apply,
+            interest: interest_to_apply,
+            penalty: penalty_to_apply,
+            status: is_paid ? "PAID" : "PARTIAL",
+          });
+        }
       }
 
+      // Calculate overpayment
+      total_overpayment =
+        remaining_principal + remaining_interest + remaining_penalty;
+
       // Insert account titles if provided
-      if (accountTitlesJSON.length > 0) {
-        const payment_history_id = await t("payment_historytbl")
-          .where("loan_detail_id", paymentResult.details[0].loan_detail_id)
+      if (accountTitlesJSON.length > 0 && payment_details.length > 0) {
+        const last_payment_history = await t("payment_historytbl")
+          .where("loan_detail_id", payment_details[0].loan_detail_id)
           .orderBy("payment_history_id", "desc")
-          .first()
-          .then((r) => r.payment_history_id);
+          .first();
 
         const formatAccountTitles = accountTitlesJSON.map((v) => ({
           account_title_id: v.category.id,
           credit: Number(v.credit),
           debit: Number(v.debit),
-          payment_id: payment_history_id,
+          payment_id: last_payment_history.payment_history_id,
         }));
 
         await t("payment_voucher").insert(formatAccountTitles);
@@ -312,7 +400,7 @@ paymentRouter.post("/", upload.single("attachment"), async (req, res) => {
       if (data.payment_type.toLowerCase() === "cash" && data.cash_count) {
         const billCount = data.cash_count.map((v) => ({
           loan_header_id: data.loan_header_id,
-          loan_detail_id: paymentResult.details[0].loan_detail_id,
+          loan_detail_id: payment_details[0]?.loan_detail_id || null,
           bill_type: String(v.denomination),
           bill_count: v.count,
         }));
@@ -332,14 +420,14 @@ paymentRouter.post("/", upload.single("attachment"), async (req, res) => {
         )
         .first();
 
-      // Get the payment_history_id of the last inserted record
+      // Get last payment history ID
       const lastPaymentHistory = await t("payment_historytbl")
-        .where("loan_detail_id", paymentResult.details[0].loan_detail_id)
+        .where("loan_detail_id", payment_details[0]?.loan_detail_id)
         .orderBy("payment_history_id", "desc")
         .first();
 
       res.status(200).json({
-        payment_history_id: lastPaymentHistory.payment_history_id,
+        payment_history_id: lastPaymentHistory?.payment_history_id,
         success: true,
         payment_date: processDate,
         payment_receipt: data.pr_number,
@@ -360,15 +448,20 @@ paymentRouter.post("/", upload.single("attachment"), async (req, res) => {
           (Number(data.principal_payment) || 0) +
           (Number(data.interest_payment) || 0) +
           (Number(data.penalty_amount) || 0) -
-          (paymentResult.overpayment || 0),
-        overpayment: paymentResult.overpayment || 0,
-        overpayment_breakdown: paymentResult.overpayment_breakdown || {},
-        details: paymentResult.details,
+          total_overpayment,
+        overpayment: total_overpayment,
+        overpayment_breakdown: {
+          principal: remaining_principal,
+          interest: remaining_interest,
+          penalty: remaining_penalty,
+        },
+        details: payment_details,
         remarks: data.remarks,
       });
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -466,29 +559,17 @@ paymentRouter.get("/customer", async (req, res) => {
 
 paymentRouter.get("/read/:id", async (req, res) => {
   const id = req.params.id;
-  const payment = await builder
-    .select(
-      "loan_detail_id",
-      "loan_header_id",
-      "check_date",
-      "due_date",
-      "monthly_principal",
-      "monthly_interest",
-      "monthly_amortization",
-      "payment_type",
-      "principal_payment",
-      "interest_payment",
-      "penalty_amount",
-      "payment_amount",
-      "Balance",
-      "running_balance",
-      "description"
-    )
-    .from("new_view_payment_detail")
-    .where("loan_header_id", id)
-    .orderBy("due_date", "asc");
 
-  res.status(200).json(payment);
+  try {
+    const schedule = await builder("view_amortization_schedule")
+      .where("loan_header_id", id)
+      .orderBy("installment_number", "asc");
+
+    res.status(200).json(schedule);
+  } catch (error) {
+    console.error("Error fetching amortization schedule:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 paymentRouter.get("/paymentDue/:id", async (req, res) => {
