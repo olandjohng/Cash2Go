@@ -1,29 +1,14 @@
-const knex = require("knex");
-require("dotenv").config();
+const knex = require('knex');
 
-// const HOST = "srv1365.hstgr.io";
-// const USER = "u215434580_c2goAdmin";
-// const PASSWORD = "!cash2goAdminP@ssw0rd";
-// const DATABASE = "u215434580_c2go";
-
-const HOST = "localhost";
-const USER = "root";
-const PASSWORD = "!Web001@2025";
-const DATABASE = "loan_db";
-
-const builder = knex({
-  client: "mysql2",
+module.exports = knex({
+  client: 'mysql2',
   connection: {
-    host: HOST,
-    user: USER,
-    password: PASSWORD,
-    database: DATABASE,
-    port: 3306,
-    // host: process.env.DB_HOST,
-    // user: process.env.DB_USERNAME,
-    // password: process.env.DB_PASSWORD,
-    // database: process.env.DB_DATABASE,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT || 4000,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: true } : false
   },
+  pool: { min: 0, max: 10 }
 });
-
-module.exports = builder;
