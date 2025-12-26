@@ -15,7 +15,7 @@ import { tokens } from "../../../theme";
 import axios from "axios";
 import { Bounce, toast } from "react-toastify";
 import { styled } from "@mui/system";
-import api from '../utils/api';
+import api from '../../../utils/api';
 
 const StyledInput = styled("input")({
   display: "none", // Hide the default file input

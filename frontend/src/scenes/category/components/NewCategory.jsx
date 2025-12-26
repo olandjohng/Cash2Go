@@ -6,7 +6,7 @@ import { Bounce, toast } from 'react-toastify';
 import { useNavigate, useParams } from "react-router-dom";
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
-import api from '../utils/api';
+import api from '../../../utils/api';
 
 export default function NewCategory({onCategoryAdded, onClosePopup}) {
 

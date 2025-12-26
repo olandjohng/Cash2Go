@@ -12,7 +12,7 @@ import { Box, Button, Tooltip } from '@mui/material'
 import { Bounce, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BankForm from './components/BankForm'
-import api from '../utils/api';
+import api from '../../utils/api';
 
 export default function Banks() {
 

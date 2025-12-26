@@ -11,7 +11,7 @@ import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import EmployeeForm from "./components/EmployeeForm";
-import api from '../utils/api';
+import api from '../../utils/api';
 
 function Employee() {
   const theme = useTheme();

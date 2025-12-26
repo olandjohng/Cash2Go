@@ -9,7 +9,7 @@ import * as yup from 'yup'
 import axios from 'axios'
 import { useAuthContext } from '../../context/AuthContext';
 import ChangePasswordModal from './components/ChangePasswordModal';
-import api from '../utils/api';
+import api from '../../utils/api';
 
 const userSchema = yup.object({
   username : yup.string().required(),

@@ -16,7 +16,7 @@ import { PrintOutlined } from '@mui/icons-material';
 import adjusting_entries_template from '../../assets/adjusting-entries.html?raw'
 import logo from '../../assets/c2g_logo_nb.png'
 import AdjustingDetails from './components/AdjustingDetails';
-import api from '../utils/api';
+import api from '../../utils/api';
 
 
 const initialValues = {

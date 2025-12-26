@@ -12,7 +12,7 @@ import { Bounce, toast } from 'react-toastify';
 import { Link, useLocation } from 'react-router-dom'
 import 'react-toastify/dist/ReactToastify.css';
 import FacilityForm from './components/FacilityForm'
-import api from '../utils/api';
+import api from '../../utils/api';
 
 export default function Facility() {
   const [facility, setFacility] = useState([])

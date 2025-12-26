@@ -17,7 +17,7 @@ import DeductionDataGrid from "./components/DeductionDataGrid";
 import deductionTemplate from "../../assets/deduction.html?raw";
 import { toastErr, toastSucc } from "../../utils";
 import SearchInputForm from "../report/component/SearchInputForm";
-import api from '../utils/api';
+import api from '../../utils/api';
 
 function paymentReducer(state, action) {
   switch (action.type) {

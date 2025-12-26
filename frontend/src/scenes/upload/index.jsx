@@ -5,7 +5,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useTheme } from "@emotion/react";
 import { tokens } from "../../theme";
-import api from '../utils/api';
+import api from '../../utils/api';
 
 export default function Upload() {
   const theme = useTheme();

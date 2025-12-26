@@ -4,7 +4,7 @@ import useSWR from 'swr'
 import axios from 'axios'
 import { NumberInput } from '../../expenses/components/ExpensesVoucher'
 import { DeleteOutlineOutlined } from '@mui/icons-material'
-import api from '../utils/api';
+import api from '../../../utils/api';
 
 const fetcher = async (url) => {
   const request = await api.get(url)

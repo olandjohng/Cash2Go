@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import api from '../utils/api';
+import api from '../../../utils/api';
 // const SERVER_URL = "/api/payments";
 
 const validationSchema = yup.object({

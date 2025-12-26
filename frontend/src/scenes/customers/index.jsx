@@ -22,7 +22,7 @@ import { tokens } from "../../theme";
 import { Bounce, toast } from "react-toastify";
 import { Link, useLocation } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
-import api from '../utils/api';
+import api from '../../utils/api';
 
 
 const SERVER_URL = "http://localhost:8000/customerInfo";

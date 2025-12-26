@@ -12,7 +12,7 @@ import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import 'react-toastify/dist/ReactToastify.css';
 import CollateralForm from './components/CollateralForm'
-import api from '../utils/api';
+import api from '../../utils/api';
 
 function Collateral() {
 

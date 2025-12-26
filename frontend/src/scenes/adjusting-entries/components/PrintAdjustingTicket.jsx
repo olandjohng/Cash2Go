@@ -4,7 +4,7 @@ import React from 'react'
 import axios from 'axios'
 import * as ejs from 'ejs'
 import dayjs from 'dayjs'
-import api from '../utils/api';
+import api from '../../../utils/api';
 
 export default function PrintAdjustingTicket({onSubmit, data, onPrevious, onPrintTicket}) {
   
