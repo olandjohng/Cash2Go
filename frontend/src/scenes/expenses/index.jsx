@@ -18,6 +18,7 @@ import dayjs from "dayjs";
 import { toastErr, toastSucc } from "../../utils";
 import * as yup from "yup";
 import { useSequence } from "../../hooks/useSequence";
+import api from '../utils/api';
 
 const initialValues = {
   voucherNumber: "",
@@ -46,16 +47,16 @@ const validationSchema = yup.object({
 });
 
 const fetcher = (url) => {
-  return axios.get(url).then((res) => res.data);
+  return api.get(url).then((res) => res.data);
 };
 
 const fetchDetails = (key, { arg }) => {
   const url = key + "/" + arg;
-  return axios.get(url).then((res) => res.data);
+  return api.get(url).then((res) => res.data);
 };
 
 const saveExpenses = async (url, { arg }) => {
-  return await axios.post(url, arg);
+  return await api.post(url, arg);
 };
 
 export default function ExpensesPage() {
@@ -296,7 +297,7 @@ export default function ExpensesPage() {
       map_to_delete: data.map_to_delete,
     };
     try {
-      const { status } = await axios.put(`/api/expenses/${data.id}`, input);
+      const { status } = await api.put(`/api/expenses/${data.id}`, input);
 
       if (status != 200) {
         return toastErr("Something went Wrong!");

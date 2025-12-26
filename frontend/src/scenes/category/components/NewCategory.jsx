@@ -6,6 +6,7 @@ import { Bounce, toast } from 'react-toastify';
 import { useNavigate, useParams } from "react-router-dom";
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
+import api from '../utils/api';
 
 export default function NewCategory({onCategoryAdded, onClosePopup}) {
 
@@ -18,7 +19,7 @@ export default function NewCategory({onCategoryAdded, onClosePopup}) {
     // Start useEffect
     useEffect(() => {
         if (id) {
-            axios.get(`/api/category/read/${id}`)
+            api.get(`/api/category/read/${id}`)
             .then((res) => {
                 console.log('API Response:', res.data);
                 
@@ -50,7 +51,7 @@ export default function NewCategory({onCategoryAdded, onClosePopup}) {
         e.preventDefault();
         const apiURL = id ? `/api/category/edit/${id}` : '/api/category/new';
         console.log({ category });
-        const axiosMethod = id ? axios.put : axios.post;
+        const axiosMethod = id ? api.put : api.post;
     
         axiosMethod(apiURL, { category: category })
           .then((res) => {

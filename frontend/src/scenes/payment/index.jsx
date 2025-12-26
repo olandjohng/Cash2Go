@@ -17,6 +17,7 @@ import DeductionDataGrid from "./components/DeductionDataGrid";
 import deductionTemplate from "../../assets/deduction.html?raw";
 import { toastErr, toastSucc } from "../../utils";
 import SearchInputForm from "../report/component/SearchInputForm";
+import api from '../utils/api';
 
 function paymentReducer(state, action) {
   switch (action.type) {
@@ -52,7 +53,7 @@ export default function LoanPayment() {
   const loadPaymentHeaderData = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`/api/payments`, {
+      const response = await api.get(`/api/payments`, {
         params: {
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
@@ -75,7 +76,7 @@ export default function LoanPayment() {
 
   const loadDeductionPayment = async () => {
     try {
-      const deductions = await axios.get(`api/payments/deductions`, {
+      const deductions = await api.get(`api/payments/deductions`, {
         params: {
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
@@ -169,8 +170,8 @@ export default function LoanPayment() {
     }).toString();
 
     const req = !isDeductionView
-      ? axios.get(`/api/payments?${params}`)
-      : axios.get(`/api/payments/deductions?${params}`);
+      ? api.get(`/api/payments?${params}`)
+      : api.get(`/api/payments/deductions?${params}`);
     try {
       const response = await req;
       // setPaymentRows(response.data.data);

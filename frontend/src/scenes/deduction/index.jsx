@@ -12,6 +12,7 @@ import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import 'react-toastify/dist/ReactToastify.css';
 import DeductionForm from './components/DeductionForm'
+import api from '../utils/api';
 
 function DeductionType() {
 
@@ -24,7 +25,7 @@ function DeductionType() {
   
     const loadDeductionData = async () => {
       try {
-        const response = await axios.get('/api/deductions');
+        const response = await api.get('/api/deductions');
         setDeduction(response.data);
       } catch (error) {
         console.error('Error loading deduction data:', error);
@@ -77,7 +78,7 @@ function DeductionType() {
       }
   
       try {
-        const response = await axios.delete(`/api/deductions/delete/${id}`);
+        const response = await api.delete(`/api/deductions/delete/${id}`);
         console.log(response.data);
         loadDeductionData();
         toast.success('Deduction Successfully Deleted!', {

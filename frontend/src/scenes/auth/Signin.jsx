@@ -9,6 +9,7 @@ import * as yup from 'yup'
 import axios from 'axios'
 import { useAuthContext } from '../../context/AuthContext';
 import ChangePasswordModal from './components/ChangePasswordModal';
+import api from '../utils/api';
 
 const userSchema = yup.object({
   username : yup.string().required(),
@@ -36,7 +37,7 @@ export default function Signin() {
   const [openChangePasswordModal, setOpenChangePasswordModal] = useState(false)
   
   const handleChangePasswordSubmit = async (data) => {
-    const req = await axios.post(`/api/auth/${user.id}/change-password`, data)
+    const req = await api.post(`/api/auth/${user.id}/change-password`, data)
     if(req.status == 200) {
        localStorage.setItem('user', JSON.stringify(user))
        setOpenChangePasswordModal(false)
@@ -46,7 +47,7 @@ export default function Signin() {
 
   const handleSubmit = async (input) => {
     try {
-      const req = await axios.post('/api/auth/login', input)
+      const req = await api.post('/api/auth/login', input)
       if(!req.data.did_init) {
         setUser(req.data)
         return setOpenChangePasswordModal(true)

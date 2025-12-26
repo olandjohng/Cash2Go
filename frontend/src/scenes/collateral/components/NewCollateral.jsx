@@ -6,6 +6,7 @@ import { Bounce, toast } from 'react-toastify';
 import { useNavigate, useParams } from "react-router-dom";
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
+import api from '../utils/api';
 
 export default function NewCollateral({ onCollateralAdded, onClosePopup }) {
 
@@ -18,7 +19,7 @@ export default function NewCollateral({ onCollateralAdded, onClosePopup }) {
     // Start useEffect
     useEffect(() => {
         if (id) {
-            axios.get(`/api/collateral/read/${id}`)
+            api.get(`/api/collateral/read/${id}`)
             .then((res) => {
                 console.log('API Response:', res.data);
                 
@@ -50,7 +51,7 @@ export default function NewCollateral({ onCollateralAdded, onClosePopup }) {
       e.preventDefault();
       const apiURL = id ? `/api/collateral/edit/${id}` : '/api/collateral/new'
       console.log({collateral});
-      const axiosMethod = id ? axios.put : axios.post;
+      const axiosMethod = id ? api.put : api.post;
   
       axiosMethod(apiURL, { collateral: collateral })
         .then((res) => {

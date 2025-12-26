@@ -12,6 +12,7 @@ import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import 'react-toastify/dist/ReactToastify.css';
 import AccountCategoryForm from './components/AccountCategoryForm'
+import api from '../utils/api';
 
 function AccountCategory() {
 
@@ -24,7 +25,7 @@ function AccountCategory() {
 
     const loadAccountCategoryData = async () => {
         try {
-          const response = await axios.get('/api/account-category');
+          const response = await api.get('/api/account-category');
           setAccountCategory(response.data);
         } catch (error) {
           console.error('Error loading account category data:', error);
@@ -77,7 +78,7 @@ function AccountCategory() {
         }
     
         try {
-          const response = await axios.delete(`/api/account-category/delete/${id}`);
+          const response = await api.delete(`/api/account-category/delete/${id}`);
           console.log(response.data);
           loadAccountCategoryData();
           toast.success('Account category Successfully Deleted!', {

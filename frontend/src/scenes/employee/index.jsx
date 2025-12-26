@@ -11,6 +11,7 @@ import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import EmployeeForm from "./components/EmployeeForm";
+import api from '../utils/api';
 
 function Employee() {
   const theme = useTheme();
@@ -22,7 +23,7 @@ function Employee() {
 
   const loadEmployeeData = async () => {
     try {
-      const response = await axios.get('/api/employee');
+      const response = await api.get('/api/employee');
       setEmployee(response.data);
     } catch (error) {
       console.error('Error loading employee data:', error);
@@ -76,7 +77,7 @@ function Employee() {
     }
 
     try {
-      const response = await axios.delete(`/api/employee/delete/${id}`);
+      const response = await api.delete(`/api/employee/delete/${id}`);
       console.log(response.data);
       loadEmployeeData();
       toast.success('Employee Successfully Deleted!', {

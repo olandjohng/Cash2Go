@@ -6,6 +6,7 @@ import { Bounce, toast } from 'react-toastify';
 import { useNavigate, useParams } from "react-router-dom";
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
+import api from '../utils/api';
 
 
 export default function NewDeduction({ onDeductionAdded, onClosePopup }) {
@@ -18,7 +19,7 @@ export default function NewDeduction({ onDeductionAdded, onClosePopup }) {
 
     useEffect(() => {
       if (id) {
-        axios.get(`/api/deductions/read/${id}`)
+        api.get(`/api/deductions/read/${id}`)
           .then((res) => {
             console.log('API Response:', res.data);
     
@@ -45,7 +46,7 @@ export default function NewDeduction({ onDeductionAdded, onClosePopup }) {
     e.preventDefault();
     const apiURL = id ? `/api/deductions/edit/${id}` : '/api/deductions/new'
     console.log({deductionType});
-    const axiosMethod = id ? axios.put : axios.post;
+    const axiosMethod = id ? api.put : api.post;
 
     axiosMethod(apiURL, { deductionType })
       .then((res) => {

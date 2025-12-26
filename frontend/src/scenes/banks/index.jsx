@@ -12,6 +12,7 @@ import { Box, Button, Tooltip } from '@mui/material'
 import { Bounce, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BankForm from './components/BankForm'
+import api from '../utils/api';
 
 export default function Banks() {
 
@@ -24,7 +25,7 @@ export default function Banks() {
   // Start of loadBankData - use to load the x-datagrid to view the changes
   const loadBankData = async () => {
     try {
-      const response = await axios.get(`/api${loc.pathname}`);
+      const response = await api.get(`/api${loc.pathname}`);
       setBank(response.data);
     } catch (error) {
       console.error('Error loading bank data:', error);
@@ -86,7 +87,7 @@ export default function Banks() {
     }
 
     try {
-      const response = await axios.delete(`/api/banks/delete/${id}`);
+      const response = await api.delete(`/api/banks/delete/${id}`);
       console.log(response.data);
       loadBankData();
       toast.success('Bank Successfully Deleted!', {

@@ -5,6 +5,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useTheme } from "@emotion/react";
 import { tokens } from "../../theme";
+import api from '../utils/api';
 
 export default function Upload() {
   const theme = useTheme();
@@ -28,7 +29,7 @@ export default function Upload() {
     formData.append('file', file);
 
     try {
-      const response = await axios.post('/api/upload/bulk', formData, {
+      const response = await api.post('/api/upload/bulk', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       

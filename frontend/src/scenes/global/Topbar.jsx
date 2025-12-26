@@ -2,6 +2,7 @@ import { Box, Button, Grid, IconButton, Popper, Typography, useTheme } from "@mu
 import { useContext, useRef, useState } from "react"
 import { ColorModeContext, tokens } from "../../theme"
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
+import api from '../utils/api';
 
 import axios from "axios";
 import { useAuthContext } from "../../context/AuthContext";
@@ -22,7 +23,7 @@ const Topbar = () => {
 
     const handleLogout = async () => {
         try {
-            const request = await axios.post('/api/auth/logout')
+            const request = await api.post('/api/auth/logout')
             if(request.status == 200) {
                 localStorage.removeItem('user')
                 setOpenAccountPoper(false)

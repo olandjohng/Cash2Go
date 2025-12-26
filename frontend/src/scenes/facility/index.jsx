@@ -12,6 +12,7 @@ import { Bounce, toast } from 'react-toastify';
 import { Link, useLocation } from 'react-router-dom'
 import 'react-toastify/dist/ReactToastify.css';
 import FacilityForm from './components/FacilityForm'
+import api from '../utils/api';
 
 export default function Facility() {
   const [facility, setFacility] = useState([])
@@ -22,7 +23,7 @@ export default function Facility() {
 
   const loadFacilityData = async () => {
     try {
-      const response = await axios.get('/api/facility');
+      const response = await api.get('/api/facility');
       setFacility(response.data);
     } catch (error) {
       console.error('Error loading facility data:', error);
@@ -76,7 +77,7 @@ export default function Facility() {
     }
 
     try {
-      const response = await axios.delete(`/api/facility/delete/${id}`);
+      const response = await api.delete(`/api/facility/delete/${id}`);
       console.log(response.data);
       loadFacilityData();
       toast.success('Facility Successfully Deleted!', {

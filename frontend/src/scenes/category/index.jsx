@@ -12,6 +12,7 @@ import { Box, Button, Tooltip } from '@mui/material'
 import { Bounce, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import CategroyForm from './components/CategroyForm'
+import api from '../utils/api';
 
 
 export default function Category() {
@@ -24,7 +25,7 @@ export default function Category() {
   // Start of loadCategoryData - use to load the x-datagrid to view the changes
   const loadCategoryData = async () => {
     try {
-      const response = await axios.get('/api/category');
+      const response = await api.get('/api/category');
       setCategory(response.data);
     } catch (error) {
       console.error('Error loading category data:', error);
@@ -84,7 +85,7 @@ export default function Category() {
     }
 
     try {
-      const response = await axios.delete(`/api/category/delete/${id}`);
+      const response = await api.delete(`/api/category/delete/${id}`);
       console.log(response.data);
       loadCategoryData();
       toast.success('Category Successfully Deleted!', {

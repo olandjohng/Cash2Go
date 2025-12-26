@@ -16,6 +16,7 @@ import { PrintOutlined } from '@mui/icons-material';
 import adjusting_entries_template from '../../assets/adjusting-entries.html?raw'
 import logo from '../../assets/c2g_logo_nb.png'
 import AdjustingDetails from './components/AdjustingDetails';
+import api from '../utils/api';
 
 
 const initialValues = {
@@ -28,10 +29,10 @@ const initialValues = {
 }
 
 const fetcher = (url) => {
-  return axios.get(url).then(res => res.data)
+  return api.get(url).then(res => res.data)
 }
 const saveAdjustingEntries = (url, {arg}) => {
-  return axios.post(url, arg)
+  return api.post(url, arg)
 }
 
 const print = (t, data) => {
@@ -57,7 +58,7 @@ export default function AdjustingEntriesPage() {
   
   const handlePrintTicketId = async (id) => {
     
-    const request  = await axios.get(`/api/adjusting-entries/${id}`)
+    const request  = await api.get(`/api/adjusting-entries/${id}`)
     
     if(!request.status == 200) {
       return console.log(request.statusText)

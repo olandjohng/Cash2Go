@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
+import api from '../utils/api';
 // const SERVER_URL = "/api/payments";
 
 const validationSchema = yup.object({
@@ -142,7 +143,7 @@ export default function PaymentSearch({loanIdSetter, paymentRow, paymentRowSette
     
     setIsLoading(true)
     try {
-      const response = await axios.get(`/api/payments/search`, {
+      const response = await api.get(`/api/payments/search`, {
         params: {
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,

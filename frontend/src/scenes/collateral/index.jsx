@@ -12,6 +12,7 @@ import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import 'react-toastify/dist/ReactToastify.css';
 import CollateralForm from './components/CollateralForm'
+import api from '../utils/api';
 
 function Collateral() {
 
@@ -24,7 +25,7 @@ function Collateral() {
 
     const loadCollateralData = async () => {
         try {
-          const response = await axios.get('/api/collateral');
+          const response = await api.get('/api/collateral');
           setCollateral(response.data);
         } catch (error) {
           console.error('Error loading collateral data:', error);
@@ -77,7 +78,7 @@ function Collateral() {
         }
     
         try {
-          const response = await axios.delete(`/api/collateral/delete/${id}`);
+          const response = await api.delete(`/api/collateral/delete/${id}`);
           console.log(response.data);
           loadCollateralData();
           toast.success('Collateral Successfully Deleted!', {

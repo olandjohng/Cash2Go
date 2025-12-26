@@ -4,11 +4,12 @@ import React from 'react'
 import axios from 'axios'
 import * as ejs from 'ejs'
 import dayjs from 'dayjs'
+import api from '../utils/api';
 
 export default function PrintAdjustingTicket({onSubmit, data, onPrevious, onPrintTicket}) {
   
   const handlePrint = async () => {
-    const request  = await axios.get('/api/adjusting-entries/ticket-number')
+    const request  = await api.get('/api/adjusting-entries/ticket-number')
     if(!request.status == 200) {
       return console.log(request.statusText)
     }

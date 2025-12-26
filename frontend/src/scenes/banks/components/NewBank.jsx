@@ -6,6 +6,7 @@ import { Bounce, toast } from 'react-toastify';
 import { useNavigate, useParams } from "react-router-dom";
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
+import api from '../utils/api';
 
 export default function NewBank({onBankAdded, onClosePopup}) {
 
@@ -18,7 +19,7 @@ export default function NewBank({onBankAdded, onClosePopup}) {
     // Start useEffect
     useEffect(() => {
         if (id) {
-            axios.get(`/api/banks/read/${id}`)
+            api.get(`/api/banks/read/${id}`)
             .then((res) => {
                 console.log('API Response:', res.data);
                 
@@ -50,7 +51,7 @@ export default function NewBank({onBankAdded, onClosePopup}) {
         e.preventDefault();
         const apiURL = id ? `/api/banks/edit/${id}` : '/api/banks/new';
         console.log({ bank });
-        const axiosMethod = id ? axios.put : axios.post;
+        const axiosMethod = id ? api.put : api.post;
     
         axiosMethod(apiURL, { bank: bank })
           .then((res) => {

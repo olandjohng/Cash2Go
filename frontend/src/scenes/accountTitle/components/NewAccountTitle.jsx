@@ -6,6 +6,7 @@ import { Bounce, toast } from 'react-toastify';
 import { useNavigate, useParams } from "react-router-dom";
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
+import api from '../utils/api';
 
 export default function NewAccountTitle({ onAccountTitleAdded, onClosePopup }) {
 
@@ -21,7 +22,7 @@ export default function NewAccountTitle({ onAccountTitleAdded, onClosePopup }) {
     // Start useEffect
     useEffect(() => {
       if (id) {
-        axios.get(`/api/account-title/read/${id}`)
+        api.get(`/api/account-title/read/${id}`)
           .then((res) => {
             console.log('API Response:', res.data);
     
@@ -52,7 +53,7 @@ export default function NewAccountTitle({ onAccountTitleAdded, onClosePopup }) {
     // End useEffect
 
   useEffect(() => {
-    axios.get('/api/account-category')
+    api.get('/api/account-category')
       .then(response => {
         setCategories(response.data);
         console.log('Categories:', response.data);
@@ -93,7 +94,7 @@ const handleSubmit = async (e) => {
   e.preventDefault();
   const apiURL = id ? `/api/account-title/edit/${id}` : '/api/account-title/new'
   console.log({accountTitle});
-  const axiosMethod = id ? axios.put : axios.post;
+  const axiosMethod = id ? api.put : api.post;
 
   // const payload = {
   //   ...accountTitle,

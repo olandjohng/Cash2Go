@@ -11,6 +11,7 @@ import { Bounce, toast } from 'react-toastify';
 import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import 'react-toastify/dist/ReactToastify.css';
+import api from '../utils/api';
 
 function AccountTitle() {
 
@@ -23,7 +24,7 @@ function AccountTitle() {
 
     const loadAccountTitleData = async () => {
       try {
-        const response = await axios.get('/api/account-title');
+        const response = await api.get('/api/account-title');
         setAccountTitle(response.data);
       } catch (error) {
         console.error('Error loading account title data:', error);
@@ -78,7 +79,7 @@ function AccountTitle() {
       }
   
       try {
-        const response = await axios.delete(`/api/account-title/delete/${id}`);
+        const response = await api.delete(`/api/account-title/delete/${id}`);
         console.log(response.data);
         loadAccountTitleData();
         toast.success('Account title Successfully Deleted!', {

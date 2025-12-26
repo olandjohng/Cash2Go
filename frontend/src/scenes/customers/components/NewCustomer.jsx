@@ -15,6 +15,7 @@ import { tokens } from "../../../theme";
 import axios from "axios";
 import { Bounce, toast } from "react-toastify";
 import { styled } from "@mui/system";
+import api from '../utils/api';
 
 const StyledInput = styled("input")({
   display: "none", // Hide the default file input
@@ -194,7 +195,7 @@ export default function NewCustomer({ onCustomerAdded, onClosePopup }) {
       ? `/api/customerInfo/edit/${id}`
       : "/api/customerInfo/new";
     console.log({ customer });
-    const axiosMethod = id ? axios.put : axios.post;
+    const axiosMethod = id ? api.put : api.post;
 
     const {
       cfname,

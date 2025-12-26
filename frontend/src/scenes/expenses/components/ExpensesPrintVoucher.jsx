@@ -8,9 +8,10 @@ import useSWRMutation from 'swr/mutation'
 import axios from 'axios'
 import { toastErr } from '../../../utils'
 import dayjs from 'dayjs'
+import api from '../utils/api';
 
 async function saveExpenses(url, {arg}) {
-  return await axios.post(url, arg)
+  return await api.post(url, arg)
 }
 
 

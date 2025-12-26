@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import axios from 'axios'
+import api from '../utils/api';
 
 const API_BASE_URL = '/api' // Changed from localhost:5173 to relative path
 
@@ -21,7 +22,7 @@ export const useSequence = () => {
     setError(null)
 
     try {
-      const response = await axios.get(
+      const response = await api.get(
         `${API_BASE_URL}/sequence/${sequenceType}`
       )
       
@@ -48,7 +49,7 @@ export const useSequence = () => {
     setError(null)
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/sequence`)
+      const response = await api.get(`${API_BASE_URL}/sequence`)
       return response.data
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Failed to fetch sequences'
@@ -69,7 +70,7 @@ export const useSequence = () => {
     setError(null)
 
     try {
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/sequence`,
         sequenceData
       )
@@ -94,7 +95,7 @@ export const useSequence = () => {
     setError(null)
 
     try {
-      const response = await axios.put(
+      const response = await api.put(
         `${API_BASE_URL}/sequence/${sequenceType}`,
         updateData
       )
@@ -119,7 +120,7 @@ export const useSequence = () => {
     setError(null)
 
     try {
-      const response = await axios.put(
+      const response = await api.put(
         `${API_BASE_URL}/sequence/${sequenceType}/reset`,
         { resetValue }
       )
@@ -143,7 +144,7 @@ export const useSequence = () => {
     setError(null)
 
     try {
-      const response = await axios.delete(
+      const response = await api.delete(
         `${API_BASE_URL}/sequence/${sequenceType}`
       )
       return response.data

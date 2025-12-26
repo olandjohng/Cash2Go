@@ -6,6 +6,7 @@ import { Bounce, toast } from 'react-toastify';
 import { useNavigate, useParams } from "react-router-dom";
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
+import api from '../utils/api';
 
 export default function NewFacility({onFacilityAdded, onClosePopup}) {
 
@@ -17,7 +18,7 @@ export default function NewFacility({onFacilityAdded, onClosePopup}) {
 
     useEffect(() => {
       if (id) {
-        axios.get(`/api/facility/read/${id}`)
+        api.get(`/api/facility/read/${id}`)
           .then((res) => {
             console.log('API Response:', res.data);
   
@@ -45,7 +46,7 @@ export default function NewFacility({onFacilityAdded, onClosePopup}) {
       e.preventDefault();
       const apiURL = id ? `/api/facility/edit/${id}` : '/api/facility/new';
       console.log({ facility });
-      const axiosMethod = id ? axios.put : axios.post;
+      const axiosMethod = id ? api.put : api.post;
   
       axiosMethod(apiURL, { facility: facility })
         .then((res) => {

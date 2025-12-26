@@ -22,6 +22,7 @@ import { tokens } from "../../theme";
 import { Bounce, toast } from "react-toastify";
 import { Link, useLocation } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
+import api from '../utils/api';
 
 
 const SERVER_URL = "http://localhost:8000/customerInfo";
@@ -47,7 +48,7 @@ function Customers() {
   const loadCustomerData = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`/api/customerInfo`, {
+      const response = await api.get(`/api/customerInfo`, {
         params: {
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
@@ -126,7 +127,7 @@ function Customers() {
     }
 
     try {
-      const response = await axios.delete(
+      const response = await api.delete(
         `/api/customerInfo/delete/${id}`
       );
       console.log(response.data);
@@ -168,7 +169,7 @@ function Customers() {
   // Start search
   const handleSearch = async () => {
     try {
-      const response = await axios.get(`/api/customerInfo`, {
+      const response = await api.get(`/api/customerInfo`, {
         params: {
           page: 1, // Reset page to 1 when searching
           pageSize: paginationModel.pageSize,
