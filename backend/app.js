@@ -21,7 +21,9 @@ const reportsRouter = require('./routes/reports')
 const expensesRouter = require('./routes/expenses')
 const adjustingEntriesRouter = require('./routes/adjusting-entries')
 const auth = require('./routes/auth')
+const receivablesRouter = require('./routes/receivables')
 const cookieParser = require('cookie-parser')
+const cors = require('cors')
 
 const getIPv4 = (port) => {
   const networkInterfaces = os.networkInterfaces()
@@ -35,6 +37,17 @@ const getIPv4 = (port) => {
 
 const PORT = process.env.PORT || 8000
 app.use(cookieParser())
+
+app.use(cors({
+  origin: [
+    process.env.FRONTEND_URL || 'http://localhost:5173',
+    'http://localhost:5173'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}))
+
 app.use('/api/public', express.static('public'))
 
 app.use((req, res, next) => {
@@ -68,6 +81,7 @@ app.use('/api/expenses', expensesRouter)
 app.use('/api/adjusting-entries', adjustingEntriesRouter)
 app.use('/api/upload', uploadRouter)
 app.use('/api/auth', auth)
+app.use('/api/reports/receivables', receivablesRouter)
 
 app.use((err, req, res, next) => {
   console.log(62);
