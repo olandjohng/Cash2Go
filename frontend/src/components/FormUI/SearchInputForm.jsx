@@ -2,7 +2,7 @@ import { useTheme } from '@emotion/react';
 import { SearchOutlined } from '@mui/icons-material'
 import { IconButton, InputBase } from '@mui/material'
 import React, { useState } from 'react'
-import { tokens } from '../../../theme';
+import { tokens } from '../../theme';
 
 export default function SearchInputForm({submit, name, ...props}) {
   const theme = useTheme();
