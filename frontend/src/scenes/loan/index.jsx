@@ -6,6 +6,7 @@ import {
 } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import { useTheme } from "@emotion/react";
+import api from "../../utils/api";
 import {
   Box,
   Button,
@@ -153,16 +154,8 @@ const formatNumber = (value) => {
 
 const getVoucher = async (id) => {
   try {
-    const fetchData = await fetch(`/api/loans/voucher/${id}`);
-
-    if (!fetchData.ok) {
-      const errorData = await fetchData.json();
-      console.error("Voucher fetch failed:", errorData);
-      toastErr(errorData.error || "Failed to load voucher");
-      return;
-    }
-
-    const voucherJSON = await fetchData.json();
+    const response = await api.get(`/api/loans/voucher/${id}`);
+    const voucherJSON = response.data;
 
     console.log("Voucher data:", voucherJSON);
 
@@ -376,54 +369,46 @@ export default function Loan() {
   };
 
   const renewLoan = async (id) => {
-    const request = await fetch(`/api/loans/renew/${id}`);
-    const responseJSON = await request.json();
-    setRenewFormValue((old) => ({ ...old, ...responseJSON }));
-    setOpenRenewPopup(true);
+    try {
+      const response = await api.get(`/api/loans/renew/${id}`);
+      setRenewFormValue((old) => ({ ...old, ...response.data }));
+      setOpenRenewPopup(true);
+    } catch (error) {
+      console.log(error);
+      toastErr("Failed to load renewal data");
+    }
   };
 
   const restructureLoan = async (id) => {
     try {
-      const request = await fetch(`/api/loans/recalculate/${id}`);
-      const responseJSON = await request.json();
-      console.log(responseJSON);
-      setRestructureFormValue((old) => ({ ...old, ...responseJSON }));
-
+      const response = await api.get(`/api/loans/recalculate/${id}`);
+      console.log(response.data);
+      setRestructureFormValue((old) => ({ ...old, ...response.data }));
       setOpenRestructurePopup(true);
     } catch (error) {
       console.log(error);
+      toastErr("Failed to load restructure data");
     }
   };
 
   const handleDeleteLoanHeader = async (id) => {
     try {
-      const request = await fetch("/api/loans", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id: id }),
+      const response = await api.delete("/api/loans", {
+        data: { id: id },
       });
-      if (!request.ok) {
-        return;
-      }
 
-      const response = await request.json();
-
-      dispatch({ type: "DELETE", id: response.id });
+      dispatch({ type: "DELETE", id: response.data.id });
+      toastSucc("Loan deleted successfully");
     } catch (error) {
       console.log("Something went Wrong!");
+      toastErr("Failed to delete loan");
     }
   };
 
   const handleEditLoan = async (id) => {
     try {
-      const request = await fetch(`/api/loans/edit/${id}`);
-      if (!request.ok) {
-        toastErr("Failed to fetch loan data");
-        return;
-      }
-      const responseJSON = await request.json();
+      const response = await api.get(`/api/loans/edit/${id}`);
+      const responseJSON = response.data;
 
       const formattedData = {
         ...responseJSON,
@@ -448,7 +433,7 @@ export default function Loan() {
       setOpenEditLoanPopup(true);
     } catch (error) {
       console.log(error);
-      toastErr("Something went wrong!");
+      toastErr("Failed to load loan data");
     }
   };
 
@@ -456,14 +441,12 @@ export default function Loan() {
     const params = new URLSearchParams(data).toString();
     setLoading(true);
     try {
-      const request = await fetch("/api/loans?" + params);
-      const loanSearchJSON = await request.json();
-
-      dispatch({ type: "INIT", loans: loanSearchJSON });
-
+      const response = await api.get("/api/loans?" + params);
+      dispatch({ type: "INIT", loans: response.data });
       setLoading(false);
     } catch (error) {
       console.log(error);
+      toastErr("Search failed");
       setLoading(false);
     }
   };
@@ -478,26 +461,25 @@ export default function Loan() {
     try {
       if (!attachmentId.current) return toastErr("Something went wrong!");
 
-      const request = await fetch(
+      const response = await api.post(
         `/api/loans/attachment/${attachmentId.current}`,
+        formData,
         {
-          method: "POST",
-          body: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
 
-      if (!request.ok) {
-        return toastErr("Something went wrong!");
+      if (response.data.success) {
+        toastSucc("File Uploaded");
+        attachmentId.current = null;
+        setOpenAttachmentPopup(false);
+      } else {
+        toastErr("Something went wrong!");
       }
-
-      const response = await request.json();
-      if (!response.success) {
-        return toastErr("Something went wrong!");
-      }
-      toastSucc("File Uploaded");
-      attachmentId.current = null;
-      setOpenAttachmentPopup(false);
     } catch (error) {
+      console.error(error);
       toastErr("Something went wrong!");
     }
   };
@@ -505,38 +487,32 @@ export default function Loan() {
   const getData = async () => {
     setLoading(true);
 
-    const fetchWithFallback = async (url, fallback = []) => {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          console.warn(`${url} failed with status ${response.status}`);
-          return fallback;
-        }
-        return await response.json();
-      } catch (error) {
-        console.error(`${url} error:`, error);
-        return fallback;
-      }
-    };
-
     try {
       const [
-        loanData,
-        collateralData,
-        facilityData,
-        banksData,
-        categoryData,
-        deductionData,
-        accountTitleData,
+        loansRes,
+        collateralsRes,
+        facilitiesRes,
+        banksRes,
+        categoriesRes,
+        deductionsRes,
+        accountTitlesRes,
       ] = await Promise.all([
-        fetchWithFallback("/api/loans", []),
-        fetchWithFallback("/api/loans/collateral", []),
-        fetchWithFallback("/api/loans/facility", []),
-        fetchWithFallback("/api/banks", []),
-        fetchWithFallback("/api/loans/category", []),
-        fetchWithFallback("/api/deductions", []),
-        fetchWithFallback("/api/account-title", []),
+        api.get("/api/loans").catch((err) => ({ data: [] })),
+        api.get("/api/loans/collateral").catch((err) => ({ data: [] })),
+        api.get("/api/loans/facility").catch((err) => ({ data: [] })),
+        api.get("/api/banks").catch((err) => ({ data: [] })),
+        api.get("/api/loans/category").catch((err) => ({ data: [] })),
+        api.get("/api/deductions").catch((err) => ({ data: [] })),
+        api.get("/api/account-title").catch((err) => ({ data: [] })),
       ]);
+
+      const loanData = loansRes.data;
+      const collateralData = collateralsRes.data;
+      const facilityData = facilitiesRes.data;
+      const banksData = banksRes.data;
+      const categoryData = categoriesRes.data;
+      const deductionData = deductionsRes.data;
+      const accountTitleData = accountTitlesRes.data;
 
       console.log("✅ Loans:", loanData.length);
       console.log("✅ Collaterals:", collateralData.length);
@@ -555,7 +531,7 @@ export default function Loan() {
       setAccountTitle(accountTitleData);
     } catch (error) {
       console.error("getData error:", error);
-      toastErr("Failed to load some data");
+      toastErr("Failed to load data");
     } finally {
       setLoading(false);
     }
