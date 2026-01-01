@@ -46,7 +46,8 @@ import { useSequence } from "../../hooks/useSequence"; // Add this import
 function reducer(state, action) {
   switch (action.type) {
     case "INIT":
-      return action.loans;
+      console.log("INIT action with loans:", action.loans); // Debug log
+      return action.loans; // Make sure this returns the array
     case "ADD":
       return [action.loans, ...state];
     case "UPDATE":
@@ -57,7 +58,6 @@ function reducer(state, action) {
       );
     case "RENEW":
       const updateLoan = state.map((v) => {
-        console.log(action);
         if (action.renewal_id === v.loan_header_id) {
           return { ...v, status_code: "Renewed" };
         }
@@ -66,7 +66,6 @@ function reducer(state, action) {
       return [...updateLoan, action.loan];
     case "RECAL":
       const recal = state.map((v) => {
-        console.log(action);
         if (action.renewal_id === v.loan_header_id) {
           return { ...v, status_code: "Restructured" };
         }
@@ -75,8 +74,12 @@ function reducer(state, action) {
       return [...recal, action.loan];
     case "DELETE":
       return state.filter((v) => v.loan_header_id != action.id);
+    default:
+      return state;
   }
 }
+
+//const [loans, dispatch] = useReducer(reducer, []);
 
 export const LOAN_INITIAL_VALUES = {
   customer_id: "",
@@ -330,7 +333,7 @@ export default function Loan() {
   const [categories, setCategories] = useState([]);
   const [deductions, setDeductions] = useState([]);
   const [accountTitle, setAccountTitle] = useState([]);
-  const [loanding, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [openPopup, setOpenPopup] = useState(false);
   const [openAttachmentPopup, setOpenAttachmentPopup] = useState(false);
   const [openRenewPopup, setOpenRenewPopup] = useState(false);
@@ -342,6 +345,12 @@ export default function Loan() {
   const [newLoanFormValue, setNewLoanFormValue] = useState(LOAN_INITIAL_VALUES); // Add this
   const [selectedLoanId, setSelectedLoanId] = useState(null);
   const [loans, dispatch] = useReducer(reducer, []);
+
+  // Add this useEffect to monitor loans state
+  useEffect(() => {
+    console.log("Loans state updated:", loans);
+    console.log("Number of loans:", loans.length);
+  }, [loans]);
   const [fileAttachment, setFileAttachment] = useState(null);
   const attachmentId = useRef(null);
   const amortizationId = useRef(null);
@@ -493,28 +502,49 @@ export default function Loan() {
     }
   };
 
-  const getData = async (signal) => {
+  const getData = async () => {
     setLoading(true);
-    const urls = [
-      fetch("/api/loans"),
-      fetch("/api/loans/collateral"),
-      fetch("/api/loans/facility"),
-      fetch("/api/banks"),
-      fetch("/api/loans/category"),
-      fetch("/api/deductions"),
-      fetch("/api/account-title"),
-    ];
+
+    const fetchWithFallback = async (url, fallback = []) => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          console.warn(`${url} failed with status ${response.status}`);
+          return fallback;
+        }
+        return await response.json();
+      } catch (error) {
+        console.error(`${url} error:`, error);
+        return fallback;
+      }
+    };
 
     try {
-      const req = await Promise.all(urls);
+      const [
+        loanData,
+        collateralData,
+        facilityData,
+        banksData,
+        categoryData,
+        deductionData,
+        accountTitleData,
+      ] = await Promise.all([
+        fetchWithFallback("/api/loans", []),
+        fetchWithFallback("/api/loans/collateral", []),
+        fetchWithFallback("/api/loans/facility", []),
+        fetchWithFallback("/api/banks", []),
+        fetchWithFallback("/api/loans/category", []),
+        fetchWithFallback("/api/deductions", []),
+        fetchWithFallback("/api/account-title", []),
+      ]);
 
-      const loanData = await req[0].json();
-      const collateralData = await req[1].json();
-      const facilityData = await req[2].json();
-      const banksData = await req[3].json();
-      const categoryData = await req[4].json();
-      const deductionData = await req[5].json();
-      const accountTitleData = await req[6].json();
+      console.log("✅ Loans:", loanData.length);
+      console.log("✅ Collaterals:", collateralData.length);
+      console.log("✅ Facilities:", facilityData.length);
+      console.log("✅ Banks:", banksData.length);
+      console.log("✅ Categories:", categoryData.length);
+      console.log("✅ Deductions:", deductionData.length);
+      console.log("✅ Account Titles:", accountTitleData.length);
 
       dispatch({ type: "INIT", loans: loanData });
       setCollaterals(collateralData);
@@ -523,9 +553,11 @@ export default function Loan() {
       setCategories(categoryData);
       setDeductions(deductionData);
       setAccountTitle(accountTitleData);
-      setLoading(false);
     } catch (error) {
-      console.log("error", error);
+      console.error("getData error:", error);
+      toastErr("Failed to load some data");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -625,7 +657,7 @@ export default function Loan() {
       <Box flex={1} position="relative">
         <Box sx={{ position: "absolute", inset: 0 }}>
           <DataGrid
-            loading={loanding}
+            loading={loading}
             rows={loans}
             columns={columns}
             getRowId={(row) => row.loan_header_id}
