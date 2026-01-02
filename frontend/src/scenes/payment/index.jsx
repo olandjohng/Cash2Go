@@ -16,7 +16,7 @@ import PaymentDataGrid, { downloadFile } from "./components/PaymentDataGrid";
 import DeductionDataGrid from "./components/DeductionDataGrid";
 import deductionTemplate from "../../assets/deduction.html?raw";
 import { toastErr, toastSucc } from "../../utils";
-import SearchInputForm from "../report/component/SearchInputForm";
+import SearchInputForm from "../../components/FormUI/SearchInputForm";
 import api from '../../utils/api';
 
 function paymentReducer(state, action) {

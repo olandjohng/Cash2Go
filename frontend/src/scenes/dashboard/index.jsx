@@ -21,6 +21,7 @@ const StlyedDataGrid = styled(DataGrid)({
     }
   },
 })
+
 const options = [
   {value : 'month', label : 'month'},
   {value : 'year', label : 'year'},
@@ -51,7 +52,6 @@ const Dashboard = () => {
     {field : 'date', headerName : 'Date', width : 150},
   ]
 
-  const [income, setIcome] = useState({})
   const [type, setType] = useState(options[0].value)
 
   return (
@@ -65,13 +65,11 @@ const Dashboard = () => {
           </>
         ) : (
           <>
-            <Card title='Dialy Income' content={formatNumber.format(incomeData.data.daily)} />
-            <Card title='Weekly Income' content={formatNumber.format(incomeData.data.weekly)} />
-            <Card title='Monthly Income' content={formatNumber.format(incomeData.data.monthly)}/>
-          
+            <Card title='Daily Income' content={formatNumber.format(incomeData?.data?.daily || 0)} />
+            <Card title='Weekly Income' content={formatNumber.format(incomeData?.data?.weekly || 0)} />
+            <Card title='Monthly Income' content={formatNumber.format(incomeData?.data?.monthly || 0)}/>
           </>
-        )
-        }
+        )}
       </Box>
       <Box >
         <Box style={{height : '25rem'}} display='flex' flexDirection='column'>
@@ -82,7 +80,12 @@ const Dashboard = () => {
             <Box flex={1} position='relative'>
               <Box sx={{position : 'absolute', inset : 0}}>
                 <StlyedDataGrid
-                loading={weeklyCollectionLoading}  rows={weeklyCollectionData.data} columns={columns} getRowId={(r) => r.loan_detail_id } getRowClassName={(params) => `status--${params.row.payment_status_id}`}/>
+                  loading={weeklyCollectionLoading}  
+                  rows={weeklyCollectionData?.data || []} 
+                  columns={columns} 
+                  getRowId={(r) => r.loan_detail_id } 
+                  getRowClassName={(params) => `status--${params.row.payment_status_id}`}
+                />
               </Box>
             </Box>
           )}
@@ -105,17 +108,9 @@ const Dashboard = () => {
           <Box position='relative' flex={1}>
             <Box sx={{position : 'absolute', inset : 0}}>
               {type === 'month' ?
-                  (
-                  
-                    // <Box border='solid blue' height='100%'>
-                      <MonthlyCollectionsDataGrid columns={columns} isLoading={monthlyCollectionLoading} monthlyCollection={monthlyCollectionData} />
-                    // </Box>
-                  
-                  ) : (
-                    // <Box border='solid blue' height='100%'>
-                      <YearlyCollectionsDataGrid columns={columns} isLoading={yearlyCollectionLoading} yearlyCollection={yearlyCollectionData} />
-                    // </Box>
-                  )
+                  <MonthlyCollectionsDataGrid columns={columns} isLoading={monthlyCollectionLoading} monthlyCollection={monthlyCollectionData} />
+                  : 
+                  <YearlyCollectionsDataGrid columns={columns} isLoading={yearlyCollectionLoading} yearlyCollection={yearlyCollectionData} />
               }
             </Box>
           </Box>
@@ -135,14 +130,34 @@ const Dashboard = () => {
 }
 
 function MonthlyCollectionsDataGrid ({columns, monthlyCollection, isLoading }) {
-  return isLoading ? <Skeleton variant='rectangular' height='100%' /> :  <StlyedDataGrid columns={columns} rows={monthlyCollection.data} getRowId={(r) => r.loan_detail_id } getRowClassName={(params) => `status--${params.row.payment_status_id}`}/>
+  return isLoading ? <Skeleton variant='rectangular' height='100%' /> : (
+    <StlyedDataGrid 
+      columns={columns} 
+      rows={monthlyCollection?.data || []} 
+      getRowId={(r) => r.loan_detail_id } 
+      getRowClassName={(params) => `status--${params.row.payment_status_id}`}
+    />
+  )
 }
+
 function YearlyCollectionsDataGrid ({columns, yearlyCollection, isLoading }) {
-   return isLoading ? <Skeleton variant='rectangular' height='100%' /> : <StlyedDataGrid  columns={columns} rows={ yearlyCollection.data} getRowId={(r) => r.loan_detail_id } getRowClassName={(params) => `status--${params.row.payment_status_id}`}/>
+   return isLoading ? <Skeleton variant='rectangular' height='100%' /> : (
+    <StlyedDataGrid  
+      columns={columns} 
+      rows={yearlyCollection?.data || []} 
+      getRowId={(r) => r.loan_detail_id } 
+      getRowClassName={(params) => `status--${params.row.payment_status_id}`}
+    />
+  )
 }
 
 function BirthdayDataGrid({columns, birthdayData, isLoading}) {
-  return isLoading ? <Skeleton variant='rectangular' height='100%' /> : <StlyedDataGrid columns={columns} rows={birthdayData.data}/> 
+  return isLoading ? <Skeleton variant='rectangular' height='100%' /> : (
+    <StlyedDataGrid 
+      columns={columns} 
+      rows={birthdayData?.data || []}
+    />
+  ) 
 }
 
 export default Dashboard
