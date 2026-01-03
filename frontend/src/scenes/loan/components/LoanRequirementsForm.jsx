@@ -87,35 +87,35 @@ export default function LoanRequirementsForm({
   return (
     <Grid container spacing={2}>
       <Grid item xs={2}>
-        {/* Updated Voucher Number Field - Read-only with styling */}
         <TextField
           fullWidth
           label="Voucher"
           value={formValue.voucher_number || ""}
+          onChange={(e) => {
+            setValidationError(null);
+            setFormValue((old) => ({
+              ...old,
+              voucher_number: e.target.value,
+              voucher_number_manual: true, // Flag to indicate manual entry
+            }));
+          }}
           InputProps={{
-            readOnly: true,
-            startAdornment: formValue.voucher_number && (
+            endAdornment: (
               <Chip
-                label="Auto"
+                label={formValue.voucher_number_manual ? "Manual" : "Auto"}
                 size="small"
-                color="success"
+                color={formValue.voucher_number_manual ? "warning" : "success"}
                 variant="outlined"
-                sx={{ mr: 0.5, height: 20, fontSize: "0.7rem" }}
+                sx={{ height: 20, fontSize: "0.7rem" }}
               />
             ),
           }}
           error={validationError && Boolean(validationError.voucher_number)}
-          helperText={
-            formValue.voucher_number ? "Auto-generated" : "Will be auto-filled"
-          }
+          helperText="Editable - Auto or Manual entry"
           sx={{
             "& .MuiInputBase-input": {
               fontWeight: "bold",
               letterSpacing: "0.5px",
-              color: "success.main",
-            },
-            "& .MuiInputBase-root": {
-              backgroundColor: "rgba(76, 175, 80, 0.05)",
             },
           }}
         />
@@ -185,30 +185,31 @@ export default function LoanRequirementsForm({
           fullWidth
           label="Check Number"
           value={formValue.check_number || ""}
+          onChange={(e) => {
+            setValidationError(null);
+            setFormValue((old) => ({
+              ...old,
+              check_number: e.target.value,
+              check_number_manual: true, // Flag to indicate manual entry
+            }));
+          }}
           InputProps={{
-            readOnly: true,
-            startAdornment: formValue.check_number && (
+            endAdornment: (
               <Chip
-                label="Auto"
+                label={formValue.check_number_manual ? "Manual" : "Auto"}
                 size="small"
-                color="success"
+                color={formValue.check_number_manual ? "warning" : "success"}
                 variant="outlined"
-                sx={{ mr: 0.5, height: 20, fontSize: "0.7rem" }}
+                sx={{ height: 20, fontSize: "0.7rem" }}
               />
             ),
           }}
           error={validationError && Boolean(validationError.check_number)}
-          helperText={
-            formValue.check_number ? "Auto-generated" : "Will be auto-filled"
-          }
+          helperText="Editable - Auto or Manual entry"
           sx={{
             "& .MuiInputBase-input": {
               fontWeight: "bold",
               letterSpacing: "0.5px",
-              color: "success.main",
-            },
-            "& .MuiInputBase-root": {
-              backgroundColor: "rgba(76, 175, 80, 0.05)",
             },
           }}
         />
