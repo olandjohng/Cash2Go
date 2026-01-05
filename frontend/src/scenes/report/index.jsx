@@ -4,6 +4,7 @@ import { tokens } from '../../theme'
 import Header from '../../components/Header'
 import ReceivablesReport from './components/ReceivablesReport'
 import DailyCashReport from './components/DailyCashReport'
+import CustomerLoanReport from './components/CustomerLoanReport' // ← ADD THIS
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -68,7 +69,7 @@ export default function Report() {
         >
           <Tab label="Receivables Report" id="report-tab-0" />
           <Tab label="Daily Cash Report" id="report-tab-1" />
-          <Tab label="Loan Aging" id="report-tab-2" disabled />
+          <Tab label="Customer Loan Report" id="report-tab-2" /> {/* ← CHANGED */}
           <Tab label="Collection Report" id="report-tab-3" disabled />
           <Tab label="Income Statement" id="report-tab-4" disabled />
         </Tabs>
@@ -81,8 +82,8 @@ export default function Report() {
         <TabPanel value={activeTab} index={1}>
           <DailyCashReport />
         </TabPanel>
-        <TabPanel value={activeTab} index={2}>
-          <Box>Loan Aging Report - Coming Soon</Box>
+        <TabPanel value={activeTab} index={2}> {/* ← CHANGED */}
+          <CustomerLoanReport /> {/* ← ADD THIS */}
         </TabPanel>
         <TabPanel value={activeTab} index={3}>
           <Box>Collection Report - Coming Soon</Box>
