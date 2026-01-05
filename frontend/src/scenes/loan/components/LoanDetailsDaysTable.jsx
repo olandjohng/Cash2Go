@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react';
 import { DeleteOutlined } from '@mui/icons-material';
 import { Box, Button, InputBase, Typography, Tooltip, styled, tooltipClasses } from '@mui/material';
-import { DataGrid, GridActionsCellItem, GridEditInputCell, GridToolbarContainer, GRID_DATE_COL_DEF, useGridApiContext } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridToolbarContainer, useGridApiContext } from '@mui/x-data-grid';
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { tokens } from '../../../theme';
 import { DatePicker } from '@mui/x-date-pickers';
@@ -54,38 +54,59 @@ const StyledToolTip = styled(({className, ...props}) => (
   },
 }));
 
-const WrappedGridEditDateInput = (props) => {
-  const {placeholder, value, ...other} = props
+const WrappedGridEditDateInput = React.forwardRef((props, ref) => {
+  const { InputProps, inputProps, ...other } = props;
   return (
-    <InputBase 
-      sx={{padding: '0 15px', fontSize: 'inherit'}}
-      {...props.InputProps}
-      placeholder={placeholder}
-      value={value}
+    <InputBase
+      sx={{ padding: '0 15px', fontSize: 'inherit' }}
+      ref={ref}
+      inputProps={inputProps}
       {...other}
     />
-  )
-}
+  );
+});
+
+WrappedGridEditDateInput.displayName = 'WrappedGridEditDateInput';
 
 const GridDatePicker = (params) => {
-  const refApi = useGridApiContext()
-  const {value, id, field} = params
+  const apiRef = useGridApiContext();
+  const { value, id, field } = params;
 
   const handleChange = (newValue) => {
-    refApi.current.setEditCellValue({ id, field, value: newValue })
-  }
+    apiRef.current.setEditCellValue({ id, field, value: newValue });
+  };
 
-  return ( 
+  const handleAccept = (newValue) => {
+    apiRef.current.setEditCellValue({ id, field, value: newValue });
+    // Auto-close edit mode after selecting date
+    setTimeout(() => {
+      apiRef.current.stopCellEditMode({
+        id,
+        field,
+        ignoreModifications: false,
+      });
+    }, 0);
+  };
+
+  return (
     <DatePicker
       value={value}
-      sx={{px: 1.5}}
+      sx={{ px: 1.5, width: '100%' }}
       onChange={handleChange}
+      onAccept={handleAccept}
+      open={true}
+      slotProps={{
+        textField: {
+          variant: 'standard',
+          fullWidth: true,
+        },
+      }}
       slots={{
-        textField: WrappedGridEditDateInput
-      }} 
+        textField: WrappedGridEditDateInput,
+      }}
     />
-  )
-}
+  );
+};
 
 // Make GridCurrency a proper React component to use hooks
 const GridCurrencyEdit = React.memo((props) => {
@@ -220,7 +241,7 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
       headerName: 'Cleared Date', 
       editable: true, 
       width: 150,
-      ...GRID_DATE_COL_DEF, 
+      type: 'date',
       renderEditCell: (params) => <GridDatePicker {...params} />,
       valueFormatter: (params) => {
         if (params.value) {
@@ -234,7 +255,7 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
       headerName: 'Check Date', 
       editable: true, 
       width: 150,
-      ...GRID_DATE_COL_DEF, 
+      type: 'date',
       renderEditCell: (params) => <GridDatePicker {...params} />,
       valueFormatter: (params) => {
         if (params.value) {
@@ -324,14 +345,14 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
   ]
 
   // Helper function to start editing a cell
-  const startEditingCell = (rowId, field) => {
+  const startEditingCell = useCallback((rowId, field) => {
     if (apiRef.current) {
       apiRef.current.startCellEditMode({ id: rowId, field })
     }
-  }
+  }, [])
 
   // Helper function to stop editing current cell
-  const stopEditingCell = (rowId, field) => {
+  const stopEditingCell = useCallback((rowId, field) => {
     if (apiRef.current && rowId && field) {
       apiRef.current.stopCellEditMode({ 
         id: rowId,
@@ -339,7 +360,7 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
         ignoreModifications: false 
       })
     }
-  }
+  }, [])
 
   return (
     <DataGrid
@@ -373,7 +394,7 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
         const {field, id, isEditable, cellMode} = params
         
         // Only handle navigation when NOT in edit mode
-        if (cellMode === 'view' && isEditable) {
+        if (cellMode === 'view' && isEditable && editableFields.includes(field)) {
           const currentRowIndex = rows.findIndex(row => row.id === id)
           const currentFieldIndex = editableFields.indexOf(field)
           
@@ -390,7 +411,9 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
             event.preventDefault()
             event.stopPropagation()
             const nextRowId = rows[currentRowIndex + 1].id
-            params.api.setCellFocus(nextRowId, field)
+            if (apiRef.current) {
+              apiRef.current.setCellFocus(nextRowId, field)
+            }
             return
           }
           
@@ -399,7 +422,9 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
             event.preventDefault()
             event.stopPropagation()
             const prevRowId = rows[currentRowIndex - 1].id
-            params.api.setCellFocus(prevRowId, field)
+            if (apiRef.current) {
+              apiRef.current.setCellFocus(prevRowId, field)
+            }
             return
           }
           
@@ -408,7 +433,9 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
             event.preventDefault()
             event.stopPropagation()
             const nextField = editableFields[currentFieldIndex + 1]
-            params.api.setCellFocus(id, nextField)
+            if (apiRef.current) {
+              apiRef.current.setCellFocus(id, nextField)
+            }
             return
           }
           
@@ -417,7 +444,9 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
             event.preventDefault()
             event.stopPropagation()
             const prevField = editableFields[currentFieldIndex - 1]
-            params.api.setCellFocus(id, prevField)
+            if (apiRef.current) {
+              apiRef.current.setCellFocus(id, prevField)
+            }
             return
           }
 
@@ -428,10 +457,14 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
             
             if (currentFieldIndex < editableFields.length - 1) {
               const nextField = editableFields[currentFieldIndex + 1]
-              params.api.setCellFocus(id, nextField)
+              if (apiRef.current) {
+                apiRef.current.setCellFocus(id, nextField)
+              }
             } else if (currentRowIndex < rows.length - 1) {
               const nextRowId = rows[currentRowIndex + 1].id
-              params.api.setCellFocus(nextRowId, editableFields[0])
+              if (apiRef.current) {
+                apiRef.current.setCellFocus(nextRowId, editableFields[0])
+              }
             }
             return
           }
@@ -443,10 +476,14 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
             
             if (currentFieldIndex > 0) {
               const prevField = editableFields[currentFieldIndex - 1]
-              params.api.setCellFocus(id, prevField)
+              if (apiRef.current) {
+                apiRef.current.setCellFocus(id, prevField)
+              }
             } else if (currentRowIndex > 0) {
               const prevRowId = rows[currentRowIndex - 1].id
-              params.api.setCellFocus(prevRowId, editableFields[editableFields.length - 1])
+              if (apiRef.current) {
+                apiRef.current.setCellFocus(prevRowId, editableFields[editableFields.length - 1])
+              }
             }
             return
           }
@@ -466,12 +503,16 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
             setTimeout(() => {
               if (currentFieldIndex < editableFields.length - 1) {
                 const nextField = editableFields[currentFieldIndex + 1]
-                params.api.setCellFocus(id, nextField)
-                setTimeout(() => startEditingCell(id, nextField), 50)
+                if (apiRef.current) {
+                  apiRef.current.setCellFocus(id, nextField)
+                  setTimeout(() => startEditingCell(id, nextField), 50)
+                }
               } else if (currentRowIndex < rows.length - 1) {
                 const nextRowId = rows[currentRowIndex + 1].id
-                params.api.setCellFocus(nextRowId, editableFields[0])
-                setTimeout(() => startEditingCell(nextRowId, editableFields[0]), 50)
+                if (apiRef.current) {
+                  apiRef.current.setCellFocus(nextRowId, editableFields[0])
+                  setTimeout(() => startEditingCell(nextRowId, editableFields[0]), 50)
+                }
               }
             }, 50)
             return
@@ -486,12 +527,16 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
             setTimeout(() => {
               if (currentFieldIndex > 0) {
                 const prevField = editableFields[currentFieldIndex - 1]
-                params.api.setCellFocus(id, prevField)
-                setTimeout(() => startEditingCell(id, prevField), 50)
+                if (apiRef.current) {
+                  apiRef.current.setCellFocus(id, prevField)
+                  setTimeout(() => startEditingCell(id, prevField), 50)
+                }
               } else if (currentRowIndex > 0) {
                 const prevRowId = rows[currentRowIndex - 1].id
-                params.api.setCellFocus(prevRowId, editableFields[editableFields.length - 1])
-                setTimeout(() => startEditingCell(prevRowId, editableFields[editableFields.length - 1]), 50)
+                if (apiRef.current) {
+                  apiRef.current.setCellFocus(prevRowId, editableFields[editableFields.length - 1])
+                  setTimeout(() => startEditingCell(prevRowId, editableFields[editableFields.length - 1]), 50)
+                }
               }
             }, 50)
             return
@@ -506,8 +551,10 @@ export default function LoanDetailsDaysTable({banks, rows, setRows, formValue}) 
             setTimeout(() => {
               if (currentRowIndex < rows.length - 1) {
                 const nextRowId = rows[currentRowIndex + 1].id
-                params.api.setCellFocus(nextRowId, field)
-                setTimeout(() => startEditingCell(nextRowId, field), 50)
+                if (apiRef.current) {
+                  apiRef.current.setCellFocus(nextRowId, field)
+                  setTimeout(() => startEditingCell(nextRowId, field), 50)
+                }
               }
             }, 50)
             return
