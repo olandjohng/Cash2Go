@@ -16,6 +16,7 @@ const employeeRouter = require("./routes/employee");
 const { sequenceRouter } = require("./routes/sequenceRouter");
 const paymentRouter = require("./routes/payment");
 const uploadRouter = require("./routes/upload");
+const customerLoanReportRouter = require("./routes/customerLoanReport");
 
 const os = require("os");
 const reportsRouter = require("./routes/reports");
@@ -89,6 +90,7 @@ app.use("/api/adjusting-entries", adjustingEntriesRouter);
 app.use("/api/upload", uploadRouter);
 app.use("/api/auth", auth);
 app.use("/api/reports/receivables", receivablesRouter);
+app.use("/api/reports/customer-loans", customerLoanReportRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
