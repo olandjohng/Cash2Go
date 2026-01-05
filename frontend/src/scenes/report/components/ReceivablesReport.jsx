@@ -281,10 +281,6 @@ export default function ReceivablesReport() {
     },
   ];
 
-  useEffect(() => {
-    loadReport();
-  }, []);
-
   const displayData = filteredData || reportData;
 
   return (
