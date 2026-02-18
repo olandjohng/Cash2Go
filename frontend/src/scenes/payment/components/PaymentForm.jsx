@@ -75,7 +75,7 @@ export default function PaymentForm({ paymentDispacher, popup }) {
   const [paymentData, setPaymentData] = useState(initialPaymentData);
   const [paymentRow, setPaymentRow] = useState([]);
   const [cashRow, setCashRow] = useState(
-    initialCashRowData.map((v, i) => ({ ...v, id: i }))
+    initialCashRowData.map((v, i) => ({ ...v, id: i })),
   );
   const [selectedBank, setSelectedBank] = useState("");
 
@@ -285,19 +285,19 @@ export default function PaymentForm({ paymentDispacher, popup }) {
 
           if (breakdown.principal > 0)
             overpaymentDetails.push(
-              `Principal: ₱${breakdown.principal.toFixed(2)}`
+              `Principal: ₱${breakdown.principal.toFixed(2)}`,
             );
           if (breakdown.interest > 0)
             overpaymentDetails.push(
-              `Interest: ₱${breakdown.interest.toFixed(2)}`
+              `Interest: ₱${breakdown.interest.toFixed(2)}`,
             );
           if (breakdown.penalty > 0)
             overpaymentDetails.push(
-              `Penalty: ₱${breakdown.penalty.toFixed(2)}`
+              `Penalty: ₱${breakdown.penalty.toFixed(2)}`,
             );
 
           successMessage = `Payment saved! Overpayment of ₱${paymentsJSON.overpayment.toFixed(
-            2
+            2,
           )} applied to next installment.\n${overpaymentDetails.join(", ")}`;
         }
 
@@ -348,6 +348,7 @@ export default function PaymentForm({ paymentDispacher, popup }) {
           />
         </FormStep>
         <FormStep stepName="Current Due" onSubmit={() => {}}>
+          {console.log("Rendering Current Due step, loanId:", loanId)}
           <LoanLinePaymentDetail
             id={loanId}
             paymentDataSetter={setPaymentData}

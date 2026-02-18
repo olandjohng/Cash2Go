@@ -61,13 +61,13 @@ paymentRouter.get("/search", async (req, res) => {
           "PrincipalBalance",
           "PenaltyBalance",
           "InterestBalance",
-          "Balance"
+          "Balance",
         )
         .where("check_number", input.trim())
         .innerJoin(
           "new_payment",
           "view_loan_detail.loan_header_id",
-          "new_payment.loan_header_id"
+          "new_payment.loan_header_id",
         ),
       // second
       builder
@@ -135,22 +135,22 @@ paymentRouter.get("/", async (req, res) => {
     .innerJoin(
       builder.raw("paymenttbl as p"),
       "p.loan_detail_id",
-      "p_h.loan_detail_id"
+      "p_h.loan_detail_id",
     )
     .innerJoin(
       builder.raw("loan_detail as l_d"),
       "p_h.loan_detail_id",
-      "l_d.loan_detail_id"
+      "l_d.loan_detail_id",
     )
     .innerJoin(
       builder.raw("loan_headertbl as l_h"),
       "l_h.loan_header_id",
-      "l_d.loan_header_id"
+      "l_d.loan_header_id",
     )
     .innerJoin(
       builder.raw("customertbl as c"),
       "c.customerid",
-      "l_h.customer_id"
+      "l_h.customer_id",
     )
     .modify((sub) => {
       if (req.query["customer_name"])
@@ -162,7 +162,7 @@ paymentRouter.get("/", async (req, res) => {
       else if (req.query["check_number"])
         sub.whereILike(
           builder.raw("p.checkno"),
-          `%${req.query["check_number"].trim()}%`
+          `%${req.query["check_number"].trim()}%`,
         );
       else sub.havingBetween("p_h.payment_date", [date.from, date.to]);
     });
@@ -197,7 +197,7 @@ async function supabaseUpload(file) {
           file.buffer,
           {
             contentType: file.mimetype,
-          }
+          },
         );
       return upload.data.fullPath;
     } catch (error) {
@@ -236,7 +236,7 @@ paymentRouter.post("/", upload.single("attachment"), async (req, res) => {
           "ld.accumulated_penalty",
           t.raw("COALESCE(p.principal_payment, 0) as principal_paid"),
           t.raw("COALESCE(p.interest_payment, 0) as interest_paid"),
-          t.raw("COALESCE(p.penalty_amount, 0) as penalty_paid")
+          t.raw("COALESCE(p.penalty_amount, 0) as penalty_paid"),
         )
         .orderBy("ld.due_date", "asc");
 
@@ -264,21 +264,21 @@ paymentRouter.post("/", upload.single("attachment"), async (req, res) => {
         // Apply payments
         const penalty_to_apply = Math.min(
           Number(remaining_penalty),
-          Number(penalty_due)
+          Number(penalty_due),
         );
         remaining_penalty =
           Number(remaining_penalty) - Number(penalty_to_apply);
 
         const interest_to_apply = Math.min(
           Number(remaining_interest),
-          Number(interest_due)
+          Number(interest_due),
         );
         remaining_interest =
           Number(remaining_interest) - Number(interest_to_apply);
 
         const principal_to_apply = Math.min(
           Number(remaining_principal),
-          Number(principal_due)
+          Number(principal_due),
         );
         remaining_principal =
           Number(remaining_principal) - Number(principal_to_apply);
@@ -416,7 +416,7 @@ paymentRouter.post("/", upload.single("attachment"), async (req, res) => {
         .innerJoin(
           builder.raw("customertbl as c"),
           "c.customerid",
-          "l_h.customer_id"
+          "l_h.customer_id",
         )
         .first();
 
@@ -482,23 +482,23 @@ paymentRouter.get("/deductions", async (req, res) => {
   ];
 
   const deductions = await builder(
-    builder.raw("loan_deduction_historytbl as d_h")
+    builder.raw("loan_deduction_historytbl as d_h"),
   )
     .select(fields)
     .innerJoin(
       builder.raw("loan_deductiontbl as l_d"),
       "d_h.loan_deduction_id",
-      "l_d.loan_deduction_id"
+      "l_d.loan_deduction_id",
     )
     .innerJoin(
       builder.raw("loan_headertbl as l_h"),
       "l_h.loan_header_id",
-      "d_h.loan_header_id"
+      "d_h.loan_header_id",
     )
     .innerJoin(
       builder.raw("customertbl as c"),
       "c.customerid",
-      "l_h.customer_id"
+      "l_h.customer_id",
     )
     .modify((sub) => {
       if (req.query["customer_name"])
@@ -545,7 +545,7 @@ paymentRouter.get("/customer", async (req, res) => {
         id: "customerid",
         fullname: builder.raw(
           "CONCAT_WS(', ', ??, CONCAT(??, ' ', SUBSTRING(??, 1, 1), '.'))",
-          ["clname", "cfname", "cmname"]
+          ["clname", "cfname", "cmname"],
         ),
       })
       .from({ c: "customertbl" });
@@ -554,6 +554,74 @@ paymentRouter.get("/customer", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");
+  }
+});
+
+paymentRouter.get("/paymentDue/:id", async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const payment = await builder
+      .select(
+        "ld.loan_detail_id",
+        builder.raw(
+          "ld.monthly_principal - COALESCE(SUM(ph.payment_principal), 0) as Principal_Due",
+        ),
+        builder.raw(
+          "ld.monthly_interest - COALESCE(SUM(ph.payment_interest), 0) as Interest_Due",
+        ),
+        builder.raw(
+          "ld.accumulated_penalty - COALESCE(SUM(ph.payment_penalty), 0) as Penalty_Due",
+        ),
+        builder.raw(
+          "CONCAT_WS(', ', c.clname, c.cfname, c.cmname) as customer_fullname",
+        ),
+        "lh.pn_number",
+        "ld.due_date",
+        "ba.bank_name",
+        "ld.check_number",
+      )
+      .from("loan_detail as ld")
+      .innerJoin(
+        "loan_headertbl as lh",
+        "lh.loan_header_id",
+        "ld.loan_header_id",
+      )
+      .innerJoin("customertbl as c", "c.customerid", "lh.customer_id")
+      .leftJoin(
+        "bank_accounttbl as ba",
+        "ba.bank_account_id",
+        "ld.bank_account_id",
+      )
+      .leftJoin(
+        "payment_historytbl as ph",
+        "ph.loan_detail_id",
+        "ld.loan_detail_id",
+      )
+      .where("ld.loan_header_id", id)
+      .groupBy(
+        "ld.loan_detail_id",
+        "ld.monthly_principal",
+        "ld.monthly_interest",
+        "ld.accumulated_penalty",
+        "c.clname",
+        "c.cfname",
+        "c.cmname",
+        "lh.pn_number",
+        "ld.due_date",
+        "ba.bank_name",
+        "ld.check_number",
+      )
+      // NO HAVING - get all rows first
+      .orderBy("ld.due_date", "asc")
+      .limit(1);
+
+    console.log("Result:", JSON.stringify(payment));
+
+    res.status(200).json(payment);
+  } catch (err) {
+    console.error("paymentDue error:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -569,46 +637,6 @@ paymentRouter.get("/read/:id", async (req, res) => {
   } catch (error) {
     console.error("Error fetching amortization schedule:", error);
     res.status(500).json({ error: error.message });
-  }
-});
-
-paymentRouter.get("/paymentDue/:id", async (req, res) => {
-  const id = req.params.id;
-  // console.log("ID:", id);
-
-  try {
-    // Define the subquery for the minimum check_date
-    // TODO: add due_date payment
-    const minCheckDateSubquery = builder("view_detail_payment")
-      .min("due_date")
-      .whereRaw("ifnull(payment_status_id, 0) != 1")
-      .andWhere("loan_header_id", id)
-      .as("min_check_date"); // This names the subquery result for clarity
-
-    // Main query
-    const payment = await builder
-      .select(
-        "loan_detail_id",
-        builder.raw("monthly_principal - principal_payment as Principal_Due"),
-        builder.raw("monthly_interest - interest_payment as Interest_Due"),
-        builder.raw("accumulated_penalty - penalty_amount as Penalty_Due"),
-        "customer_fullname",
-        "pn_number",
-        "due_date",
-        "bank_name",
-        "check_number"
-      )
-      .from("view_detail_payment")
-      .whereRaw("ifnull(payment_status_id, 0) != 1")
-      // Use the subquery within the main query
-      .andWhere("due_date", "=", builder.raw(`(${minCheckDateSubquery})`))
-      .andWhere("loan_header_id", "=", id);
-
-    // console.log("Query Result:", payment); // Log the query result
-    res.status(200).json(payment);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message || "Internal Server Error" });
   }
 });
 
