@@ -49,24 +49,43 @@ export const loanRequirementSchema = yup.object({
   loan_facility: yup.string().required("loan facilities is required"),
 });
 
-export const loanDetailsSchema = yup.object({
-  principal_amount: yup.number().required().moreThan(0),
-  interest_rate: yup.number().required().moreThan(0),
-  loan_details: yup.array(
-    yup.object({
-      dueDate: yup.date().required(),
-      bank_name: yup.string().required(),
-      interest: yup.number().positive().moreThan(0),
-      amortization: yup.number().positive().moreThan(0),
-    })
-  ),
-});
+export const loanDetailsSchema = yup
+  .object({
+    principal_amount: yup.number().required().moreThan(0),
+    interest_rate: yup.number().required().moreThan(0),
+    loan_details: yup.array(
+      yup.object({
+        dueDate: yup.date().required(),
+        bank_name: yup.string().required(),
+        interest: yup.number().positive().moreThan(0),
+        amortization: yup.number().positive().moreThan(0),
+      }),
+    ),
+  })
+  .test(
+    "loan-details-required",
+    "Loan details are required for this loan category",
+    function (values) {
+      const { loan_category, loan_details } = values;
+      const exemptCategories = ["ONE SHOT", "LOAN LINE"];
+      const isExempt = exemptCategories.some((cat) =>
+        loan_category?.toUpperCase().includes(cat),
+      );
+      if (!isExempt && (!loan_details || loan_details.length === 0)) {
+        return this.createError({
+          path: "loan_details",
+          message: "Loan details are required for this loan category",
+        });
+      }
+      return true;
+    },
+  );
 
 export const deductionSchema = yup.object({
   deduction: yup.array(
     yup.object({
       amount: yup.number().positive().moreThan(0),
-    })
+    }),
   ),
 });
 
@@ -77,7 +96,7 @@ export const voucherSchema = yup.object({
   voucher: yup.array(
     yup.object({
       name: yup.string().required(),
-    })
+    }),
   ),
 });
 
@@ -99,7 +118,7 @@ export function ComboBox(props) {
         if (e && e.type === "click") {
           inputChange(
             { name: comboRef.current.getAttribute("name"), id: idfield },
-            { id: e.target.id, value: v }
+            { id: e.target.id, value: v },
           );
         }
       }}
@@ -214,6 +233,27 @@ function LoanForm1({
   const totalDebit = voucher.reduce((acc, cur) => acc + Number(cur.debit), 0);
 
   const handleSubmit = async () => {
+    // Guard: check loan details requirement
+    const exemptCategories = ["ONE SHOT", "LOAN LINE"];
+    const isExempt = exemptCategories.some((cat) =>
+      formValue.loan_category?.toUpperCase().includes(cat),
+    );
+
+    if (
+      !isExempt &&
+      (!formValue.loan_details || formValue.loan_details.length === 0)
+    ) {
+      toast.error(
+        "Cannot save: Loan details are required for this loan category.",
+        {
+          position: "top-right",
+          autoClose: 5000,
+          theme: "colored",
+        },
+      );
+      return;
+    }
+
     console.log("=== handleSubmit Debug - START ===");
     console.log("Sample bank object:", banks[0]);
     console.log("Original formValue:", formValue);
@@ -225,15 +265,15 @@ function LoanForm1({
       data = {
         ...formValue,
         check_date: dayjs(formValue.check_date).format(),
-        date_granted: formValue.date_granted.format(),
+        date_granted: dayjs(formValue.date_granted).format(), // ← wrap in dayjs()
         transaction_date: dayjs(formValue.transaction_date).format(),
-        check_date_2: formValue.check_date_2.format(),
+        check_date_2: dayjs(formValue.check_date_2).format(), // ← wrap in dayjs()
       };
     } else {
       data = {
         ...formValue,
         check_date: dayjs(formValue.check_date).format(),
-        date_granted: formValue.date_granted.format(),
+        date_granted: dayjs(formValue.date_granted).format(), // ← wrap in dayjs()
         transaction_date: dayjs(formValue.transaction_date).format(),
       };
     }
@@ -243,49 +283,11 @@ function LoanForm1({
     console.log("data.bank_account_id:", data.bank_account_id);
     console.log("data object keys:", Object.keys(data));
 
-    // ADD THIS: Find and set the main bank_account_id from bank_name
-    if (data.bank_name) {
-      console.log("Looking for bank with name:", data.bank_name);
-      console.log("All banks:", banks);
-
-      // Try to find by bank_branch first, then by name
-      const mainBank = banks.find(
-        (b) => b.bank_branch === data.bank_name || b.name === data.bank_name
-      );
-
+    // Resolve main bank_account_id from bank_name
+    if (data.bank_name && !data.bank_account_id) {
+      const mainBank = banks.find((b) => b.name === data.bank_name);
       if (mainBank) {
         data.bank_account_id = mainBank.id;
-        console.log(
-          "Set main bank_account_id:",
-          mainBank.id,
-          "for bank:",
-          data.bank_name
-        );
-      } else {
-        console.error("Could not find bank for:", data.bank_name);
-        console.error(
-          "Available banks:",
-          banks.map((b) => ({ id: b.id, name: b.name, branch: b.bank_branch }))
-        );
-      }
-    } else {
-      console.log("NO BANK_NAME FOUND! data.bank_name is:", data.bank_name);
-    }
-
-    // ADD THIS: Find and set the main bank_account_id from bank_name
-    if (data.bank_name) {
-      const mainBank = banks.find(
-        (b) =>
-          b.bank_branch === data.bank_name || b.bank_name === data.bank_name
-      );
-      if (mainBank) {
-        data.bank_account_id = mainBank.id;
-        console.log(
-          "Set main bank_account_id:",
-          mainBank.id,
-          "for bank:",
-          data.bank_name
-        );
       } else {
         console.error("Could not find bank for:", data.bank_name);
       }
@@ -303,7 +305,7 @@ function LoanForm1({
         "  item.bank_name:",
         item.bank_name,
         "type:",
-        typeof item.bank_name
+        typeof item.bank_name,
       );
 
       // bank_name now contains the bank ID (number), use it directly
@@ -311,15 +313,10 @@ function LoanForm1({
         item = { ...item, bank_account_id: item.bank_name };
         console.log("  Set bank_account_id from number:", item.bank_account_id);
       } else if (typeof item.bank_name === "string") {
-        console.log("  bank_name is string, searching for match...");
-        // Fallback for old data format (string bank_branch)
-        for (const b of banks) {
-          if (item.bank_name === b.bank_branch) {
-            item = { ...item, bank_account_id: b.id };
-            console.log("  Found match! Set bank_account_id:", b.id);
-            break;
-          }
-        }
+        const matched = banks.find(
+          (b) => b.name === item.bank_name, // ← match on .name
+        );
+        if (matched) item = { ...item, bank_account_id: matched.id };
       }
 
       if (item.check_date)
@@ -471,7 +468,7 @@ function LoanForm1({
           principal: detail.principal || detail.monthly_principal,
           net_proceeds: detail.net_proceeds || 0,
           check_date: detail.check_date ? dayjs(detail.check_date) : null,
-        })
+        }),
       );
 
       setRows(formattedDetails);
@@ -516,12 +513,34 @@ function LoanForm1({
   // }, [isEdit, loanInitialValue]);
 
   const handleLoanDetails = async () => {
-    console.log(210, formValue);
+    const exemptCategories = ["ONE SHOT", "LOAN LINE"];
+    const isExempt = exemptCategories.some((cat) =>
+      formValue.loan_category?.toUpperCase().includes(cat),
+    );
+
+    if (
+      !isExempt &&
+      (!formValue.loan_details || formValue.loan_details.length === 0)
+    ) {
+      toast.error(
+        "Loan details are required for TERM LOAN. Please add at least one payment schedule.",
+        {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "colored",
+        },
+      );
+      return;
+    }
+
     try {
       loanDetailsSchema.validateSync(formValue, { abortEarly: false });
     } catch (err) {
-      const errors = err.inner;
-
+      const errors = err.inner || [];
       const error = errors.reduce((acc, cur) => {
         const path = cur.path;
         if (!path.includes(".")) {
@@ -539,7 +558,7 @@ function LoanForm1({
     if (formValue.deduction.length > 0)
       total = formValue.deduction.reduce(
         (acc, curr) => acc - curr.amount,
-        formValue.principal_amount
+        formValue.principal_amount,
       );
 
     return total;
@@ -659,7 +678,7 @@ function LoanForm1({
 
                 const voucherHTML = ejs.render(
                   voucherHTMLTemplate,
-                  templateData
+                  templateData,
                 );
 
                 if (voucherWindow) {
@@ -688,7 +707,9 @@ function LoanForm1({
 export function PreviewLabel({ label, value }) {
   return (
     <Box>
-      <StyledLabel sx={{ color: "ghostwhite", textAlign: 'left' }}>{value}</StyledLabel>
+      <StyledLabel sx={{ color: "ghostwhite", textAlign: "left" }}>
+        {value}
+      </StyledLabel>
       <Typography
         style={{
           letterSpacing: "1px",
@@ -708,7 +729,6 @@ const StyledLabel = styled("div")({
   fontWeight: "bold",
   letterSpacing: "1.5px",
   textAlign: "center",
-
 });
 
 export default LoanForm1;
