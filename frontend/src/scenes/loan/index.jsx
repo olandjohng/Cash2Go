@@ -55,7 +55,7 @@ function reducer(state, action) {
       return state.map((loan) =>
         loan.loan_header_id === action.loan.loan_header_id
           ? { ...loan, ...action.loan }
-          : loan
+          : loan,
       );
     case "RENEW":
       const updateLoan = state.map((v) => {
@@ -468,7 +468,7 @@ export default function Loan() {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
 
       if (response.data.success) {
@@ -518,6 +518,7 @@ export default function Loan() {
       console.log("✅ Collaterals:", collateralData.length);
       console.log("✅ Facilities:", facilityData.length);
       console.log("✅ Banks:", banksData.length);
+      console.log("Bank sample:", banksData[0]);
       console.log("✅ Categories:", categoryData.length);
       console.log("✅ Deductions:", deductionData.length);
       console.log("✅ Account Titles:", accountTitleData.length);
