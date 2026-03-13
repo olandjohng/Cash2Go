@@ -243,15 +243,10 @@ function LoanForm1({
       !isExempt &&
       (!formValue.loan_details || formValue.loan_details.length === 0)
     ) {
-      toast.error(
-        "Cannot save: Loan details are required for this loan category.",
-        {
-          position: "top-right",
-          autoClose: 5000,
-          theme: "colored",
-        },
+      const proceed = window.confirm(
+        "No loan payment schedule added. Do you still want to save?",
       );
-      return;
+      if (!proceed) return;
     }
 
     console.log("=== handleSubmit Debug - START ===");
@@ -522,8 +517,8 @@ function LoanForm1({
       !isExempt &&
       (!formValue.loan_details || formValue.loan_details.length === 0)
     ) {
-      toast.error(
-        "Loan details are required for TERM LOAN. Please add at least one payment schedule.",
+      toast.warning(
+        "No payment schedule added. You may still proceed but consider adding loan details.",
         {
           position: "top-right",
           autoClose: 5000,
@@ -534,7 +529,7 @@ function LoanForm1({
           theme: "colored",
         },
       );
-      return;
+      // No return — user can still advance to next step
     }
 
     try {
