@@ -530,7 +530,6 @@ function LoanForm1({
         },
       );
       // No return — user can still advance to next step
-      return;
     }
 
     try {
