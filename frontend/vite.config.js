@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        target: "https://cash2go-api.onrender.com",
         changeOrigin: true,
       },
     },
