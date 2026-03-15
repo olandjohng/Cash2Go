@@ -49,37 +49,18 @@ export const loanRequirementSchema = yup.object({
   loan_facility: yup.string().required("loan facilities is required"),
 });
 
-export const loanDetailsSchema = yup
-  .object({
-    principal_amount: yup.number().required().moreThan(0),
-    interest_rate: yup.number().required().moreThan(0),
-    loan_details: yup.array(
-      yup.object({
-        dueDate: yup.date().required(),
-        bank_name: yup.string().required(),
-        interest: yup.number().positive().moreThan(0),
-        amortization: yup.number().positive().moreThan(0),
-      }),
-    ),
-  })
-  .test(
-    "loan-details-required",
-    "Loan details are required for this loan category",
-    function (values) {
-      const { loan_category, loan_details } = values;
-      const exemptCategories = ["ONE SHOT", "LOAN LINE"];
-      const isExempt = exemptCategories.some((cat) =>
-        loan_category?.toUpperCase().includes(cat),
-      );
-      if (!isExempt && (!loan_details || loan_details.length === 0)) {
-        return this.createError({
-          path: "loan_details",
-          message: "Loan details are required for this loan category",
-        });
-      }
-      return true;
-    },
-  );
+export const loanDetailsSchema = yup.object({
+  principal_amount: yup.number().required().moreThan(0),
+  interest_rate: yup.number().required().moreThan(0),
+  loan_details: yup.array(
+    yup.object({
+      dueDate: yup.date().required(),
+      bank_name: yup.string().required(),
+      interest: yup.number().positive().moreThan(0),
+      amortization: yup.number().positive().moreThan(0),
+    }),
+  ),
+});
 
 export const deductionSchema = yup.object({
   deduction: yup.array(
