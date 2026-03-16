@@ -5,7 +5,11 @@ import {
   Chip,
   Grid,
   TextField,
+  Button,
+  IconButton,
+  Typography,
 } from "@mui/material";
+import { RemoveCircleOutline } from "@mui/icons-material";
 import { useContext, useEffect, useRef, useState } from "react";
 import { ComboBox, LoanFormContext, TextInput } from "./LoanForm1";
 import { DatePicker } from "@mui/x-date-pickers";
@@ -242,62 +246,168 @@ export default function LoanRequirementsForm({
           }}
         />
       </Grid>
-      <Grid item style={{ display: "flex" }}>
-        <Checkbox
-          style={{ color: "white" }}
-          checked={formValue.has_second_check}
-          onChange={(e, checked) => {
-            setHasSecondCheck(checked);
-            setFormValue((old) => ({ ...old, has_second_check: checked }));
+      {/* Add Bank Button */}
+      <Grid item xs={12}>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => {
+            if (!formValue.has_second_check) {
+              setFormValue((old) => ({ ...old, has_second_check: true }));
+            } else if (!formValue.has_third_check) {
+              setFormValue((old) => ({ ...old, has_third_check: true }));
+            }
           }}
-        />
+          disabled={formValue.has_second_check && formValue.has_third_check}
+          sx={{ mt: 1, color: "white", borderColor: "white" }}
+        >
+          + Add Bank
+        </Button>
       </Grid>
-      <Grid item xs={2}>
-        <ComboBox
-          disabled={!formValue.has_second_check}
-          label="Bank"
-          inputChange={(fields, values) => handleComboBoxChange(fields, values)}
-          value={formValue.bank_name_2}
-          options={banks}
-          idfield="bank_account_id_2"
-          getOptionLabel={(option) => option.name || "" || option}
-          renderOption={(props, option) => {
-            if (option.owner) {
-              return (
+
+      {/* Bank 2 Fields */}
+      {formValue.has_second_check && (
+        <>
+          <Grid item xs={12}>
+            <Typography
+              variant="caption"
+              sx={{ color: "grey.400", fontStyle: "italic" }}
+            >
+              Bank 2
+            </Typography>
+          </Grid>
+          <Grid item xs={2}>
+            <ComboBox
+              label="Bank"
+              inputChange={(fields, values) =>
+                handleComboBoxChange(fields, values)
+              }
+              value={formValue.bank_name_2}
+              options={banks}
+              idfield="bank_account_id_2"
+              getOptionLabel={(option) => option.name || "" || option}
+              renderOption={(props, option) => (
                 <Box {...props} component="li" key={option.id} id={option.id}>
                   {option.name}
                 </Box>
-              );
-            }
-          }}
-          nameField="bank_name_2"
-        />
-      </Grid>
+              )}
+              nameField="bank_name_2"
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextInput
+              value={formValue.check_number_2}
+              label="Check Number"
+              name="check_number_2"
+              change={(e, field) => handleTextInputChange(e, field)}
+            />
+          </Grid>
+          <Grid item xs={3}>
+            <DatePicker
+              label="Check Date"
+              name="check_date_2"
+              value={
+                formValue.check_date_2 ? dayjs(formValue.check_date_2) : null
+              }
+              onChange={(val) => {
+                setValidationError(null);
+                if (val) setFormValue((old) => ({ ...old, check_date_2: val }));
+              }}
+            />
+          </Grid>
+          <Grid item xs={1} sx={{ display: "flex", alignItems: "center" }}>
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() =>
+                setFormValue((old) => ({
+                  ...old,
+                  has_second_check: false,
+                  has_third_check: false,
+                  bank_name_2: "",
+                  check_number_2: "",
+                  check_date_2: null,
+                  bank_name_3: "",
+                  check_number_3: "",
+                  check_date_3: null,
+                }))
+              }
+            >
+              <RemoveCircleOutline />
+            </IconButton>
+          </Grid>
+        </>
+      )}
 
-      <Grid item xs={6}>
-        <TextInput
-          disabled={!formValue.has_second_check}
-          value={formValue.check_number_2}
-          label="Check Number"
-          name="check_number_2"
-          change={(e, field) => handleTextInputChange(e, field)}
-        />
-      </Grid>
-
-      <Grid item xs="auto">
-        <DatePicker
-          disabled={!formValue.has_second_check}
-          label="Check Date"
-          name="check_date_2"
-          value={formValue.check_date_2 ? dayjs(formValue.check_date_2) : null}
-          onChange={(val) => {
-            setValidationError(null);
-            if (val) {
-              setFormValue((old) => ({ ...old, check_date_2: val }));
-            }
-          }}
-        />
-      </Grid>
+      {/* Bank 3 Fields */}
+      {formValue.has_third_check && (
+        <>
+          <Grid item xs={12}>
+            <Typography
+              variant="caption"
+              sx={{ color: "grey.400", fontStyle: "italic" }}
+            >
+              Bank 3
+            </Typography>
+          </Grid>
+          <Grid item xs={2}>
+            <ComboBox
+              label="Bank"
+              inputChange={(fields, values) =>
+                handleComboBoxChange(fields, values)
+              }
+              value={formValue.bank_name_3}
+              options={banks}
+              idfield="bank_account_id_3"
+              getOptionLabel={(option) => option.name || "" || option}
+              renderOption={(props, option) => (
+                <Box {...props} component="li" key={option.id} id={option.id}>
+                  {option.name}
+                </Box>
+              )}
+              nameField="bank_name_3"
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextInput
+              value={formValue.check_number_3}
+              label="Check Number"
+              name="check_number_3"
+              change={(e, field) => handleTextInputChange(e, field)}
+            />
+          </Grid>
+          <Grid item xs={3}>
+            <DatePicker
+              label="Check Date"
+              name="check_date_3"
+              value={
+                formValue.check_date_3 ? dayjs(formValue.check_date_3) : null
+              }
+              onChange={(val) => {
+                setValidationError(null);
+                if (val) setFormValue((old) => ({ ...old, check_date_3: val }));
+              }}
+            />
+          </Grid>
+          <Grid item xs={1} sx={{ display: "flex", alignItems: "center" }}>
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() =>
+                setFormValue((old) => ({
+                  ...old,
+                  has_third_check: false,
+                  bank_name_3: "",
+                  check_number_3: "",
+                  check_date_3: null,
+                }))
+              }
+            >
+              <RemoveCircleOutline />
+            </IconButton>
+          </Grid>
+        </>
+      )}
 
       <Grid item xs={4}>
         <ComboBox
