@@ -237,22 +237,18 @@ function LoanForm1({
 
     let data;
 
-    if (formValue.check_date_2) {
-      data = {
-        ...formValue,
-        check_date: dayjs(formValue.check_date).format(),
-        date_granted: dayjs(formValue.date_granted).format(), // ← wrap in dayjs()
-        transaction_date: dayjs(formValue.transaction_date).format(),
-        check_date_2: dayjs(formValue.check_date_2).format(), // ← wrap in dayjs()
-      };
-    } else {
-      data = {
-        ...formValue,
-        check_date: dayjs(formValue.check_date).format(),
-        date_granted: dayjs(formValue.date_granted).format(), // ← wrap in dayjs()
-        transaction_date: dayjs(formValue.transaction_date).format(),
-      };
-    }
+    data = {
+      ...formValue,
+      check_date: dayjs(formValue.check_date).format(),
+      date_granted: dayjs(formValue.date_granted).format(),
+      transaction_date: dayjs(formValue.transaction_date).format(),
+      ...(formValue.check_date_2 && {
+        check_date_2: dayjs(formValue.check_date_2).format(),
+      }),
+      ...(formValue.check_date_3 && {
+        check_date_3: dayjs(formValue.check_date_3).format(),
+      }),
+    };
 
     // Debug what's in data
     console.log("data.bank_name:", data.bank_name);
@@ -267,6 +263,20 @@ function LoanForm1({
       } else {
         console.error("Could not find bank for:", data.bank_name);
       }
+    }
+
+    // Resolve bank_account_id_2
+    if (data.bank_name_2 && !data.bank_account_id_2) {
+      const bank2 = banks.find((b) => b.name === data.bank_name_2);
+      console.log("bank2 lookup - name:", data.bank_name_2, "found:", bank2);
+      if (bank2) data.bank_account_id_2 = bank2.id;
+    }
+
+    // Resolve bank_account_id_3
+    if (data.bank_name_3 && !data.bank_account_id_3) {
+      const bank3 = banks.find((b) => b.name === data.bank_name_3);
+      console.log("bank3 lookup - name:", data.bank_name_3, "found:", bank3);
+      if (bank3) data.bank_account_id_3 = bank3.id;
     }
 
     const mapLoanDetails = data.loan_details.map((v) => {
@@ -312,6 +322,18 @@ function LoanForm1({
     console.log("=== handleSubmit Debug - BEFORE FETCH ===");
     console.log("Mapped loan_details:", mapLoanDetails);
     console.log("Final data being sent:", JSON.stringify(data, null, 2));
+
+    // Bank debug
+    console.log("=== BANK DEBUG ===");
+    console.log("has_second_check:", data.has_second_check);
+    console.log("has_third_check:", data.has_third_check);
+    console.log("bank_name_2:", data.bank_name_2);
+    console.log("bank_account_id_2:", data.bank_account_id_2);
+    console.log("bank_name_3:", data.bank_name_3);
+    console.log("bank_account_id_3:", data.bank_account_id_3);
+    console.log("check_number_3:", data.check_number_3);
+    console.log("check_date_3:", data.check_date_3);
+    console.log("Banks list sample:", banks.slice(0, 3));
 
     // Determine URL and method based on edit mode
     const url = isEdit ? `/api/loans/${loanId}` : "/api/loans";
@@ -470,8 +492,12 @@ function LoanForm1({
         check_date_2: loanInitialValue.check_date_2
           ? dayjs(loanInitialValue.check_date_2)
           : null,
+        check_date_3: loanInitialValue.check_date_3
+          ? dayjs(loanInitialValue.check_date_3)
+          : null,
+        has_third_check: loanInitialValue.has_third_check || false,
         transaction_date: loanInitialValue.transaction_date,
-        isCash: loanInitialValue.isCash || { value: false, pr_number: "" }, // Ensure isCash exists
+        isCash: loanInitialValue.isCash || { value: false, pr_number: "" },
         remarks: loanInitialValue.remarks || "",
       }));
     }
@@ -640,10 +666,17 @@ function LoanForm1({
                   voucherNumber: formValue.voucher_number,
                   logo: c2gLogo,
                   has_second_check: formValue.has_second_check,
-                  check_details_2: `${formValue.bank_name_2}-${formValue.check_number_2}`,
-                  check_date_2: formValue.has_second_check
-                    ? dayjs(formValue.check_date_2).format("MM-DD-YYYY")
-                    : null,
+                  check_details_2: `${formValue.bank_name_2 || ""}-${formValue.check_number_2 || ""}`,
+                  check_date_2:
+                    formValue.has_second_check && formValue.check_date_2
+                      ? dayjs(formValue.check_date_2).format("MM-DD-YYYY")
+                      : null,
+                  has_third_check: formValue.has_third_check,
+                  check_details_3: `${formValue.bank_name_3 || ""}-${formValue.check_number_3 || ""}`,
+                  check_date_3:
+                    formValue.has_third_check && formValue.check_date_3
+                      ? dayjs(formValue.check_date_3).format("MM-DD-YYYY")
+                      : null,
                   prepared_by: formValue.prepared_by,
                   approved_by: formValue.approved_by,
                   checked_by: formValue.checked_by,

@@ -544,6 +544,12 @@ loanRouter.get("/edit/:id", async (req, res) => {
       bank_name_2: loanHeader.bank_name_2,
       check_number_2: loanHeader.check_number_2,
       check_date_2: loanHeader.check_date_2,
+      bank_account_id_2: loanHeader.bank_account_id_2,
+      has_third_check: loanHeader.has_third_check || false,
+      bank_name_3: loanHeader.bank_name_3,
+      check_number_3: loanHeader.check_number_3,
+      check_date_3: loanHeader.check_date_3,
+      bank_account_id_3: loanHeader.bank_account_id_3,
       loan_details: loanDetails.map((detail) => ({
         loan_detail_id: detail.loan_detail_id,
         due_date: detail.due_date,
@@ -664,6 +670,16 @@ loanRouter.put("/:id", async (req, res) => {
           bank_name_2: loanData.bank_name_2,
           check_number_2: loanData.check_number_2,
           check_date_2: loanData.check_date_2,
+          bank_account_id_2: loanData.bank_account_id_2
+            ? Number(loanData.bank_account_id_2)
+            : null,
+          has_third_check: loanData.has_third_check,
+          bank_name_3: loanData.bank_name_3,
+          check_number_3: loanData.check_number_3,
+          check_date_3: loanData.check_date_3,
+          bank_account_id_3: loanData.bank_account_id_3
+            ? Number(loanData.bank_account_id_3)
+            : null,
         });
 
       // Delete and recreate loan details
@@ -822,6 +838,7 @@ loanRouter.post("/", async (req, res) => {
               // date_granted : dayjs(req.body.date_granted).format('YYYY-MM-DD'),
               date_granted: req.body.date_granted,
               has_second_check: false,
+              has_third_check: false,
               check_issued_name: req.body.check_issued_name,
               voucher_number: req.body.voucher_number,
               total_interest: totalInterest,
@@ -864,6 +881,16 @@ loanRouter.post("/", async (req, res) => {
               bank_name_2: req.body.bank_name_2,
               check_number_2: req.body.check_number_2,
               check_date_2: req.body.check_date_2,
+              bank_account_id_2: req.body.bank_account_id_2
+                ? Number(req.body.bank_account_id_2)
+                : null,
+              has_third_check: req.body.has_third_check || false,
+              bank_name_3: req.body.bank_name_3 || null,
+              check_number_3: req.body.check_number_3 || null,
+              check_date_3: req.body.check_date_3 || null,
+              bank_account_id_3: req.body.bank_account_id_3
+                ? Number(req.body.bank_account_id_3)
+                : null,
               term: term,
               status_code: LoanStatus.ONGOING,
               renewal_id: 0,
