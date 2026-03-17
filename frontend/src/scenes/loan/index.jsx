@@ -164,6 +164,9 @@ const getVoucher = async (id) => {
       logo: c2gImage,
       date: dayjs(voucherJSON.date).format("MM-DD-YYYY"),
       check_date: dayjs(voucherJSON.check_date).format("MM-DD-YYYY"),
+      has_third_check: voucherJSON.has_third_check || false,
+      check_details_3: voucherJSON.check_details_3 || null,
+      check_date_3: voucherJSON.check_date_3 || null,
     };
 
     const render = ejs.render(voucherTemplateHTML, format);
