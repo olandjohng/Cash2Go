@@ -135,6 +135,17 @@ loanRouter.get("/voucher/:id", async (req, res) => {
       bankName2 = bank2?.bank_name;
     }
 
+    // Handle third check
+    let bankName3 = null;
+    if (loanHeader.has_third_check && loanHeader.bank_account_id_3) {
+      const bank3 = await builder
+        .select("bank_name")
+        .from("bank_accounttbl")
+        .where("bank_account_id", loanHeader.bank_account_id_3)
+        .first();
+      bankName3 = bank3?.bank_name;
+    }
+
     const voucherInfo = {
       details: details,
       prepared_by: loanHeader.prepared_by,
@@ -149,6 +160,14 @@ loanRouter.get("/voucher/:id", async (req, res) => {
           ? dayjs(loanHeader.check_date_2).format("MM-DD-YYYY")
           : null,
       has_second_check: loanHeader.has_second_check || false,
+      has_third_check: loanHeader.has_third_check || false,
+      check_details_3: loanHeader.has_third_check
+        ? `${bankName3 || ""}-${loanHeader.check_number_3 || ""}`
+        : null,
+      check_date_3:
+        loanHeader.has_third_check && loanHeader.check_date_3
+          ? dayjs(loanHeader.check_date_3).format("MM-DD-YYYY")
+          : null,
       check_date: loanHeader.check_date,
       borrower: fullname,
       date: dayjs(loanHeader.date_granted).format("MM-DD-YYYY"),
