@@ -71,7 +71,7 @@ export default function ExpensesPage() {
   const { data: banks } = useSwr("/api/expenses/banks", fetcher);
   const { data: expenses_title } = useSwr(
     "/api/account-title/expenses",
-    fetcher
+    fetcher,
   );
   const { data: employee } = useSwr("/api/employee", fetcher);
   const { data: suppliers } = useSwr("/api/expenses/suppliers", fetcher);
@@ -83,15 +83,15 @@ export default function ExpensesPage() {
 
   const { trigger: createExpenses } = useSWRMutation(
     "/api/expenses",
-    saveExpenses
+    saveExpenses,
   );
   const { trigger: getExpensesVoucher } = useSWRMutation(
     "/api/expenses",
-    fetchDetails
+    fetchDetails,
   );
   const { trigger: getEditExpensesVocher } = useSWRMutation(
     "/api/expenses/edit",
-    fetchDetails
+    fetchDetails,
   );
 
   // Function to fetch and set voucher number
@@ -151,7 +151,11 @@ export default function ExpensesPage() {
         remarks: response.remarks || "",
         voucher_details: response.details || [],
         has_second_check: false,
-        check_details_2: "",
+        check_details_2: null,
+        check_date_2: null,
+        has_third_check: false,
+        check_details_3: null,
+        check_date_3: null,
         ...(response.check_date && {
           check_date: dayjs(response.check_date).format("MM-DD-YYYY"),
         }),
