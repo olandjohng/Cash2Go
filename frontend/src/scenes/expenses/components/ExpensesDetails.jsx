@@ -48,12 +48,12 @@ export default function ExpensesDetails({
       <Grid container spacing="15px">
         <Grid item xs={3}>
           <TextField
-            disabled={hasTicketNumber || isLoading}
+            disabled={isLoading}
             label="VOUCHER NUMBER"
             fullWidth
             name="voucherNumber"
             onChange={formik.handleChange}
-            value={formik.values.voucherNumber || ""} // Added fallback to empty string
+            value={formik.values.voucherNumber || ""}
             helperText={isLoading ? "Generating..." : ""}
           />
         </Grid>

@@ -288,13 +288,13 @@ export default function ExpensesPage() {
         approved_by: data.approved_by,
         bank: data.bank.name,
         bank_id: data.bank_id,
-        check_date: dayjs(data.check_date).format("MM-DD-YYYY"), // ✅ Format for varchar
+        check_date: dayjs(data.check_date).format("MM-DD-YYYY"),
         check_number: data.check_number,
         checked_by: data.checked_by,
-        date: dayjs(data.date).format("YYYY-MM-DD"), // ✅ Correct for date type
+        date: dayjs(data.date).format("YYYY-MM-DD"),
         prepared_by: data.prepared_by,
         supplier_id: data.supplier_id,
-        voucher_number: data.voucherNumber,
+        voucher_number: data.voucherNumber, // already uses voucherNumber so this is fine
         remarks: data.remarks,
       },
       voucher_details: data.voucher_details,
